@@ -1,0 +1,95 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,xml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+##############################################
+# 命名规范（基于 .NET/C# 官方主流约定）
+##############################################
+
+# 接口 -> IPascalCase
+dotnet_naming_rule.interfaces_should_be_ipascalcase.severity = warning
+dotnet_naming_rule.interfaces_should_be_ipascalcase.symbols = interface_symbol
+dotnet_naming_rule.interfaces_should_be_ipascalcase.style = ipascalcase_style
+dotnet_naming_symbols.interface_symbol.applicable_kinds = interface
+dotnet_naming_style.ipascalcase_style.required_prefix = I
+dotnet_naming_style.ipascalcase_style.capitalization = pascal_case
+
+# 类型（class/struct/enum/delegate） -> PascalCase
+dotnet_naming_rule.types_should_be_pascalcase.severity = suggestion
+dotnet_naming_rule.types_should_be_pascalcase.symbols = type_symbol
+dotnet_naming_rule.types_should_be_pascalcase.style = pascalcase_style
+dotnet_naming_symbols.type_symbol.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_style.pascalcase_style.capitalization = pascal_case
+
+# 公开/受保护成员（方法、属性、事件、公开字段） -> PascalCase
+dotnet_naming_rule.members_should_be_pascalcase.severity = suggestion
+dotnet_naming_rule.members_should_be_pascalcase.symbols = member_symbol
+dotnet_naming_rule.members_should_be_pascalcase.style = pascalcase_style
+dotnet_naming_symbols.member_symbol.applicable_kinds = method, property, event, field
+dotnet_naming_symbols.member_symbol.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+
+# 私有/内部字段 -> _camelCase
+dotnet_naming_rule.private_fields_should_be_camelcase.severity = suggestion
+dotnet_naming_rule.private_fields_should_be_camelcase.symbols = private_field_symbol
+dotnet_naming_rule.private_fields_should_be_camelcase.style = underscore_camelcase_style
+dotnet_naming_symbols.private_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbol.applicable_accessibilities = private
+dotnet_naming_style.underscore_camelcase_style.required_prefix = _
+dotnet_naming_style.underscore_camelcase_style.capitalization = camel_case
+
+# 常量（const） -> PascalCase
+dotnet_naming_rule.constants_should_be_pascalcase.severity = suggestion
+dotnet_naming_rule.constants_should_be_pascalcase.symbols = constant_symbol
+dotnet_naming_rule.constants_should_be_pascalcase.style = pascalcase_style
+dotnet_naming_symbols.constant_symbol.applicable_kinds = field
+dotnet_naming_symbols.constant_symbol.required_modifiers = const
+
+# 参数、局部变量 -> camelCase
+dotnet_naming_rule.locals_should_be_camelcase.severity = suggestion
+dotnet_naming_rule.locals_should_be_camelcase.symbols = locals_symbol
+dotnet_naming_rule.locals_should_be_camelcase.style = camelcase_style
+dotnet_naming_symbols.locals_symbol.applicable_kinds = parameter, local
+dotnet_naming_style.camelcase_style.capitalization = camel_case
+
+# 类型参数（泛型） -> TPascalCase
+dotnet_naming_rule.type_parameters_should_be_tpascalcase.severity = suggestion
+dotnet_naming_rule.type_parameters_should_be_tpascalcase.symbols = type_parameter_symbol
+dotnet_naming_rule.type_parameters_should_be_tpascalcase.style = tpascalcase_style
+dotnet_naming_symbols.type_parameter_symbol.applicable_kinds = type_parameter
+dotnet_naming_style.tpascalcase_style.required_prefix = T
+dotnet_naming_style.tpascalcase_style.capitalization = pascal_case
+
+##############################################
+# C# / Unity 编码最佳实践（IDE 建议，不强制阻断编译）
+##############################################
+
+# 语言特性偏好
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# 显式访问修饰符（Unity 类字段容易漏写 private/public，显式声明更安全）
+dotnet_style_require_accessibility_modifiers = always:suggestion
+
+# 避免未使用的 using / 变量 / 生命周期方法（Unity 项目里很常见的技术债）
+dotnet_diagnostic.CS0169.severity = warning
+dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.UNITY0001.severity = warning

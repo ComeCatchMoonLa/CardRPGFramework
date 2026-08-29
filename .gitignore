@@ -1,0 +1,84 @@
+# ==================================================
+# Unity generated files
+# ==================================================
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Memory captures / recordings
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Crash reports
+sysinfo.txt
+mono_crash.*
+
+
+# ==================================================
+# IDE / Editor
+# ==================================================
+
+.vs/
+.idea/
+
+# Rider user settings
+*.DotSettings.user
+
+# Visual Studio / Rider generated project files
+*.csproj
+*.sln
+*.slnx
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+
+# ==================================================
+# OS
+# ==================================================
+
+.DS_Store
+Thumbs.db
+
+
+# ==================================================
+# Build output
+# ==================================================
+
+*.apk
+*.aab
+*.app
+*.exe
+
+*.unitypackage
+
+
+# ==================================================
+# Temporary files
+# ==================================================
+
+*.tmp
+*.temp
+*.log
+*.swp
+
+
+# ==================================================
+# Unity Addressables generated files
+# ==================================================
+
+/ServerData/
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+
+# ==================================================
+# JetBrains generated files
+# ==================================================
+
+/[Aa]ssets/Plugins/Editor/JetBrains*

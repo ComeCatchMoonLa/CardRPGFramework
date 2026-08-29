@@ -1,0 +1,19 @@
+---
+description: 通用 C# / Unity 编码规范（适用于任何 Unity C# 项目）
+globs: **/*.cs
+alwaysApply: false
+---
+
+# 高价值：会导致真实 bug/性能问题，务必遵守
+
+- `GetComponent`/`Find`/`Camera.main`/`FindObjectOfType` 只在 `Awake`/`Start` 调用一次并缓存到字段，禁止在 `Update`/`FixedUpdate` 等每帧逻辑里重复调用——这是最常见也最容易被忽略的性能坑。
+- 在 `OnEnable`/`OnDisable` 或 `OnDestroy` 中成对订阅/取消订阅事件，避免对象销毁后仍持有引用导致的内存泄漏或空引用异常。
+- 每帧执行的代码（`Update` 等）避免 LINQ、字符串拼接、`new` 集合等触发 GC 分配的写法；频繁创建/销毁的对象（战斗特效、子弹等）优先用对象池而不是直接 `Instantiate`/`Destroy`（如果当前 Phase 还用不到对象池，先不引入，等真正出现性能问题再加）。
+- 不要保留内容为空的 Unity 生命周期方法（如空的 `Update() {}`），直接删除。
+
+# 低价值：保持一致即可，不必反复纠结
+
+命名/风格写错不是 bug，只是不够整齐，按下面的约定顺手写对就行，不需要每次生成代码后额外花一轮检查：
+
+- 类型/接口 PascalCase（接口 `I` 前缀）；公开成员 PascalCase；私有字段 `_camelCase`；参数/局部变量 camelCase；异步方法 `Async` 结尾。
+- 4 空格缩进；显式写访问修饰符；`TryGetComponent` 优于 "GetComponent + 判空"；`[SerializeField] private` 优于裸 `public` 字段。
