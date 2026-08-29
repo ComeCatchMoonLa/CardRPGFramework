@@ -10,6 +10,10 @@
 - 当前任务：[`Docs/Phase0-TODO.md`](Docs/Phase0-TODO.md)
 - 架构思路：[`Docs/设计思路.MD`](Docs/设计思路.MD)
 
+## 开发工作流
+
+个人开发阶段采用简单的 trunk-based 工作流，只维护 `main` 分支并保持小步提交；暂不创建 `dev` 分支。
+
 ## 运行方式
 
 1. 使用 Unity Hub 安装 `ProjectSettings/ProjectVersion.txt` 中指定的 Unity 版本。
