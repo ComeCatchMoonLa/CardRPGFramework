@@ -1,0 +1,9 @@
+namespace CardRPGFramework.Core.Cards
+{
+    public enum CardType
+    {
+        Attack,
+        Defend,
+        Heal
+    }
+}
