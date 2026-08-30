@@ -98,10 +98,11 @@ BattleEnd
 包含：
 
 * 回合系统
-* 行动队列
 * 卡牌使用
 * 伤害计算
 * 胜负判断
+
+> 修订：行动队列移至 Phase 2 与 Effect System 同期引入。Phase 1 全部效果同步结算，队列没有真实客户；取舍理由见 `Docs/Phase1-技术设计.md` 第 7 节。
 
 技术体现：
 
@@ -123,7 +124,8 @@ BattleEnd
 * 攻击
 * 防御
 * 治疗
-* Buff
+
+> 修订：Buff 卡移至 Phase 2，避免临时 Buff 规则与 Buff System 重复实现；见 `Docs/Phase1-游戏设计.md` 第 5 节。
 
 结构：
 
@@ -148,6 +150,12 @@ Effect
 ## Phase 2：框架化（2周）
 
 这是拉开和普通 Demo 差距的阶段。
+
+---
+
+### Action Queue（行动队列）
+
+Effect System 的执行载体：出牌、敌人行动、Buff/遗物触发全部生成 Action 入队按序结算。组合效果、触发链和动画等待是队列的第一批真实客户，因此与 Effect System 同期引入。杀戮尖塔原版同构：`AbstractGameAction` + `GameActionManager`，见 `Docs/杀戮尖塔机制研究.md`。
 
 ---
 
