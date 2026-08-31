@@ -87,7 +87,7 @@
 - [x] 更新 README：运行方式、当前功能和界面截图。（截图待补，其余已更新）
 - [x] 记录 Phase 1 实际架构、已知限制和 Phase 2 输入。
 - [x] 核对没有提前实现 Effect、Buff、Rule 或全局 EventSystem。
-- [ ] 提交并推送 Phase 1 最终成果。
+- [x] 提交并推送 Phase 1 最终成果。
 
 ## 建议日程
 

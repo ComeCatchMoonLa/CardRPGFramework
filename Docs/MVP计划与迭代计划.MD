@@ -147,80 +147,15 @@ Effect
 
 ---
 
-## Phase 2：框架化（2周）
+## Phase 2：框架化（约 2 周，拆成 2a/2b/2c 三个独立可验收阶段）
 
-这是拉开和普通 Demo 差距的阶段。
+这是拉开和普通 Demo 差距的阶段。原计划把 ActionSystem/EffectSystem/BuffSystem/RuleSystem 四个系统放在同一段文档里一起做，但这个体量和 Phase 1（只做一个 `BattleSession`）明显不在一个粒度上，所以拆成三个独立阶段，每阶段一套游戏设计/技术设计/TODO 文档，结构和验收粒度对齐 Phase 1：
 
----
+- **Phase 2a：ActionSystem + EffectSystem** —— [`Docs/Phase 2a/游戏设计.md`](Phase%202a/游戏设计.md) / [`技术设计.md`](Phase%202a/技术设计.md) / [`TODO.md`](Phase%202a/TODO.md)。把出牌结算从"直接改状态"重构成"生成 Action 入队、Action 执行时调用 Effect"，玩家可见行为不变，是后两阶段的地基。杀戮尖塔原版同构：`AbstractGameAction` + `GameActionManager`，见 `Docs/杀戮尖塔机制研究.md`。
+- **Phase 2b：BuffSystem** —— [`Docs/Phase 2b/游戏设计.md`](Phase%202b/游戏设计.md) / [`技术设计.md`](Phase%202b/技术设计.md) / [`TODO.md`](Phase%202b/TODO.md)。新增力量（纯数据）、中毒（数据+触发器）两个 Buff，验证"Buff 是数据容器，部分 Buff 附带触发行为"的边界。
+- **Phase 2c：RuleSystem（你的核心优势）** —— [`Docs/Phase 2c/游戏设计.md`](Phase%202c/游戏设计.md) / [`技术设计.md`](Phase%202c/技术设计.md) / [`TODO.md`](Phase%202c/TODO.md)。新增虚弱、易伤两个 Buff 并接入 3 条具体伤害规则（力量加伤害、虚弱减伤害、易伤增伤害），证明数值计算和状态执行分离。这个方向迁移自 Roblox 项目的 RuleSystem 设计，技术体现 ★★★★★，是简历上的差异化卖点，不因为拆分而弱化。
 
-### Action Queue（行动队列）
-
-Effect System 的执行载体：出牌、敌人行动、Buff/遗物触发全部生成 Action 入队按序结算。组合效果、触发链和动画等待是队列的第一批真实客户，因此与 Effect System 同期引入。杀戮尖塔原版同构：`AbstractGameAction` + `GameActionManager`，见 `Docs/杀戮尖塔机制研究.md`。
-
----
-
-### Effect System
-
-支持：
-
-```text
-DamageEffect
-
-HealEffect
-
-ApplyBuffEffect
-
-ModifyAttributeEffect
-```
-
-体现：
-
-组合式设计。
-
----
-
-### Buff System
-
-实现：
-
-例如：
-
-* 灼烧
-* 中毒
-* 护盾
-* 增伤
-
-支持：
-
-* 持续回合
-* 触发时机
-* 移除
-
----
-
-### Rule System（你的核心优势）
-
-迁移 Roblox 设计。
-
-支持：
-
-装备/被动：
-
-例如：
-
-```text
-暴击时：
-无视30%防御
-
-生命低于30%：
-增加50%伤害
-```
-
-技术体现：
-
-★★★★★
-
-这是你的差异化。
+三个子阶段都不做通用组合能力（不建 `CompositeAction`/`ConditionalAction` 等 Action 变体，不建规则注册引擎），只做当前已确定要证明的最小内容，具体排除项见各自技术设计文档的"排除项"小节。
 
 ---
 
