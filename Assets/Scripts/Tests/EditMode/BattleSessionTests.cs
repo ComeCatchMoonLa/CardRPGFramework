@@ -205,6 +205,23 @@ namespace CardRPGFramework.Tests
         }
 
         [Test]
+        public void DrawPile_ReshufflesDiscardPile_AfterEnoughTurnsWithoutPlayingCards()
+        {
+            // 10 张牌、手牌上限 5：每回合结束弃掉整手牌，第 2 次结束回合后抽牌堆刚好耗尽，
+            // 第 3 回合开始时必须靠重洗弃牌堆才能把手牌补满。
+            var session = CreateSession(handSize: 5, deck: BuildDeck(5, 3, 2));
+            session.StartBattle();
+
+            session.TryEndPlayerTurn();
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(3, session.TurnNumber);
+            Assert.AreEqual(5, session.Hand.Count);
+            Assert.AreEqual(5, session.DrawPileCount);
+            Assert.AreEqual(0, session.DiscardPileCount);
+        }
+
+        [Test]
         public void ActionsAfterBattleEnds_AreRejected()
         {
             var session = CreateSession(enemyMaxHp: 6, deck: BuildDeck(5));

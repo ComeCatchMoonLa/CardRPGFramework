@@ -1,4 +1,8 @@
 {
 	"name": "Runtime",
-	"rootNamespace": "CardRPGFramework"
+	"rootNamespace": "CardRPGFramework",
+	"references": [
+		"Unity.TextMeshPro",
+		"UnityEngine.UI"
+	]
 }
