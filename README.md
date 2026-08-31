@@ -4,7 +4,9 @@
 
 ## 当前阶段
 
-Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一路操作到胜利或失败，Core 战斗规则、ScriptableObject 配置、Unity 表现层全部接通。下一步是规划 Phase 2（地图、奖励、Buff/Rule/Effect 等系统）。
+Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一路操作到胜利或失败，Core 战斗规则、ScriptableObject 配置、Unity 表现层全部接通。
+
+Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）已完成规划，拆分成 [Phase 2a](Docs/Phase%202a/游戏设计.md)、[Phase 2b](Docs/Phase%202b/游戏设计.md)、[Phase 2c](Docs/Phase%202c/游戏设计.md) 三个独立可验收阶段，正在按顺序实现中。
 
 **已完成**
 
@@ -28,9 +30,10 @@ Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一�
 ## 文档
 
 - 开发计划：[`Docs/MVP计划与迭代计划.MD`](Docs/MVP计划与迭代计划.MD)
-- 游戏设计：[`Docs/Phase1-游戏设计.md`](Docs/Phase1-游戏设计.md)
-- 技术设计：[`Docs/Phase1-技术设计.md`](Docs/Phase1-技术设计.md)
-- 当前任务：[`Docs/Phase1-TODO.md`](Docs/Phase1-TODO.md)
+- Phase 1（已完成）：[游戏设计](Docs/Phase%201/游戏设计.md) / [技术设计](Docs/Phase%201/技术设计.md) / [TODO](Docs/Phase%201/TODO.md)
+- Phase 2a：ActionSystem + EffectSystem —— [游戏设计](Docs/Phase%202a/游戏设计.md) / [技术设计](Docs/Phase%202a/技术设计.md) / [TODO](Docs/Phase%202a/TODO.md)
+- Phase 2b：BuffSystem —— [游戏设计](Docs/Phase%202b/游戏设计.md) / [技术设计](Docs/Phase%202b/技术设计.md) / [TODO](Docs/Phase%202b/TODO.md)
+- Phase 2c：RuleSystem —— [游戏设计](Docs/Phase%202c/游戏设计.md) / [技术设计](Docs/Phase%202c/技术设计.md) / [TODO](Docs/Phase%202c/TODO.md)
 - 架构思路：[`Docs/设计思路.MD`](Docs/设计思路.MD)
 - 杀戮尖塔机制研究（Phase 2+ 设计输入）：[`Docs/杀戮尖塔机制研究.md`](Docs/杀戮尖塔机制研究.md)
 - AI 协作分工：[`Docs/AI协作分工.md`](Docs/AI协作分工.md)
@@ -71,7 +74,7 @@ Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一�
 ## 已知限制与 Phase 2 输入
 
 - **中文字体**：TMP 默认字体 `LiberationSans SDF` 不含中文字形，目前是否已配置 Fallback 字体资产取决于本地环境；如果界面显示中文方块/警告，按 `Window → TextMeshPro → Font Asset Creator` 生成一个中文字体资产并加入 Fallback 列表（详见开发过程记录，未固化为文档）。
-- **`ResolveCard` 结算顺序**：`BattleSession.TryPlayCard` 里，效果结算发生在卡牌移入弃牌堆之前。Phase 1 的三种效果都不修改手牌/牌堆，顺序目前没有影响；以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 `handIndex` 在结算时刻的语义（另见 `Docs/Phase1-技术设计.md` 第 7 节）。
+- **`ResolveCard` 结算顺序**：`BattleSession.TryPlayCard` 里，效果结算发生在卡牌移入弃牌堆之前。Phase 1 的三种效果都不修改手牌/牌堆，顺序目前没有影响；以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 `handIndex` 在结算时刻的语义（另见 [`Docs/Phase 1/技术设计.md`](Docs/Phase%201/技术设计.md) 第 7 节）。
 - **`EnemyTurn` 是瞬时阶段**：敌人行动当前同步执行，没有独立 AI 或动画等待，`EnemyTurn` 存在时间极短、外部几乎观察不到。保留这个阶段值是为了状态机语义完整，Phase 2 接入敌人意图/AI 时可能需要拆分成真正的异步阶段。
-- **`BattleSession` 身兼多职**：战斗生命周期、回合、能量、卡牌流转、效果结算、敌人行动目前都在一个类里。当前规模下拆分收益不明显，Phase 2 如果 `ResolveCard` 随效果种类膨胀，可以考虑抽出独立的效果结算类。
+- **`BattleSession` 身兼多职**：战斗生命周期、回合、能量、卡牌流转、效果结算、敌人行动目前都在一个类里。Phase 2a 会把效果结算迁移到独立的 ActionSystem/EffectSystem，其余职责暂不拆分。
 - **Controllers/Views 无自动化测试**：`BattleController`/`BattleView` 等只做转发和展示，真正的规则逻辑都在已被覆盖的 `BattleSession`；为它们搭 PlayMode 测试基建的收益暂不成比例，可靠性依赖手动 Play 模式验收。
