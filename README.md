@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-Phase 1 进行中：可测试的纯 C# Core 基础模型已完成并通过 EditMode 测试。下一步是实现 `BattleSession` 完整战斗闭环。
+Phase 1 进行中：纯 C# Core 的战斗规则（含完整 `BattleSession` 回合循环）已完成并通过 EditMode 测试。下一步是接入 ScriptableObject 配置与 Unity 表现层。
 
 **已完成**
 
@@ -12,12 +12,14 @@ Phase 1 进行中：可测试的纯 C# Core 基础模型已完成并通过 EditM
 - `CombatantState`：生命值、格挡、治疗与边界。
 - `CardType` / `CardDefinition`：攻击、防御、治疗三种不可变卡牌定义。
 - `CardPile`：抽牌堆、手牌、弃牌堆；抽空重洗；两堆皆空时安全停止。
-- EditMode 测试覆盖伤害/格挡/治疗边界，以及抽牌、弃牌、重洗与固定种子洗牌。
+- `BattleSetup` / `BattleSession`：战斗初始化、玩家回合循环（清格挡、恢复能量、抽牌）、卡牌使用校验与能量消耗、攻击/防御/治疗结算、结束回合与敌人固定攻击、胜负判定与结束后拒绝操作。
+- EditMode 测试覆盖伤害/格挡/治疗边界、抽牌/弃牌/重洗与固定种子洗牌，以及 `BattleSession` 的合法流程与关键拒绝路径。
 
 **尚未完成（本阶段后续）**
 
-- `BattleSession` 完整回合循环与胜负判断。
-- ScriptableObject 配置、`BattleController`、最小战斗 UI。
+- ScriptableObject 配置（`CardData`、`BattleConfig`）。
+- `BattleController`：由配置创建并驱动 `BattleSession`。
+- 最小战斗 UI（`BattleView`、`CardButtonView`）。
 - 场景 Play 模式目前还不能打一场完整战斗。
 
 ## 文档
@@ -45,7 +47,7 @@ Phase 1 进行中：可测试的纯 C# Core 基础模型已完成并通过 EditM
 
 1. 打开 Unity 菜单 `Window` → `General` → `Test Runner`。
 2. 切换到 **EditMode** 页签。
-3. 点击 **Run All**。`CombatantStateTests` 与 `CardPileTests` 应全部通过。
+3. 点击 **Run All**。`CombatantStateTests`、`CardPileTests` 与 `BattleSessionTests` 应全部通过。
 
 ## 目录说明
 
