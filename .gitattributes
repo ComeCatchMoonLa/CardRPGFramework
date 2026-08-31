@@ -1,0 +1,8 @@
+# Unity/插件自带的 Shader、字体等资源文件不代表本项目的实际代码构成，
+# 标记为 vendored，避免 GitHub 语言统计把它们算作项目主要语言。
+*.shader linguist-vendored
+*.shadergraph linguist-vendored
+*.hlsl linguist-vendored
+*.cginc linguist-vendored
+*.compute linguist-vendored
+*.asset linguist-vendored
