@@ -15,7 +15,7 @@
 - [ ] 实现 `BuffState` 抽象基类（Id、Stacks、AddStacks、RemoveStacks）。
 - [ ] 实现 `IBuffTrigger`（`OnTurnStart`）。
 - [ ] 实现 `StrengthBuff`（无触发）、`PoisonBuff`（实现 `IBuffTrigger`，层数为 0 不触发，触发后层数减 1）。
-- [ ] `CombatantState` 新增 Buff 容器：`ApplyBuff`、`GetBuffStacks`、`HasBuff`、`Buffs` 只读属性、`LoseHp`（忽略格挡）。
+- [ ] `CombatantState` 新增 Buff 容器：`ApplyBuff`、`GetBuffStacks`、`HasBuff`、`Buffs` 只读属性、`LoseHp`（忽略格挡；同步把 `TakeDamage` 改为扣完格挡后剩余伤害调用 `LoseHp`，外部行为不变，理由见技术设计第 4 节）。
 - [ ] 编写 `BuffState`/`PoisonBuff`/`CombatantState` 新增成员的 EditMode 测试。
 
 **阶段门槛：** `Core.Buffs` 不引用 `UnityEngine`，独立于 `BattleSession` 可单独测试。
