@@ -14,6 +14,8 @@ namespace CardRPGFramework.Tests
         private static CardDefinition Heal(int value = 4) => new("heal", "治疗", CardType.Heal, cost: 1, value: value);
         private static CardDefinition Strength(int value = 2) => new("strength", "力量强化", CardType.Strength, cost: 1, value: value);
         private static CardDefinition Poison(int value = 3) => new("poison", "剧毒", CardType.Poison, cost: 1, value: value);
+        private static CardDefinition Weak(int value = 2) => new("weak", "虚弱", CardType.Weak, cost: 1, value: value);
+        private static CardDefinition Vulnerable(int value = 2) => new("vulnerable", "易伤", CardType.Vulnerable, cost: 1, value: value);
 
         private static List<CardDefinition> BuildDeck(int attackCount, int defendCount = 0, int healCount = 0)
         {
@@ -303,6 +305,95 @@ namespace CardRPGFramework.Tests
             session.TryEndPlayerTurn();
 
             Assert.AreEqual(BattlePhase.Defeat, session.Phase);
+        }
+
+        [Test]
+        public void EnemyAttack_WithoutAnyBuff_AbsorbedByBlockThenHitsHp_SameAsPhase1()
+        {
+            // 敌人攻击迁进 DamageAction 管线后的回归锁定：无 Buff 时先扣格挡再扣血，数值与 Phase 1 一致。
+            var session = CreateSession(deck: BuildDeck(0, defendCount: 10));
+            session.StartBattle();
+            session.TryPlayCard(0);
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(39, session.Player.CurrentHp);
+        }
+
+        [Test]
+        public void TryPlayCard_Attack_WithPlayerStrength_DamageIncreasedByStacks()
+        {
+            var session = CreateSession(deck: BuildDeck(5));
+            session.StartBattle();
+            session.Player.ApplyBuff(new StrengthBuff(3));
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(27, session.Enemy.CurrentHp);
+        }
+
+        [Test]
+        public void TryPlayCard_Attack_WithEnemyVulnerable_DamageMultiplied()
+        {
+            var session = CreateSession(deck: BuildDeck(5));
+            session.StartBattle();
+            session.Enemy.ApplyBuff(new VulnerableBuff(1));
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(27, session.Enemy.CurrentHp);
+        }
+
+        [Test]
+        public void EnemyAttack_WithEnemyWeak_DamageReduced()
+        {
+            // 敌人身上的虚弱降低的是敌人自己的攻击：40 - floor(6 × 0.75) = 36。
+            var session = CreateSession(deck: BuildDeck(10));
+            session.StartBattle();
+            session.Enemy.ApplyBuff(new WeakBuff(2));
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(36, session.Player.CurrentHp);
+        }
+
+        [Test]
+        public void TryPlayCard_Weak_AppliesStacksToEnemy()
+        {
+            var deck = new List<CardDefinition> { Weak(), Weak(), Weak(), Weak(), Weak() };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(2, session.Enemy.GetBuffStacks("weak"));
+        }
+
+        [Test]
+        public void TryPlayCard_Vulnerable_AppliesStacksToEnemy()
+        {
+            var deck = new List<CardDefinition> { Vulnerable(), Vulnerable(), Vulnerable(), Vulnerable(), Vulnerable() };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(2, session.Enemy.GetBuffStacks("vulnerable"));
+        }
+
+        [Test]
+        public void PlayWeakCardOnEnemy_ThenEndTurn_EnemyAttackReducedToFour()
+        {
+            // 端到端场景：虚弱卡打在敌人身上，敌人下一次固定攻击从 6 降为 4，
+            // 不是玩家自己的攻击变低（虚弱卡的目标是 Enemy，见 EnqueueCardAction）。
+            var deck = new List<CardDefinition> { Weak(), Weak(), Weak(), Weak(), Weak() };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+            session.TryPlayCard(0);
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(36, session.Player.CurrentHp);
         }
     }
 }

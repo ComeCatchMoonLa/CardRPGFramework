@@ -6,6 +6,8 @@ namespace CardRPGFramework.Core.Cards
         Defend,
         Heal,
         Strength,
-        Poison
+        Poison,
+        Weak,
+        Vulnerable
     }
 }

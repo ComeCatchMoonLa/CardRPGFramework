@@ -105,7 +105,10 @@ namespace CardRPGFramework.Core.Battle
                 return true;
             }
 
-            Player.TakeDamage(EnemyDamage);
+            // 敌人攻击和中毒结算是两次独立的 RunAll：先确认敌人没被毒死，再入队攻击，
+            // 否则毒杀之后这一下仍会打出去。
+            _actionQueue.Enqueue(new DamageAction(Enemy, Player, EnemyDamage));
+            _actionQueue.RunAll(new ActionContext(_actionQueue));
 
             if (Player.IsDead)
             {
@@ -127,7 +130,7 @@ namespace CardRPGFramework.Core.Battle
             switch (card.Type)
             {
                 case CardType.Attack:
-                    _actionQueue.Enqueue(new DamageAction(Enemy, card.Value));
+                    _actionQueue.Enqueue(new DamageAction(Player, Enemy, card.Value));
                     break;
                 case CardType.Defend:
                     _actionQueue.Enqueue(new BlockAction(Player, card.Value));
@@ -140,6 +143,12 @@ namespace CardRPGFramework.Core.Battle
                     break;
                 case CardType.Poison:
                     _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new PoisonBuff(card.Value)));
+                    break;
+                case CardType.Weak:
+                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new WeakBuff(card.Value)));
+                    break;
+                case CardType.Vulnerable:
+                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new VulnerableBuff(card.Value)));
                     break;
             }
         }

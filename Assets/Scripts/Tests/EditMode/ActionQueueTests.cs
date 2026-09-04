@@ -62,8 +62,9 @@ namespace CardRPGFramework.Tests
         public void DamageAction_Execute_DamagesTarget()
         {
             var queue = new ActionQueue();
+            var source = new CombatantState(30);
             var target = new CombatantState(30);
-            queue.Enqueue(new DamageAction(target, 6));
+            queue.Enqueue(new DamageAction(source, target, 6));
 
             queue.RunAll(new ActionContext(queue));
 
