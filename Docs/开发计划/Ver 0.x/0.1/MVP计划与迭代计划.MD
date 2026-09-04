@@ -1,5 +1,7 @@
 # MVP 计划与迭代计划
 
+> **状态（0.1 完成后）**：本文是 Phase 0～2（即 0.1）的历史计划，保留备查，**不要再往这里追加后续 Phase**。局内框架已按本文完成；下面"MVP 完成标准"里未勾的 Luban / 简单 AI / 第 5 种 Buff，以及"后续迭代计划"里的回放 / 热更 / UI 框架，都**不再作为默认下一刀**——后续按版本推进，见 [`../../README.md`](../../README.md)，与本文的差异见 [`../README.md`](../README.md)。
+
 如果目标是**求职 Unity 客户端岗位**，这个项目不要按“做一个完整游戏”的思路管理，而应该按“做一个可展示的技术作品”管理。
 
 核心目标：
@@ -102,7 +104,7 @@ BattleEnd
 * 伤害计算
 * 胜负判断
 
-> 修订：行动队列移至 Phase 2 与 Effect System 同期引入。Phase 1 全部效果同步结算，队列没有真实客户；取舍理由见 `Docs/Phase1-技术设计.md` 第 7 节。
+> 修订：行动队列移至 Phase 2 与 Effect System 同期引入。Phase 1 全部效果同步结算，队列没有真实客户；取舍理由见 [`Phase 1/技术设计.md`](Phase%201/技术设计.md) 第 7 节。
 
 技术体现：
 
@@ -125,7 +127,7 @@ BattleEnd
 * 防御
 * 治疗
 
-> 修订：Buff 卡移至 Phase 2，避免临时 Buff 规则与 Buff System 重复实现；见 `Docs/Phase1-游戏设计.md` 第 5 节。
+> 修订：Buff 卡移至 Phase 2，避免临时 Buff 规则与 Buff System 重复实现；见 [`Phase 1/游戏设计.md`](Phase%201/游戏设计.md) 第 5 节。
 
 结构：
 
@@ -151,15 +153,17 @@ Effect
 
 这是拉开和普通 Demo 差距的阶段。原计划把 ActionSystem/EffectSystem/BuffSystem/RuleSystem 四个系统放在同一段文档里一起做，但这个体量和 Phase 1（只做一个 `BattleSession`）明显不在一个粒度上，所以拆成三个独立阶段，每阶段一套游戏设计/技术设计/TODO 文档，结构和验收粒度对齐 Phase 1：
 
-- **Phase 2a：ActionSystem + EffectSystem** —— [`Docs/Phase 2a/游戏设计.md`](Phase%202a/游戏设计.md) / [`技术设计.md`](Phase%202a/技术设计.md) / [`TODO.md`](Phase%202a/TODO.md)。把出牌结算从"直接改状态"重构成"生成 Action 入队、Action 执行时调用 Effect"，玩家可见行为不变，是后两阶段的地基。杀戮尖塔原版同构：`AbstractGameAction` + `GameActionManager`，见 `Docs/杀戮尖塔机制研究.md`。
-- **Phase 2b：BuffSystem** —— [`Docs/Phase 2b/游戏设计.md`](Phase%202b/游戏设计.md) / [`技术设计.md`](Phase%202b/技术设计.md) / [`TODO.md`](Phase%202b/TODO.md)。新增力量（纯数据）、中毒（数据+触发器）两个 Buff，验证"Buff 是数据容器，部分 Buff 附带触发行为"的边界。
-- **Phase 2c：RuleSystem（你的核心优势）** —— [`Docs/Phase 2c/游戏设计.md`](Phase%202c/游戏设计.md) / [`技术设计.md`](Phase%202c/技术设计.md) / [`TODO.md`](Phase%202c/TODO.md)。新增虚弱、易伤两个 Buff 并接入 3 条具体伤害规则（力量加伤害、虚弱减伤害、易伤增伤害），证明数值计算和状态执行分离。这个方向迁移自 Roblox 项目的 RuleSystem 设计，技术体现 ★★★★★，是简历上的差异化卖点，不因为拆分而弱化。
+- **Phase 2a：ActionSystem + EffectSystem** —— [`Phase 2a/游戏设计.md`](Phase%202a/游戏设计.md) / [`技术设计.md`](Phase%202a/技术设计.md) / [`TODO.md`](Phase%202a/TODO.md)。把出牌结算从"直接改状态"重构成"生成 Action 入队、Action 执行时调用 Effect"，玩家可见行为不变，是后两阶段的地基。杀戮尖塔原版同构：`AbstractGameAction` + `GameActionManager`，见 [`../../../杀戮尖塔机制研究.md`](../../../杀戮尖塔机制研究.md)。
+- **Phase 2b：BuffSystem** —— [`Phase 2b/游戏设计.md`](Phase%202b/游戏设计.md) / [`技术设计.md`](Phase%202b/技术设计.md) / [`TODO.md`](Phase%202b/TODO.md)。新增力量（纯数据）、中毒（数据+触发器）两个 Buff，验证"Buff 是数据容器，部分 Buff 附带触发行为"的边界。
+- **Phase 2c：RuleSystem（你的核心优势）** —— [`Phase 2c/游戏设计.md`](Phase%202c/游戏设计.md) / [`技术设计.md`](Phase%202c/技术设计.md) / [`TODO.md`](Phase%202c/TODO.md)。新增虚弱、易伤两个 Buff 并接入 3 条具体伤害规则（力量加伤害、虚弱减伤害、易伤增伤害），证明数值计算和状态执行分离。这个方向迁移自 Roblox 项目的 RuleSystem 设计，技术体现 ★★★★★，是简历上的差异化卖点，不因为拆分而弱化。
 
 三个子阶段都不做通用组合能力（不建 `CompositeAction`/`ConditionalAction` 等 Action 变体，不建规则注册引擎），只做当前已确定要证明的最小内容，具体排除项见各自技术设计文档的"排除项"小节。
 
 ---
 
 ## Phase 3：数据驱动（1周）
+
+> 0.1 完成后的判断：一人项目里 ScriptableObject 效果列表已经能讲"策划配数据、程序锁结算"，先导表收益不足；Luban 移入 1.2+ 候选池，触发条件见 [`../../Ver 1.x/README.md`](../../Ver%201.x/README.md)。以下为原文。
 
 接入：
 
@@ -217,9 +221,13 @@ Excel
 
 不要继续扩内容。
 
+> 0.1 实际：战斗可玩、14 张卡、5 种效果、规则系统已达成；Buff 4 种、配置驱动（Luban）与简单 AI 未达成。后两项按 [`../README.md`](../README.md) 的 0.4（敌人行动表）与 1.2+ 候选（Luban）处理，不为勾清单而做。
+
 ---
 
 # 后续迭代计划
+
+> 0.1 完成后的判断：本节的回放、热更、Addressables、UI 框架已在 [`../../Ver 1.x/README.md`](../../Ver%201.x/README.md) 里分别否决或降为候选；回放不是尖塔局内机制，不再做。以下为原文。
 
 ## V1.1 工程化增强（2周）
 
