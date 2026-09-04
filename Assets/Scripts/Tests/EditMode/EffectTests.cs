@@ -1,3 +1,4 @@
+using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
 using CardRPGFramework.Core.Effects;
 using NUnit.Framework;
@@ -39,6 +40,28 @@ namespace CardRPGFramework.Tests
             HealEffect.Apply(target, 4);
 
             Assert.AreEqual(24, target.CurrentHp);
+        }
+
+        [Test]
+        public void HpLossEffect_Apply_ForwardsToLoseHp_IgnoringBlock()
+        {
+            var target = new CombatantState(30);
+            target.GainBlock(10);
+
+            HpLossEffect.Apply(target, 6);
+
+            Assert.AreEqual(24, target.CurrentHp);
+            Assert.AreEqual(10, target.Block);
+        }
+
+        [Test]
+        public void BuffEffect_Apply_ForwardsToApplyBuff()
+        {
+            var target = new CombatantState(30);
+
+            BuffEffect.Apply(target, new StrengthBuff(2));
+
+            Assert.AreEqual(2, target.GetBuffStacks("strength"));
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CardRPGFramework.Core.Actions;
+using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 
@@ -96,6 +97,14 @@ namespace CardRPGFramework.Core.Battle
             // 保留这个阶段值是为了让状态机语义完整，后续接入异步敌人行动时再拆分。
             Phase = BattlePhase.EnemyTurn;
 
+            TriggerTurnStartBuffs(Enemy);
+            if (Enemy.IsDead)
+            {
+                // 中毒把敌人打死时立即以胜利结束，不再执行敌人固定攻击。
+                Phase = BattlePhase.Victory;
+                return true;
+            }
+
             Player.TakeDamage(EnemyDamage);
 
             if (Player.IsDead)
@@ -126,7 +135,27 @@ namespace CardRPGFramework.Core.Battle
                 case CardType.Heal:
                     _actionQueue.Enqueue(new HealAction(Player, card.Value));
                     break;
+                case CardType.Strength:
+                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Player, new StrengthBuff(card.Value)));
+                    break;
+                case CardType.Poison:
+                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new PoisonBuff(card.Value)));
+                    break;
             }
+        }
+
+        /// <summary>遍历 owner 身上实现 IBuffTrigger 的 Buff，触发其回合开始行为并立即结算产生的 Action。</summary>
+        private void TriggerTurnStartBuffs(CombatantState owner)
+        {
+            foreach (var buff in owner.Buffs)
+            {
+                if (buff is IBuffTrigger trigger)
+                {
+                    trigger.OnTurnStart(owner, _actionQueue);
+                }
+            }
+
+            _actionQueue.RunAll(new ActionContext(_actionQueue));
         }
 
         private void StartPlayerTurn()
@@ -134,6 +163,14 @@ namespace CardRPGFramework.Core.Battle
             TurnNumber++;
             Phase = BattlePhase.PlayerTurn;
             Player.ClearBlock();
+
+            TriggerTurnStartBuffs(Player);
+            if (Player.IsDead)
+            {
+                Phase = BattlePhase.Defeat;
+                return;
+            }
+
             Energy = EnergyPerTurn;
 
             var cardsToDraw = HandSize - _cardPile.Hand.Count;

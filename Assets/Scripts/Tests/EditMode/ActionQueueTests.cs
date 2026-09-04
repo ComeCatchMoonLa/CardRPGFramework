@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CardRPGFramework.Core.Actions;
+using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
 using NUnit.Framework;
 
@@ -92,6 +93,33 @@ namespace CardRPGFramework.Tests
             queue.RunAll(new ActionContext(queue));
 
             Assert.AreEqual(24, target.CurrentHp);
+        }
+
+        [Test]
+        public void HpLossAction_Execute_IgnoresTargetBlock()
+        {
+            var queue = new ActionQueue();
+            var target = new CombatantState(30);
+            target.GainBlock(10);
+            queue.Enqueue(new HpLossAction(target, 6));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(24, target.CurrentHp);
+            Assert.AreEqual(10, target.Block);
+        }
+
+        [Test]
+        public void ApplyBuffAction_Execute_AppliesBuffToTarget()
+        {
+            var queue = new ActionQueue();
+            var source = new CombatantState(30);
+            var target = new CombatantState(30);
+            queue.Enqueue(new ApplyBuffAction(source, target, new StrengthBuff(2)));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(2, target.GetBuffStacks("strength"));
         }
     }
 }

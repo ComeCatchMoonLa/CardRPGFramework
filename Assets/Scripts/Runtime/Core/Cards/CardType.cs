@@ -4,6 +4,8 @@ namespace CardRPGFramework.Core.Cards
     {
         Attack,
         Defend,
-        Heal
+        Heal,
+        Strength,
+        Poison
     }
 }

@@ -1,3 +1,4 @@
+using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
 using NUnit.Framework;
 
@@ -70,6 +71,60 @@ namespace CardRPGFramework.Tests
             state.ClearBlock();
 
             Assert.AreEqual(0, state.Block);
+        }
+
+        [Test]
+        public void LoseHp_IgnoresBlock()
+        {
+            var state = new CombatantState(30);
+            state.GainBlock(10);
+
+            state.LoseHp(6);
+
+            Assert.AreEqual(24, state.CurrentHp);
+            Assert.AreEqual(10, state.Block);
+        }
+
+        [Test]
+        public void LoseHp_ExceedsCurrentHp_ClampsAtZero()
+        {
+            var state = new CombatantState(10);
+
+            state.LoseHp(999);
+
+            Assert.AreEqual(0, state.CurrentHp);
+            Assert.IsTrue(state.IsDead);
+        }
+
+        [Test]
+        public void ApplyBuff_FirstApplication_StoresStacks()
+        {
+            var state = new CombatantState(30);
+
+            state.ApplyBuff(new StrengthBuff(2));
+
+            Assert.AreEqual(2, state.GetBuffStacks("strength"));
+            Assert.IsTrue(state.HasBuff("strength"));
+        }
+
+        [Test]
+        public void ApplyBuff_SameId_StacksAdd()
+        {
+            var state = new CombatantState(30);
+            state.ApplyBuff(new StrengthBuff(2));
+
+            state.ApplyBuff(new StrengthBuff(3));
+
+            Assert.AreEqual(5, state.GetBuffStacks("strength"));
+        }
+
+        [Test]
+        public void HasBuff_WithoutApplying_ReturnsFalse()
+        {
+            var state = new CombatantState(30);
+
+            Assert.IsFalse(state.HasBuff("poison"));
+            Assert.AreEqual(0, state.GetBuffStacks("poison"));
         }
     }
 }

@@ -1,16 +1,21 @@
 using System;
+using System.Collections.Generic;
+using CardRPGFramework.Core.Buffs;
 
 namespace CardRPGFramework.Core.Combatants
 {
     /// <summary>
-    /// 参战单位（玩家或敌人）的生命值与格挡状态，负责伤害、治疗与格挡的边界规则。
+    /// 参战单位（玩家或敌人）的生命值、格挡与 Buff 状态，负责伤害、治疗、格挡与 Buff 容器的边界规则。
     /// </summary>
     public sealed class CombatantState
     {
+        private readonly Dictionary<string, BuffState> _buffs = new();
+
         public int MaxHp { get; }
         public int CurrentHp { get; private set; }
         public int Block { get; private set; }
         public bool IsDead => CurrentHp <= 0;
+        public IReadOnlyCollection<BuffState> Buffs => _buffs.Values;
 
         public CombatantState(int maxHp)
         {
@@ -35,8 +40,41 @@ namespace CardRPGFramework.Core.Combatants
             Block -= absorbed;
 
             var remaining = amount - absorbed;
-            CurrentHp = Math.Max(0, CurrentHp - remaining);
+            LoseHp(remaining);
         }
+
+        /// <summary>
+        /// 忽略格挡，直接扣血；不低于 0。这是实际减少 CurrentHp 前的唯一入口，
+        /// 将来给钨条（失去生命时少扣 1）这类"不看来源、只要生命即将减少就生效"的机制用。
+        /// 注意：无实体（受到的伤害改为 1）是格挡前的最终伤害修正，不挂这里，
+        /// 挂钩点见 Docs/Phase 2 扩展边界批注.md 第 2 节时机地图。
+        /// </summary>
+        public void LoseHp(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            CurrentHp = Math.Max(0, CurrentHp - amount);
+        }
+
+        /// <summary>同 Id 的 Buff 叠加层数，否则新建一条。</summary>
+        public void ApplyBuff(BuffState buff)
+        {
+            if (_buffs.TryGetValue(buff.Id, out var existing))
+            {
+                existing.AddStacks(buff.Stacks);
+            }
+            else
+            {
+                _buffs[buff.Id] = buff;
+            }
+        }
+
+        public int GetBuffStacks(string id) => _buffs.TryGetValue(id, out var buff) ? buff.Stacks : 0;
+
+        public bool HasBuff(string id) => GetBuffStacks(id) > 0;
 
         /// <summary>治疗不超过最大生命值。</summary>
         public void Heal(int amount)

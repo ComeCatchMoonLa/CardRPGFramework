@@ -15,8 +15,8 @@ namespace CardRPGFramework.Core.Cards
         public int Cost { get; }
 
         /// <summary>
-        /// 含义取决于 Type：Attack 是伤害值，Defend 是格挡值，Heal 是治疗量。
-        /// 三种含义共用一个字段是 Phase 1 的临时形状，见上方类注释。
+        /// 含义取决于 Type：Attack 是伤害值，Defend 是格挡值，Heal 是治疗量，
+        /// Strength/Poison 是施加的层数。多种含义共用一个字段是 Phase 1 的临时形状，见上方类注释。
         /// </summary>
         public int Value { get; }
 

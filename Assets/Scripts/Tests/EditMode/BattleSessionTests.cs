@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
+using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using NUnit.Framework;
 
@@ -11,6 +12,8 @@ namespace CardRPGFramework.Tests
         private static CardDefinition Attack(int value = 6) => new("attack", "攻击", CardType.Attack, cost: 1, value: value);
         private static CardDefinition Defend(int value = 5) => new("defend", "防御", CardType.Defend, cost: 1, value: value);
         private static CardDefinition Heal(int value = 4) => new("heal", "治疗", CardType.Heal, cost: 1, value: value);
+        private static CardDefinition Strength(int value = 2) => new("strength", "力量强化", CardType.Strength, cost: 1, value: value);
+        private static CardDefinition Poison(int value = 3) => new("poison", "剧毒", CardType.Poison, cost: 1, value: value);
 
         private static List<CardDefinition> BuildDeck(int attackCount, int defendCount = 0, int healCount = 0)
         {
@@ -231,6 +234,75 @@ namespace CardRPGFramework.Tests
 
             Assert.IsFalse(session.TryPlayCard(0));
             Assert.IsFalse(session.TryEndPlayerTurn());
+        }
+
+        [Test]
+        public void TryPlayCard_Strength_AppliesStacksToPlayer()
+        {
+            var deck = new List<CardDefinition> { Strength(2), Strength(2), Strength(2), Strength(2), Strength(2) };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(2, session.Player.GetBuffStacks("strength"));
+        }
+
+        [Test]
+        public void TryPlayCard_Poison_AppliesStacksToEnemy()
+        {
+            var deck = new List<CardDefinition> { Poison(3), Poison(3), Poison(3), Poison(3), Poison(3) };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+
+            session.TryPlayCard(0);
+
+            Assert.AreEqual(3, session.Enemy.GetBuffStacks("poison"));
+        }
+
+        [Test]
+        public void PoisonedEnemy_LosesHpIgnoringBlockAtEnemyTurnStart_AndStackDecrements()
+        {
+            // 牌堆全用同一种卡：CardPile 构造时会打乱抽牌堆顺序，
+            // 混合卡种类时 hand[0] 不保证是想测的那张牌，必须固定成单一类型。
+            var deck = new List<CardDefinition> { Poison(3), Poison(3), Poison(3), Poison(3), Poison(3) };
+            var session = CreateSession(deck: deck);
+            session.StartBattle();
+            session.TryPlayCard(0);
+            var enemyHpBeforeEnemyTurn = session.Enemy.CurrentHp;
+            session.Enemy.GainBlock(10);
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(enemyHpBeforeEnemyTurn - 3, session.Enemy.CurrentHp);
+            Assert.AreEqual(10, session.Enemy.Block);
+            Assert.AreEqual(2, session.Enemy.GetBuffStacks("poison"));
+        }
+
+        [Test]
+        public void PoisonKillsEnemy_EndsBattleInVictory_WithoutEnemyAttack()
+        {
+            var deck = new List<CardDefinition> { Poison(99), Poison(99), Poison(99), Poison(99), Poison(99) };
+            var session = CreateSession(enemyMaxHp: 3, deck: deck);
+            session.StartBattle();
+            session.TryPlayCard(0);
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(BattlePhase.Victory, session.Phase);
+            Assert.AreEqual(40, session.Player.CurrentHp);
+        }
+
+        [Test]
+        public void PoisonedPlayer_DiesAtOwnTurnStart_EndsBattleInDefeat()
+        {
+            var session = CreateSession(playerMaxHp: 3, enemyDamage: 0, deck: BuildDeck(10));
+            session.StartBattle();
+            session.Player.ApplyBuff(new PoisonBuff(99));
+
+            session.TryEndPlayerTurn();
+
+            Assert.AreEqual(BattlePhase.Defeat, session.Phase);
         }
     }
 }
