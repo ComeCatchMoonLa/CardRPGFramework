@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 
@@ -11,6 +12,9 @@ namespace CardRPGFramework.Core.Battle
     public sealed class BattleSession
     {
         private readonly CardPile _cardPile;
+        // 贯穿整场战斗的同一个队列，不是每次 TryPlayCard 新建：Phase 2b 回合开始/结束的 Buff
+        // 触发也需要复用它入队 Action。
+        private readonly ActionQueue _actionQueue = new();
 
         public BattlePhase Phase { get; private set; } = BattlePhase.NotStarted;
         public int TurnNumber { get; private set; }
@@ -67,7 +71,8 @@ namespace CardRPGFramework.Core.Battle
             }
 
             Energy -= card.Cost;
-            ResolveCard(card);
+            EnqueueCardAction(card);
+            _actionQueue.RunAll(new ActionContext(_actionQueue));
             _cardPile.PlayCard(handIndex);
 
             if (Enemy.IsDead)
@@ -107,18 +112,19 @@ namespace CardRPGFramework.Core.Battle
 
         // 结算顺序在 PlayCard（移入弃牌堆）之前：Phase 1 三种效果都不改牌堆/手牌，暂时安全。
         // 以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 handIndex 的时机语义。
-        private void ResolveCard(CardDefinition card)
+        // switch(CardType) 依然存在，但现在决定的是"该入队哪个 Action"，不是"直接怎么改状态"。
+        private void EnqueueCardAction(CardDefinition card)
         {
             switch (card.Type)
             {
                 case CardType.Attack:
-                    Enemy.TakeDamage(card.Value);
+                    _actionQueue.Enqueue(new DamageAction(Enemy, card.Value));
                     break;
                 case CardType.Defend:
-                    Player.GainBlock(card.Value);
+                    _actionQueue.Enqueue(new BlockAction(Player, card.Value));
                     break;
                 case CardType.Heal:
-                    Player.Heal(card.Value);
+                    _actionQueue.Enqueue(new HealAction(Player, card.Value));
                     break;
             }
         }

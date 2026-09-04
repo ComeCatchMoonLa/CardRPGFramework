@@ -8,22 +8,27 @@ Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一�
 
 Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）已完成规划，拆分成 [Phase 2a](Docs/Phase%202a/游戏设计.md)、[Phase 2b](Docs/Phase%202b/游戏设计.md)、[Phase 2c](Docs/Phase%202c/游戏设计.md) 三个独立可验收阶段，正在按顺序实现中。
 
+**Phase 2a（ActionSystem + EffectSystem）已完成**：卡牌效果的结算方式从 `BattleSession` 直接调用 `CombatantState` 改为"生成 Action 入队、Action 执行时调用 Effect"，玩家可见行为与 Phase 1 完全一致（纯架构重构，未新增卡牌/数值）。
+
 **已完成**
 
 - `BattlePhase`：战斗阶段枚举（`NotStarted` / `PlayerTurn` / `EnemyTurn` / `Victory` / `Defeat`）。
 - `CombatantState`：生命值、格挡、治疗与边界。
 - `CardType` / `CardDefinition`：攻击、防御、治疗三种不可变卡牌定义。
 - `CardPile`：抽牌堆、手牌、弃牌堆；抽空重洗；两堆皆空时安全停止。
-- `BattleSetup` / `BattleSession`：战斗初始化、玩家回合循环（清格挡、恢复能量、抽牌）、卡牌使用校验与能量消耗、攻击/防御/治疗结算、结束回合与敌人固定攻击、胜负判定与结束后拒绝操作。
+- `BattleSetup` / `BattleSession`：战斗初始化、玩家回合循环（清格挡、恢复能量、抽牌）、卡牌使用校验与能量消耗、结束回合与敌人固定攻击、胜负判定与结束后拒绝操作。
+- `IAction` / `ActionContext` / `ActionQueue`：贯穿整场战斗的 FIFO 行动队列，`RunAll` 执行期间可以继续入队新 Action。
+- `DamageAction` / `BlockAction` / `HealAction`：与攻击/防御/治疗三种卡牌效果一一对应，`Execute` 时调用对应 Effect。
+- `DamageEffect` / `BlockEffect` / `HealEffect`：转发到 `CombatantState` 现有方法的纯状态修改层，不做任何数值计算。
 - `CardData` / `BattleConfig`：ScriptableObject 配置，转换为 `CardDefinition`/`BattleSetup`，带启动期校验（空引用、非法数值、空 ID、重复 ID）。
 - `BattleController`：场景里显式引用 `BattleConfig`，创建并持有 `BattleSession`，转发使用手牌/结束回合命令，暴露只读战斗状态。
 - `BattleView` / `CardButtonView` / `EndScreenView`：最小战斗 UI，显示双方状态、能量、回合、敌人意图、手牌与最近操作结果，胜利/失败时显示遮罩并阻止继续操作。
-- EditMode 测试覆盖伤害/格挡/治疗边界、抽牌/弃牌/重洗与固定种子洗牌、`BattleSession` 的合法流程与关键拒绝路径，以及抽牌堆耗尽后经过完整战斗流程仍能正确重洗弃牌堆。
+- EditMode 测试覆盖伤害/格挡/治疗边界、抽牌/弃牌/重洗与固定种子洗牌、`ActionQueue` 的执行顺序与重入入队、Effect 转发、`BattleSession` 的合法流程与关键拒绝路径，以及抽牌堆耗尽后经过完整战斗流程仍能正确重洗弃牌堆。
 
-**本阶段范围外（记录为 Phase 2 候选，未实现）**
+**本阶段范围外（记录为 Phase 2b/2c 候选，未实现）**
 
-- Effect / Buff / Rule / Attribute / Event 等独立框架。
-- 独立行动队列、多敌人、目标选择、可配置的敌人意图/AI。
+- Buff / Rule / Attribute / Event 等独立框架。
+- 可组合 Action（`CompositeAction`/`ConditionalAction` 等）、多敌人、目标选择、可配置的敌人意图/AI。
 - 卡牌升级、稀有度、多段效果、装备、关卡、奖励、存档与战斗回放。
 - 正式美术、动画、音效。
 
@@ -55,12 +60,12 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）已完成规划，�
 
 1. 打开 Unity 菜单 `Window` → `General` → `Test Runner`。
 2. 切换到 **EditMode** 页签。
-3. 点击 **Run All**。`CombatantStateTests`、`CardPileTests` 与 `BattleSessionTests` 应全部通过（共 29 项）。
+3. 点击 **Run All**。`CombatantStateTests`、`CardPileTests`、`BattleSessionTests`、`ActionQueueTests` 与 `EffectTests` 应全部通过（共 37 项）。
 
 ## 目录说明
 
 - `Assets/Scripts/Runtime/`：C# 代码，`Runtime.asmdef` 单一程序集（引用 `Unity.TextMeshPro`、`UnityEngine.UI`），按依赖方向分四层：
-  - `Core/`：纯 C# 战斗规则（`Battle`/`Combatants`/`Cards`），不引用 `UnityEngine`。
+  - `Core/`：纯 C# 战斗规则（`Battle`/`Combatants`/`Cards`/`Actions`/`Effects`），不引用 `UnityEngine`。`Actions` 只知道"排队和执行"，`Effects` 只知道"怎么改 `CombatantState`"，两者互不知道调用方是谁（详见 [Phase 2a 技术设计](Docs/Phase%202a/技术设计.md)）。
   - `Data/`：`CardData`/`BattleConfig` 等 ScriptableObject 配置定义。
   - `Controllers/`：`BattleController`，Unity 适配与组装，持有 `BattleSession`。
   - `Views/`：`BattleView`/`CardButtonView`/`EndScreenView`，纯显示与输入捕获，不直接调用 `Core`/`Data`。
@@ -74,7 +79,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）已完成规划，�
 ## 已知限制与 Phase 2 输入
 
 - **中文字体**：TMP 默认字体 `LiberationSans SDF` 不含中文字形，目前是否已配置 Fallback 字体资产取决于本地环境；如果界面显示中文方块/警告，按 `Window → TextMeshPro → Font Asset Creator` 生成一个中文字体资产并加入 Fallback 列表（详见开发过程记录，未固化为文档）。
-- **`ResolveCard` 结算顺序**：`BattleSession.TryPlayCard` 里，效果结算发生在卡牌移入弃牌堆之前。Phase 1 的三种效果都不修改手牌/牌堆，顺序目前没有影响；以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 `handIndex` 在结算时刻的语义（另见 [`Docs/Phase 1/技术设计.md`](Docs/Phase%201/技术设计.md) 第 7 节）。
-- **`EnemyTurn` 是瞬时阶段**：敌人行动当前同步执行，没有独立 AI 或动画等待，`EnemyTurn` 存在时间极短、外部几乎观察不到。保留这个阶段值是为了状态机语义完整，Phase 2 接入敌人意图/AI 时可能需要拆分成真正的异步阶段。
-- **`BattleSession` 身兼多职**：战斗生命周期、回合、能量、卡牌流转、效果结算、敌人行动目前都在一个类里。Phase 2a 会把效果结算迁移到独立的 ActionSystem/EffectSystem，其余职责暂不拆分。
+- **`EnqueueCardAction` 结算顺序**：`BattleSession.TryPlayCard` 里，Action 队列执行发生在卡牌移入弃牌堆之前。Phase 1/2a 的三种效果都不修改手牌/牌堆，顺序目前没有影响；以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 `handIndex` 在结算时刻的语义（另见 [`Docs/Phase 1/技术设计.md`](Docs/Phase%201/技术设计.md) 第 7 节）。
+- **`EnemyTurn` 是瞬时阶段**：敌人行动当前仍直接调用 `CombatantState.TakeDamage`，没有走 `ActionQueue`，也没有独立 AI 或动画等待，`EnemyTurn` 存在时间极短、外部几乎观察不到。Phase 2a 只迁移了玩家出牌这一条路径；敌人攻击接入队列、意图/AI 留给后续 Phase。
+- **`BattleSession` 身兼多职**：战斗生命周期、回合、能量、卡牌流转、敌人行动目前都在一个类里；效果结算已迁移到独立的 `Core/Actions`/`Core/Effects`（Phase 2a），其余职责暂不拆分。
 - **Controllers/Views 无自动化测试**：`BattleController`/`BattleView` 等只做转发和展示，真正的规则逻辑都在已被覆盖的 `BattleSession`；为它们搭 PlayMode 测试基建的收益暂不成比例，可靠性依赖手动 Play 模式验收。
