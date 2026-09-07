@@ -1,6 +1,6 @@
 # Ver 0.x：把局内做成「卡牌战斗」
 
-> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——复合卡、可见的规则、四个牌区、遗物、会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
+> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——可见的规则、四个牌区、遗物、会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
 >
 > **不在 0.x 里的**：局外 Run、地图、奖励、商店（全部归 1.0 及以后）；Luban、出包、程序集拆分（归 1.x）。
 
@@ -22,15 +22,15 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 0.1 留下的、后续版本要接的口子：
 
-- `CardType` 同时表示「效果种类」，`EnqueueCardAction` 一种效果一个 `case`（0.2 解决）。
-- 打出时序是先结算再移出手牌，抽牌卡会把 `handIndex` 指错（0.2 解决）。
+- ~~`CardType` 同时表示「效果种类」，`EnqueueCardAction` 一种效果一个 `case`~~（0.2 已解决：`EffectSpec` 列表 + `ToAction` 穷举效果原语）。
+- ~~打出时序是先结算再移出手牌，抽牌卡会把 `handIndex` 指错~~（0.2 已解决：先离手 → 结算 → 再进弃牌）。
 - Rule 只在测试里成立，Play 里卡面写 6、实际掉 9，看不见规则（0.3 解决）。
 - 只有三个牌区，没有消耗堆（0.4）。
 - `ApplyBuffAction` 的 `source` 尚无消费者（0.5 蛇颅骨兑现）。
 - 敌人只有一个固定伤害数字，没有格挡、没有行动表（0.6）。
 - 虚弱 / 易伤层数永不衰减；0 层 Buff 留在字典里、`HasBuff` 用 `> 0` 兜住（0.7）。
 
-## 0.2 效果列表
+## 0.2 效果列表（已完成）
 
 文档：[`0.2/游戏设计.md`](0.2/游戏设计.md) / [`0.2/技术设计.md`](0.2/技术设计.md) / [`0.2/TODO.md`](0.2/TODO.md)。
 
@@ -38,7 +38,16 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 - 打出时序改为「先离手 → 结算 → 再进弃牌」，是抽牌类效果做对的前提，与剑柄打击必须同版。
 - 卡面描述由效果列表生成（基础数值）。
 
-**证明的边界**：新卡 = 配数据，不在 `BattleSession` 里新增按卡的分支。
+| 已有 | 说明 |
+| --- | --- |
+| 效果原语 | `Core/Cards`：`EffectKind`（Damage / Block / Heal / ApplyBuff / Draw，封闭枚举）、`EffectTarget`（Self / Opponent）、`readonly struct EffectSpec`（只经静态工厂构造）；`CardDefinition.Effects` 至少一条、构造时拷贝 |
+| 转换点 | `BattleSession.ToAction` 是唯一的 `EffectSpec → IAction` 转换，`switch` 穷举效果原语；`EnqueueCardAction` 删除。`BuffFactory` 是 Buff Id → 实例的唯一转换；`DrawCardsAction` 直接调 `CardPile.Draw`，不设 `DrawEffect` |
+| 打出时序 | `TryPlayCard`：扣能量 → `TakeFromHand` → 逐条入队并 `RunAll` → `AddToDiscard`；`CardPile.PlayCard` 删除 |
+| 配置 | `EffectSpecData` 可序列化条目，`CardData.effects` 列表；启动期校验 `value > 0`、`buffId` 已知、kind 与 target 一致、`CardType` 未越界；17 张卡、10 种 |
+| 表现 | `CardDescriptionFormatter.Format(CardDefinition)` 每条效果一行（基础数值），`BuffDisplayNames` 维护 Buff 中文名 |
+| 测试 | 139 项 EditMode（0.1 的 79 项只改构造、未改断言；新增效果原语 / 工厂 / 牌堆新方法 / Data 校验 / 卡面文案，以及痛击顺序、双击分段取整、剑柄打击时序与重洗三张锚点卡） |
+
+**证明的边界**：新卡 = 配数据，不在 `BattleSession` 里新增按卡的分支。痛击、双击、剑柄打击三张卡各自只是一份 `CardData`，运行时代码为它们新增的分支为零。
 
 ## 0.3 可见规则
 

@@ -10,14 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c600e37172ad6064ba7f6413611f976d, type: 3}
-  m_Name: Weak
+  m_Name: Bash
   m_EditorClassIdentifier: Runtime::CardRPGFramework.Data.CardData
-  id: Weak
-  displayName: "\u865A\u5F31"
-  type: 1
-  cost: 1
+  id: Bash
+  displayName: "\u75DB\u51FB"
+  type: 0
+  cost: 2
   effects:
+  - kind: 0
+    target: 1
+    value: 8
+    buffId: 
   - kind: 3
     target: 1
     value: 2
-    buffId: weak
+    buffId: vulnerable

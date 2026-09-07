@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Runtime::CardRPGFramework.Data.CardData
   id: Heal
   displayName: "\u6CBB\u7597"
-  type: 2
+  type: 1
   cost: 1
-  value: 4
+  effects:
+  - kind: 2
+    target: 0
+    value: 4
+    buffId: 

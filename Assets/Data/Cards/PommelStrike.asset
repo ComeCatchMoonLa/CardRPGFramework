@@ -10,14 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c600e37172ad6064ba7f6413611f976d, type: 3}
-  m_Name: Weak
+  m_Name: PommelStrike
   m_EditorClassIdentifier: Runtime::CardRPGFramework.Data.CardData
-  id: Weak
-  displayName: "\u865A\u5F31"
-  type: 1
+  id: PommelStrike
+  displayName: "\u5251\u67C4\u6253\u51FB"
+  type: 0
   cost: 1
   effects:
-  - kind: 3
+  - kind: 0
     target: 1
-    value: 2
-    buffId: weak
+    value: 9
+    buffId: 
+  - kind: 4
+    target: 0
+    value: 1
+    buffId: 

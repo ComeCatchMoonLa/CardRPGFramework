@@ -5,7 +5,7 @@ alwaysApply: true
 
 # 项目背景
 
-Unity + C# 编写的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、复杂战斗规则与客户端工程化能力，不追求商业级内容量。核心玩法主干是牌堆/手牌、能量、格挡、敌人意图和回合制卡牌战斗。项目按版本推进，入口是 `Docs/开发计划/README.md`：0.1（Phase 1 + 2a/2b/2c，局内 Action/Effect/Buff/Rule 框架）已完成，当前按 `Docs/开发计划/Ver 0.x/` 下最小的未完成版本（先是 0.2）的 `游戏设计.md` / `技术设计.md` / `TODO.md` 工作。
+Unity + C# 编写的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、复杂战斗规则与客户端工程化能力，不追求商业级内容量。核心玩法主干是牌堆/手牌、能量、格挡、敌人意图和回合制卡牌战斗。项目按版本推进，入口是 `Docs/开发计划/README.md`。做 `Docs/开发计划/Ver 0.x/README.md` 里**最小的未完成版本**（节标题尚未标「（已完成）」）的 `游戏设计.md` / `技术设计.md` / `TODO.md`；哪些版本已完成以该 README 为准，不在本规则里维护。
 
 > 下面这张图是**启动期设想的终态**架构（`Docs/设计思路.MD`），其中 AttributeSystem / EventSystem / ReplaySystem / UIFramework 已在 `Docs/Phase 2 扩展边界批注.md` 第 5 节否决或降为候选，不要实现。**不要假设某个模块已经实现**——先用工具检查 `Assets/Scripts/` 下实际有什么，再决定怎么做，避免凭空引用不存在的类/命名空间。当前需求、技术边界和进度以当前版本的三件套为准；技术设计里标 **[待确认]** 的接口形状由用户决定，不要自行选择。
 
@@ -29,9 +29,12 @@ CardRPGFramework
 
 0.1 搭建的地基必须保证：战斗状态由纯 C# Core 统一管理，UI 不能直接修改战斗数据，配置通过稳定 ID 转换为运行时定义。不要为了“通用 RPG 框架”偏离《杀戮尖塔》式卡牌战斗主线，也不要提前实现后续版本的系统。机制事实以 `Docs/详细游戏设计文档参考/` 与 `Docs/杀戮尖塔机制研究.md` 为准，挂钩位置以 `Docs/Phase 2 扩展边界批注.md` 为准。
 
-# 架构约束（写代码时最容易搞混的两个边界）
+# 架构约束（写代码时最容易搞混的几个边界）
 
 - `EffectSystem` 只负责执行具体效果（造成伤害、施加 Buff 等）；`RuleSystem` 只负责修改规则/公式/属性计算方式，不直接执行战斗动作。新代码涉及"做事"还是"改规则"时先判断放哪层。
+- `EffectSpec`（`Core/Cards`）只描述"做什么、对谁、多少"，不执行；把它变成 `IAction` 的地方只有 `BattleSession.ToAction`。效果原语 `EffectKind` 是封闭枚举：加一张卡 = 配一份 `CardData`，不加任何分支；只有新增一种原语才改 `ToAction` 的 `switch`。
+- 依赖方向：`Core.Cards` 不引用 `Core.Actions` / `Core.Buffs`（`EffectSpec` 里的 Buff 只是字符串 Id，由 `BuffFactory` 解析）；`Core.Effects` 只改 `CombatantState`、不引用 `Core.Cards`——改牌堆的动作（如抽牌）由 Action 直接持有 `CardPile`，不设 Effect。
+- 打出时序是"先离手（`CardPile.TakeFromHand`）→ 结算 → 再落堆（`AddToDiscard`）"，打出中的牌不在任何牌区；不要再加"移出并立刻进弃牌"的组合方法。
 - 战斗数值优先来自 `ConfigSystem` 解析结果，不要硬编码在逻辑类中。
 
 # 目录约定
