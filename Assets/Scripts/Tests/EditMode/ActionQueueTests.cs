@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Buffs;
+using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 using NUnit.Framework;
 
@@ -121,6 +123,25 @@ namespace CardRPGFramework.Tests
             queue.RunAll(new ActionContext(queue));
 
             Assert.AreEqual(2, target.GetBuffStacks("strength"));
+        }
+
+        [Test]
+        public void DrawCardsAction_Execute_DrawsFromDrawPileIntoHand()
+        {
+            var queue = new ActionQueue();
+            var deck = new List<CardDefinition>();
+            for (var i = 0; i < 3; i++)
+            {
+                deck.Add(new CardDefinition($"attack-{i}", "攻击", CardType.Attack, cost: 1, value: 6));
+            }
+
+            var pile = new CardPile(deck, new Random(1));
+            queue.Enqueue(new DrawCardsAction(pile, 2));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(2, pile.Hand.Count);
+            Assert.AreEqual(1, pile.DrawPileCount);
         }
     }
 }

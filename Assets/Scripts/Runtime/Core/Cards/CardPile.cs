@@ -63,6 +63,28 @@ namespace CardRPGFramework.Core.Cards
             return card;
         }
 
+        /// <summary>
+        /// 从手牌移出，但不放入任何牌区：打出中的牌处于"结算中"状态。
+        /// 和 AddToDiscard 拆成两步，是为了让结算期间的抽牌不会把这张牌当作弃牌堆的一员洗回抽牌堆。
+        /// </summary>
+        public CardDefinition TakeFromHand(int handIndex)
+        {
+            var card = _hand[handIndex];
+            _hand.RemoveAt(handIndex);
+            return card;
+        }
+
+        /// <summary>结算完毕后把牌放入弃牌堆。</summary>
+        public void AddToDiscard(CardDefinition card)
+        {
+            if (card == null)
+            {
+                throw new ArgumentNullException(nameof(card));
+            }
+
+            _discardPile.Add(card);
+        }
+
         /// <summary>回合结束时把剩余手牌全部移入弃牌堆。</summary>
         public void DiscardHand()
         {

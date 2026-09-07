@@ -6,18 +6,18 @@
 
 ## 0. 开始前检查（约 0.5h）
 
-- [ ] 0.1 已提交推送，工作区干净，Unity Console 无错误，79 项 EditMode 测试全部通过。
-- [ ] 读过技术设计第 4.1 / 4.4 / 4.5 / 4.6 节的四处 [已定]。
+- [x] 0.1 已提交推送，工作区干净，Unity Console 无错误，79 项 EditMode 测试全部通过。
+- [x] 读过技术设计第 4.1 / 4.4 / 4.5 / 4.6 节的四处 [已定]。
 
 **阶段门槛：** 有干净的回归基线。
 
 ## 1. Core：只加不改（约 2～3h，编译全程保持绿）
 
-- [ ] 新增 `EffectKind`、`EffectTarget`、`EffectSpec`（`readonly struct`，静态构造与校验）。
-- [ ] 新增 `BuffFactory`（`IsKnown` / `Create`，四个 Id）。
-- [ ] `CardPile` 新增 `TakeFromHand` / `AddToDiscard`（暂不删 `PlayCard`，下一节一起删）。
-- [ ] 新增 `DrawCardsAction`（直接调 `CardPile.Draw`，不设 `DrawEffect`）。
-- [ ] 编写 `EffectSpec`（Value ≤ 0、ApplyBuff 缺 Id、Draw 非 Self 抛异常）、`BuffFactory`（四个 Id 与未知 Id）、`CardPile` 新方法（含"`TakeFromHand` 后立刻重洗不包含该牌"）的 EditMode 测试。
+- [x] 新增 `EffectKind`、`EffectTarget`、`EffectSpec`（`readonly struct`，静态构造与校验）。
+- [x] 新增 `BuffFactory`（`IsKnown` / `Create`，四个 Id）。
+- [x] `CardPile` 新增 `TakeFromHand` / `AddToDiscard`（暂不删 `PlayCard`，下一节一起删）。
+- [x] 新增 `DrawCardsAction`（直接调 `CardPile.Draw`，不设 `DrawEffect`）。
+- [x] 编写 `EffectSpec`（Value ≤ 0、ApplyBuff 缺 Id、Draw 非 Self 抛异常）、`BuffFactory`（四个 Id 与未知 Id）、`CardPile` 新方法（含"`TakeFromHand` 后立刻重洗不包含该牌"）的 EditMode 测试。
 
 **阶段门槛：** 编译通过，79 + 新增测试全绿；已有行为一行未动。
 
