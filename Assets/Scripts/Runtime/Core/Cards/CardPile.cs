@@ -54,18 +54,10 @@ namespace CardRPGFramework.Core.Cards
             }
         }
 
-        /// <summary>把手牌中指定位置的卡牌移入弃牌堆，返回被打出的卡牌。</summary>
-        public CardDefinition PlayCard(int handIndex)
-        {
-            var card = _hand[handIndex];
-            _hand.RemoveAt(handIndex);
-            _discardPile.Add(card);
-            return card;
-        }
-
         /// <summary>
         /// 从手牌移出，但不放入任何牌区：打出中的牌处于"结算中"状态。
         /// 和 AddToDiscard 拆成两步，是为了让结算期间的抽牌不会把这张牌当作弃牌堆的一员洗回抽牌堆。
+        /// 不提供"移出并立刻进弃牌堆"的组合方法：那就是旧时序本身，谁调它谁就回到重洗把打出中的牌洗回去的 bug。
         /// </summary>
         public CardDefinition TakeFromHand(int handIndex)
         {

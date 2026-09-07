@@ -82,7 +82,7 @@ namespace CardRPGFramework.Views
                 if (i < hand.Count)
                 {
                     var card = hand[i];
-                    cardSlots[i].Bind(i, $"{card.DisplayName}\n费用 {card.Cost}\n数值 {card.Value}", HandleCardClicked);
+                    cardSlots[i].Bind(i, $"{card.DisplayName}\n费用 {card.Cost}\n{CardDescriptionFormatter.Format(card)}", HandleCardClicked);
                 }
                 else
                 {

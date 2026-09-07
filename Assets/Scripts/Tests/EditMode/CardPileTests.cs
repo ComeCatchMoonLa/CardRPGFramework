@@ -13,7 +13,7 @@ namespace CardRPGFramework.Tests
             var deck = new List<CardDefinition>();
             for (var i = 0; i < count; i++)
             {
-                deck.Add(new CardDefinition($"attack-{i}", "攻击", CardType.Attack, cost: 1, value: 6));
+                deck.Add(new CardDefinition($"attack-{i}", "攻击", CardType.Attack, cost: 1, new[] { EffectSpec.Damage(6) }));
             }
 
             return deck;
@@ -54,19 +54,6 @@ namespace CardRPGFramework.Tests
             Assert.AreEqual(2, pile.Hand.Count);
             Assert.AreEqual(0, pile.DrawPileCount);
             Assert.AreEqual(0, pile.DiscardPileCount);
-        }
-
-        [Test]
-        public void PlayCard_MovesCardFromHandToDiscardPile()
-        {
-            var pile = new CardPile(BuildDeck(3), new Random(1));
-            pile.Draw(2);
-
-            var played = pile.PlayCard(0);
-
-            Assert.AreEqual(1, pile.Hand.Count);
-            Assert.AreEqual(1, pile.DiscardPileCount);
-            Assert.IsNotNull(played);
         }
 
         [Test]

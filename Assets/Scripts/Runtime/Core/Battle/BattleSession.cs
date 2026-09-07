@@ -72,9 +72,16 @@ namespace CardRPGFramework.Core.Battle
             }
 
             Energy -= card.Cost;
-            EnqueueCardAction(card);
+            // 先离手、再结算、最后进弃牌堆（原版顺序）：结算中若抽牌触发重洗，这张牌不在弃牌堆里，不会被洗回去；
+            // 抽到的牌落在手牌末尾，也不会让 handIndex 指错。
+            var played = _cardPile.TakeFromHand(handIndex);
+            foreach (var effect in played.Effects)
+            {
+                _actionQueue.Enqueue(ToAction(effect, Player));
+            }
+
             _actionQueue.RunAll(new ActionContext(_actionQueue));
-            _cardPile.PlayCard(handIndex);
+            _cardPile.AddToDiscard(played);
 
             if (Enemy.IsDead)
             {
@@ -122,36 +129,24 @@ namespace CardRPGFramework.Core.Battle
             return true;
         }
 
-        // 结算顺序在 PlayCard（移入弃牌堆）之前：Phase 1 三种效果都不改牌堆/手牌，暂时安全。
-        // 以后出现"打出时触发抽牌"等会改变手牌的效果时，需要重新核对 handIndex 的时机语义。
-        // switch(CardType) 依然存在，但现在决定的是"该入队哪个 Action"，不是"直接怎么改状态"。
-        private void EnqueueCardAction(CardDefinition card)
+        // 唯一的 EffectSpec → IAction 转换点。这个 switch 穷举的是五种效果原语，加一张卡不会再碰它；
+        // 新增一种原语才需要加一行，这是有意的封闭点。留在 Session 而不抽成工厂，是因为它要的 Player / Enemy / _cardPile
+        // 全是 Session 字段，0.6 敌人行动的第二个调用方仍是 Session（source 传 Enemy）。
+        private IAction ToAction(EffectSpec effect, CombatantState source)
         {
-            switch (card.Type)
+            var target = effect.Target == EffectTarget.Self ? source : Opponent(source);
+            return effect.Kind switch
             {
-                case CardType.Attack:
-                    _actionQueue.Enqueue(new DamageAction(Player, Enemy, card.Value));
-                    break;
-                case CardType.Defend:
-                    _actionQueue.Enqueue(new BlockAction(Player, card.Value));
-                    break;
-                case CardType.Heal:
-                    _actionQueue.Enqueue(new HealAction(Player, card.Value));
-                    break;
-                case CardType.Strength:
-                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Player, new StrengthBuff(card.Value)));
-                    break;
-                case CardType.Poison:
-                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new PoisonBuff(card.Value)));
-                    break;
-                case CardType.Weak:
-                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new WeakBuff(card.Value)));
-                    break;
-                case CardType.Vulnerable:
-                    _actionQueue.Enqueue(new ApplyBuffAction(Player, Enemy, new VulnerableBuff(card.Value)));
-                    break;
-            }
+                EffectKind.Damage => new DamageAction(source, target, effect.Value),
+                EffectKind.Block => new BlockAction(target, effect.Value),
+                EffectKind.Heal => new HealAction(target, effect.Value),
+                EffectKind.ApplyBuff => new ApplyBuffAction(source, target, BuffFactory.Create(effect.BuffId, effect.Value)),
+                EffectKind.Draw => new DrawCardsAction(_cardPile, effect.Value),
+                _ => throw new ArgumentOutOfRangeException(nameof(effect), effect.Kind, "未知的 EffectKind"),
+            };
         }
+
+        private CombatantState Opponent(CombatantState who) => who == Player ? Enemy : Player;
 
         /// <summary>遍历 owner 身上实现 IBuffTrigger 的 Buff，触发其回合开始行为并立即结算产生的 Action。</summary>
         private void TriggerTurnStartBuffs(CombatantState owner)

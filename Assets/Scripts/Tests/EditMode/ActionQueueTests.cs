@@ -132,7 +132,7 @@ namespace CardRPGFramework.Tests
             var deck = new List<CardDefinition>();
             for (var i = 0; i < 3; i++)
             {
-                deck.Add(new CardDefinition($"attack-{i}", "攻击", CardType.Attack, cost: 1, value: 6));
+                deck.Add(new CardDefinition($"attack-{i}", "攻击", CardType.Attack, cost: 1, new[] { EffectSpec.Damage(6) }));
             }
 
             var pile = new CardPile(deck, new Random(1));

@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
 
 namespace CardRPGFramework.Core.Cards
 {
     /// <summary>
     /// 不可变的卡牌纯 C# 数据，由 Data 层的 CardData 转换生成，Core 不保留 ScriptableObject 引用。
-    /// Phase 1 只有单一效果卡牌，用 Type 分支处理；出现复合效果卡牌时，
-    /// Type/Value 会被 EffectSystem 的效果列表替换（见 Phase1-技术设计.md 第 4 节）。
+    /// 一张牌 = 类型 + 费用 + 效果列表；打出时按列表顺序逐条结算。
     /// </summary>
     public sealed class CardDefinition
     {
@@ -14,13 +14,10 @@ namespace CardRPGFramework.Core.Cards
         public CardType Type { get; }
         public int Cost { get; }
 
-        /// <summary>
-        /// 含义取决于 Type：Attack 是伤害值，Defend 是格挡值，Heal 是治疗量，
-        /// Strength/Poison/Weak/Vulnerable 是施加的层数。多种含义共用一个字段是 Phase 1 的临时形状，见上方类注释。
-        /// </summary>
-        public int Value { get; }
+        /// <summary>至少一条；构造时拷贝，调用方之后改自己的列表不影响这里。</summary>
+        public IReadOnlyList<EffectSpec> Effects { get; }
 
-        public CardDefinition(string id, string displayName, CardType type, int cost, int value)
+        public CardDefinition(string id, string displayName, CardType type, int cost, IReadOnlyList<EffectSpec> effects)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -37,16 +34,29 @@ namespace CardRPGFramework.Core.Cards
                 throw new ArgumentOutOfRangeException(nameof(cost), "Cost 不能小于 0");
             }
 
-            if (value < 0)
+            if (effects == null || effects.Count == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), "Value 不能小于 0");
+                throw new ArgumentException("Effects 至少要有一条", nameof(effects));
+            }
+
+            var copy = new EffectSpec[effects.Count];
+            for (var i = 0; i < copy.Length; i++)
+            {
+                // 静态工厂保证 Value > 0，所以 Value == 0 只可能是绕过工厂的 default(EffectSpec)，
+                // 例如 new EffectSpec[n] 没填满；在这里拦住，别等到打出时才发现一段效果是空的。
+                if (effects[i].Value <= 0)
+                {
+                    throw new ArgumentException($"Effects[{i}] 未经 EffectSpec 静态工厂构造", nameof(effects));
+                }
+
+                copy[i] = effects[i];
             }
 
             Id = id;
             DisplayName = displayName;
             Type = type;
             Cost = cost;
-            Value = value;
+            Effects = copy;
         }
     }
 }

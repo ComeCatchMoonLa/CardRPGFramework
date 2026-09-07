@@ -25,23 +25,23 @@
 
 这一节里的改动互相牵连，拆开做就会停在红编译上；按顺序改完再编译。
 
-- [ ] `CardType` 改为 `{ Attack, Skill }`；`CardDefinition` 用 `Effects` 替换 `Value`（构造时拷贝、至少一条）。
-- [ ] `BattleSession.TryPlayCard` 改为"扣能量 → `TakeFromHand` → 按列表 `ToAction` 入队 → `RunAll` → `AddToDiscard`"；删除 `EnqueueCardAction`，新增私有 `ToAction` 与 `Opponent`。
-- [ ] 删除 `CardPile.PlayCard`。
-- [ ] 新增 `EffectSpecData`（`ToSpec` / `TryValidate`，含 kind 与 target 一致性校验）；`CardData` 增加 `effects`、删除 `value`、扩展 `TryValidate`。
-- [ ] 新增 `BuffDisplayNames`、`CardDescriptionFormatter.Format(CardDefinition)`；`BattleView.RefreshHand` 用它替换 `数值 {card.Value}`。
-- [ ] 修改所有构造 `CardDefinition` 的测试辅助方法（`BattleSessionTests` 的 `Attack/Defend/Heal/Strength/Poison/Weak/Vulnerable/BuildDeck`、`CardPileTests.BuildDeck`），只改构造。
-- [ ] `CardPileTests.PlayCard_MovesCardFromHandToDiscardPile` 改写为 `TakeFromHand` 与 `AddToDiscard` 两个用例（本版本唯一不只改构造的旧测试）。
-- [ ] 运行 0.1 全部 `BattleSessionTests`，确认断言未改仍通过（包括中毒致死、抽牌堆耗尽重洗）。
-- [ ] `EffectSpecData.TryValidate` 的 EditMode 测试（未知 buffId、value ≤ 0、Damage + Self）。
+- [x] `CardType` 改为 `{ Attack, Skill }`；`CardDefinition` 用 `Effects` 替换 `Value`（构造时拷贝、至少一条）。
+- [x] `BattleSession.TryPlayCard` 改为"扣能量 → `TakeFromHand` → 按列表 `ToAction` 入队 → `RunAll` → `AddToDiscard`"；删除 `EnqueueCardAction`，新增私有 `ToAction` 与 `Opponent`。
+- [x] 删除 `CardPile.PlayCard`。
+- [x] 新增 `EffectSpecData`（`ToSpec` / `TryValidate`，含 kind 与 target 一致性校验）；`CardData` 增加 `effects`、删除 `value`、扩展 `TryValidate`。
+- [x] 新增 `BuffDisplayNames`、`CardDescriptionFormatter.Format(CardDefinition)`；`BattleView.RefreshHand` 用它替换 `数值 {card.Value}`。
+- [x] 修改所有构造 `CardDefinition` 的测试辅助方法（`BattleSessionTests` 的 `Attack/Defend/Heal/Strength/Poison/Weak/Vulnerable/BuildDeck`、`CardPileTests.BuildDeck`），只改构造。
+- [x] `CardPileTests.PlayCard_MovesCardFromHandToDiscardPile` 改写为 `TakeFromHand` 与 `AddToDiscard` 两个用例（本版本唯一不只改构造的旧测试）。
+- [x] 运行 0.1 全部 `BattleSessionTests`，确认断言未改仍通过（包括中毒致死、抽牌堆耗尽重洗）。
+- [x] `EffectSpecData.TryValidate` 的 EditMode 测试（未知 buffId、value ≤ 0、Damage + Self）。
 
 **阶段门槛：** 编译通过；玩家可见行为与 0.1 一致；抽牌堆为空时重洗不会把打出中的牌洗回去；`BattleSession` 里没有按卡牌种类的分支。
 
 ## 3. Core：三张锚点卡的行为测试（约 1～2h）
 
-- [ ] 痛击：先掉 8 血再得 2 层易伤，8 点不吃刚施加的易伤。
-- [ ] 双击：无 Buff 掉 10；敌人易伤掉 14（不是 15）。
-- [ ] 剑柄打击：手牌数不变、弃牌堆数量 +1、末张来自抽牌堆；抽牌堆为空时重洗不含刚打出的那张。
+- [x] 痛击：先掉 8 血再得 2 层易伤，8 点不吃刚施加的易伤。
+- [x] 双击：无 Buff 掉 10；敌人易伤掉 14（不是 15）。
+- [x] 剑柄打击：手牌数不变、弃牌堆数量 +1、末张来自抽牌堆；抽牌堆为空时重洗不含刚打出的那张。
 
 **阶段门槛：** 三张卡都只用 `EffectSpec` 列表构造，没有任何新分支代码。
 

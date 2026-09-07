@@ -7,15 +7,32 @@ using NUnit.Framework;
 
 namespace CardRPGFramework.Tests
 {
-    public class BattleSessionTests
+    /// <summary>
+    /// 0.1 的回归用例：后续版本只改构造、不改断言。0.2 起的新场景写在 BattleSessionTests.*.cs 的 partial 文件里，
+    /// 共用这里的 CreateSession 与卡牌构造辅助方法。
+    /// </summary>
+    public partial class BattleSessionTests
     {
-        private static CardDefinition Attack(int value = 6) => new("attack", "攻击", CardType.Attack, cost: 1, value: value);
-        private static CardDefinition Defend(int value = 5) => new("defend", "防御", CardType.Defend, cost: 1, value: value);
-        private static CardDefinition Heal(int value = 4) => new("heal", "治疗", CardType.Heal, cost: 1, value: value);
-        private static CardDefinition Strength(int value = 2) => new("strength", "力量强化", CardType.Strength, cost: 1, value: value);
-        private static CardDefinition Poison(int value = 3) => new("poison", "剧毒", CardType.Poison, cost: 1, value: value);
-        private static CardDefinition Weak(int value = 2) => new("weak", "虚弱", CardType.Weak, cost: 1, value: value);
-        private static CardDefinition Vulnerable(int value = 2) => new("vulnerable", "易伤", CardType.Vulnerable, cost: 1, value: value);
+        private static CardDefinition Attack(int value = 6) =>
+            new("attack", "攻击", CardType.Attack, cost: 1, new[] { EffectSpec.Damage(value) });
+
+        private static CardDefinition Defend(int value = 5) =>
+            new("defend", "防御", CardType.Skill, cost: 1, new[] { EffectSpec.Block(value) });
+
+        private static CardDefinition Heal(int value = 4) =>
+            new("heal", "治疗", CardType.Skill, cost: 1, new[] { EffectSpec.Heal(value) });
+
+        private static CardDefinition Strength(int value = 2) =>
+            new("strength", "力量强化", CardType.Skill, cost: 1, new[] { EffectSpec.ApplyBuff(EffectTarget.Self, "strength", value) });
+
+        private static CardDefinition Poison(int value = 3) =>
+            new("poison", "剧毒", CardType.Skill, cost: 1, new[] { EffectSpec.ApplyBuff(EffectTarget.Opponent, "poison", value) });
+
+        private static CardDefinition Weak(int value = 2) =>
+            new("weak", "虚弱", CardType.Skill, cost: 1, new[] { EffectSpec.ApplyBuff(EffectTarget.Opponent, "weak", value) });
+
+        private static CardDefinition Vulnerable(int value = 2) =>
+            new("vulnerable", "易伤", CardType.Skill, cost: 1, new[] { EffectSpec.ApplyBuff(EffectTarget.Opponent, "vulnerable", value) });
 
         private static List<CardDefinition> BuildDeck(int attackCount, int defendCount = 0, int healCount = 0)
         {
@@ -385,7 +402,7 @@ namespace CardRPGFramework.Tests
         public void PlayWeakCardOnEnemy_ThenEndTurn_EnemyAttackReducedToFour()
         {
             // 端到端场景：虚弱卡打在敌人身上，敌人下一次固定攻击从 6 降为 4，
-            // 不是玩家自己的攻击变低（虚弱卡的目标是 Enemy，见 EnqueueCardAction）。
+            // 不是玩家自己的攻击变低（虚弱卡的效果目标是 Opponent，见 ToAction）。
             var deck = new List<CardDefinition> { Weak(), Weak(), Weak(), Weak(), Weak() };
             var session = CreateSession(deck: deck);
             session.StartBattle();
