@@ -4,6 +4,7 @@ using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Rules;
 
 namespace CardRPGFramework.Core.Battle
 {
@@ -128,6 +129,18 @@ namespace CardRPGFramework.Core.Battle
 
             return true;
         }
+
+        /// <summary>
+        /// 只读预览玩家攻击：返回格挡前的最终伤害，与 DamageAction.Execute 走同一个 DamageContext / DamageCalculator，不改任何状态。
+        /// (baseDamage, source, target) 的配对必须与 ToAction 里 EffectKind.Damage 的 (effect.Value, Player, Enemy) 相同，否则预览会漂；
+        /// 读的是此刻的 Buff，所以痛击的 8 点不会算进它自己即将施加的易伤，与"先伤后易伤"的结算一致。
+        /// </summary>
+        public int PreviewPlayerAttack(int baseDamage) =>
+            DamageCalculator.CalculateFinalDamage(new DamageContext(baseDamage, Player, Enemy));
+
+        /// <summary>只读预览敌人固定攻击（格挡前），配对与 TryEndPlayerTurn 里的 DamageAction(Enemy, Player, EnemyDamage) 相同。</summary>
+        public int PreviewEnemyAttack() =>
+            DamageCalculator.CalculateFinalDamage(new DamageContext(EnemyDamage, Enemy, Player));
 
         // 唯一的 EffectSpec → IAction 转换点。这个 switch 穷举的是五种效果原语，加一张卡不会再碰它；
         // 新增一种原语才需要加一行，这是有意的封闭点。留在 Session 而不抽成工厂，是因为它要的 Player / Enemy / _cardPile

@@ -62,5 +62,10 @@ namespace CardRPGFramework.Controllers
         {
             return _session != null && _session.TryEndPlayerTurn();
         }
+
+        // 只读预览原样转发，不加逻辑；未初始化时的兜底值只是让签名完整，View 在 IsReady 为 false 时不会调到这里。
+        public int PreviewPlayerAttack(int baseDamage) => _session?.PreviewPlayerAttack(baseDamage) ?? baseDamage;
+
+        public int PreviewEnemyAttack() => _session?.PreviewEnemyAttack() ?? 0;
     }
 }

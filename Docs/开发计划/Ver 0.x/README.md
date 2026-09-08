@@ -24,7 +24,7 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 - ~~`CardType` 同时表示「效果种类」，`EnqueueCardAction` 一种效果一个 `case`~~（0.2 已解决：`EffectSpec` 列表 + `ToAction` 穷举效果原语）。
 - ~~打出时序是先结算再移出手牌，抽牌卡会把 `handIndex` 指错~~（0.2 已解决：先离手 → 结算 → 再进弃牌）。
-- Rule 只在测试里成立，Play 里卡面写 6、实际掉 9，看不见规则（0.3 解决）。
+- ~~Rule 只在测试里成立，Play 里卡面写 6、实际掉 9，看不见规则~~（0.3 已解决：`BattleSession` 两个只读预览 + Buff 行，预览 = 结算）。
 - 只有三个牌区，没有消耗堆（0.4）。
 - `ApplyBuffAction` 的 `source` 尚无消费者（0.5 蛇颅骨兑现）。
 - 敌人只有一个固定伤害数字，没有格挡、没有行动表（0.6）。
@@ -49,14 +49,21 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 **证明的边界**：新卡 = 配数据，不在 `BattleSession` 里新增按卡的分支。痛击、双击、剑柄打击三张卡各自只是一份 `CardData`，运行时代码为它们新增的分支为零。
 
-## 0.3 可见规则
+## 0.3 可见规则（已完成）
 
 文档：[`0.3/游戏设计.md`](0.3/游戏设计.md) / [`0.3/技术设计.md`](0.3/技术设计.md) / [`0.3/TODO.md`](0.3/TODO.md)。
 
 - 双方 Buff 层数、攻击牌与敌人意图的公式后伤害在界面上可见；预览与结算走同一个 `DamageCalculator`。
 - 不改任何规则，只加两个只读预览函数和表现层。
 
-**证明的边界**：Rule 在 Play 模式里看得见，且预览等于结算。
+| 已有 | 说明 |
+| --- | --- |
+| 预览 | `BattleSession.PreviewPlayerAttack(int)` / `PreviewEnemyAttack()`：新建 `DamageContext` 交给 `DamageCalculator`，返回**格挡前**最终伤害，不改状态；`(基础值, source, target)` 配对与 `ToAction` / `TryEndPlayerTurn` 相同。`BattleController` 原样转发 |
+| 卡面 | `CardDescriptionFormatter.Format(card, Func<int,int>)` 只把 Damage 行换成预览值、其余行不变，委托非空；无委托版本保留给 1.0 奖励页 |
+| 表现 | `BattleView` 双方 Buff 行（`名称 层数`，两个空格连接，0 层过滤、不改数据）、意图 `攻击 {预览}`、卡面用预览重载；`Views` 里没有 0.75 / 1.5 等公式常数 |
+| 测试 | 149 项 EditMode（0.1 / 0.2 的 139 项不改断言；新增预览 = 结算 6 项——先预览再打出 / 结束回合比 HP 差值、痛击不含自身易伤、连续预览不改状态；卡面预览重载 4 项） |
+
+**证明的边界**：Rule 在 Play 模式里看得见，且预览等于结算（格挡前）。
 
 ## 0.4 消耗堆与能力牌
 

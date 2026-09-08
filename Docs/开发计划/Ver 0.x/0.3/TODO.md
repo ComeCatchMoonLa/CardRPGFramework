@@ -6,48 +6,49 @@
 
 ## 0. 开始前检查（约 0.5h）
 
-- [ ] 0.2 已提交推送，工作区干净，Console 无错误，EditMode 全绿。
-- [ ] 0.2 的 `CardDescriptionFormatter.Format(CardDefinition)` 与 `BuffDisplayNames` 已存在。
+- [x] 0.2 已提交推送，工作区干净，Console 无错误，EditMode 全绿。
+- [x] 0.2 的 `CardDescriptionFormatter.Format(CardDefinition)` 与 `BuffDisplayNames` 已存在。
 
 **阶段门槛：** 有干净的回归基线。
 
 ## 1. Core：预览方法（约 1.5h）
 
-- [ ] `BattleSession` 新增 `PreviewPlayerAttack(int baseDamage)` / `PreviewEnemyAttack()`。
-- [ ] 测试（`BattleSessionTests.Preview.cs`）：先预览记下数字，再打出 / 结束回合，断言 HP 差值等于预览值（双方 0 格挡）——易伤下 6 → 9；2 层力量 + 易伤 → 12；虚弱下敌人 6 → 4；连续预览两次状态不变。不要只和 `DamageCalculator` 对拍。
+- [x] `BattleSession` 新增 `PreviewPlayerAttack(int baseDamage)` / `PreviewEnemyAttack()`。
+- [x] 测试（`BattleSessionTests.Preview.cs`）：先预览记下数字，再打出 / 结束回合，断言 HP 差值等于预览值（双方 0 格挡）——易伤下 6 → 9；2 层力量 + 易伤 → 12；虚弱下敌人 6 → 4；连续预览两次状态不变。不要只和 `DamageCalculator` 对拍。
 
 **阶段门槛：** 预览与结算数值一致，有测试证明。
 
 ## 2. Controller 与生成器（约 1h）
 
-- [ ] `BattleController` 转发两个预览方法。
-- [ ] `CardDescriptionFormatter` 增加 `Format(card, Func<int,int>)` 重载（委托非空）；无委托版本保留。
-- [ ] 测试：双击在 stub「每段 5 → 7」下两行各 7；痛击在「8 → 12」下第一行 12、易伤行不变；0.2 用例不改断言。
+- [x] `BattleController` 转发两个预览方法。
+- [x] `CardDescriptionFormatter` 增加 `Format(card, Func<int,int>)` 重载（委托非空）；无委托版本保留。
+- [x] 测试：双击在 stub「每段 5 → 7」下两行各 7；痛击在「8 → 12」下第一行 12、易伤行不变；0.2 用例不改断言。
 
 **阶段门槛：** 生成器仍只依赖 `CardDefinition` 与委托；重载只换 Damage 行。
 
 ## 3. 表现层（约 2～3h）
 
-- [ ] `BattleView.Refresh`：双方 Buff 行（0 层不显示，`名称 层数` 用两个空格连接）。
-- [ ] 意图行改为 `攻击 {PreviewEnemyAttack()}`，不再读 `EnemyDamage`。
-- [ ] `RefreshHand` 改用带委托的重载。
-- [ ] 场景里补两个 Buff 文本对象并接线。
+- [x] `BattleView.Refresh`：双方 Buff 行（0 层不显示，`名称 层数` 用两个空格连接）。
+- [x] 意图行改为 `攻击 {PreviewEnemyAttack()}`，不再读 `EnemyDamage`。
+- [x] `RefreshHand` 改用带委托的重载。
+- [x] 场景里补两个 Buff 文本对象并接线。
 
 **阶段门槛：** 对敌人施加易伤后攻击卡显示 9（无力量时）；施加虚弱后意图显示 4。
 
 ## 4. 联调与验收（约 1h）
 
-- [ ] 上易伤后打攻击卡，界面数字与实际掉血一致；再打一张力量强化，攻击卡变 12，实际也是 12。
-- [ ] 上虚弱后结束回合（不打防御），玩家掉血与意图一致；再来一轮先打防御再结束回合，意图仍是 4、掉血被格挡吃掉——确认预览没有折进格挡。
-- [ ] 打剧毒后逐轮观察状态栏中毒层数递减；0 层后不显示。
-- [ ] 运行全部 EditMode 测试；Console 无错误；`Views` 里 grep 不到 `0.75` / `1.5`。
+- [x] 上易伤后打攻击卡，界面数字与实际掉血一致；再打一张力量强化，攻击卡变 12，实际也是 12。
+- [x] 上虚弱后结束回合（不打防御），玩家掉血与意图一致；再来一轮先打防御再结束回合，意图仍是 4、掉血被格挡吃掉——确认预览没有折进格挡。
+- [x] 打剧毒后逐轮观察状态栏中毒层数递减；0 层后不显示。
+- [x] 运行全部 EditMode 测试；Console 无错误；`Views` 里 grep 不到 `0.75` / `1.5`。
 
 **阶段门槛：** 游戏设计第 4 节全部满足。
 
 ## 5. 文档与交付（约 0.5h）
 
-- [ ] 更新 `README.md`：表现层说明（Buff 行、公式后预览）、测试数量；删掉「已知限制」里的「卡面只显示基础数值」。
-- [ ] 更新 [`../README.md`](../README.md) 的 0.3 状态。
+- [x] 更新 `README.md`：当前阶段与 0.3 段落、已完成列表、范围外、文档链接（下一版本改 0.4）、运行方式、测试数量；删掉「已知限制」里的「卡面只显示基础数值」，补「预览是格挡前的最终伤害」。
+- [x] 更新 [`../README.md`](../README.md) 的 0.3 状态：节标「（已完成）」并补摘要表；0.1 遗留口子里的 0.3 那条划掉。
+- [x] 更新 [`../../README.md`](../../README.md)（开发计划总览）：路线总览 0.3 标已完成与测试数；文档地图两行。
 - [ ] 提交并推送 0.3。
 
 ## 建议日程

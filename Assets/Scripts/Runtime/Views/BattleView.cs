@@ -1,5 +1,7 @@
+using System.Text;
 using CardRPGFramework.Controllers;
 using CardRPGFramework.Core.Battle;
+using CardRPGFramework.Core.Combatants;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,13 +11,16 @@ namespace CardRPGFramework.Views
     /// <summary>
     /// 战斗整体状态显示与结束回合按钮。不直接调用 Core/Data，命令执行后主动读取
     /// BattleController 的只读状态刷新界面，不引入事件/观察者机制。
+    /// 卡面与意图上的伤害数字来自 Controller 转发的只读预览，这里不出现任何公式常数。
     /// </summary>
     public sealed class BattleView : MonoBehaviour
     {
         [SerializeField] private BattleController battleController;
 
         [SerializeField] private TMP_Text playerStatusText;
+        [SerializeField] private TMP_Text playerBuffsText;
         [SerializeField] private TMP_Text enemyStatusText;
+        [SerializeField] private TMP_Text enemyBuffsText;
         [SerializeField] private TMP_Text enemyIntentText;
         [SerializeField] private TMP_Text energyText;
         [SerializeField] private TMP_Text turnText;
@@ -65,8 +70,10 @@ namespace CardRPGFramework.Views
             var enemy = battleController.Enemy;
 
             playerStatusText.text = $"HP {player.CurrentHp}/{player.MaxHp}  格挡 {player.Block}";
+            playerBuffsText.text = FormatBuffs(player);
             enemyStatusText.text = $"敌人 HP {enemy.CurrentHp}/{enemy.MaxHp}  格挡 {enemy.Block}";
-            enemyIntentText.text = $"敌人意图：攻击 {battleController.EnemyDamage}";
+            enemyBuffsText.text = FormatBuffs(enemy);
+            enemyIntentText.text = $"敌人意图：攻击 {battleController.PreviewEnemyAttack()}";
             energyText.text = $"能量 {battleController.Energy}/{battleController.EnergyPerTurn}";
             turnText.text = $"回合 {battleController.TurnNumber}";
 
@@ -82,13 +89,37 @@ namespace CardRPGFramework.Views
                 if (i < hand.Count)
                 {
                     var card = hand[i];
-                    cardSlots[i].Bind(i, $"{card.DisplayName}\n费用 {card.Cost}\n{CardDescriptionFormatter.Format(card)}", HandleCardClicked);
+                    var description = CardDescriptionFormatter.Format(card, battleController.PreviewPlayerAttack);
+                    cardSlots[i].Bind(i, $"{card.DisplayName}\n费用 {card.Cost}\n{description}", HandleCardClicked);
                 }
                 else
                 {
                     cardSlots[i].Hide();
                 }
             }
+        }
+
+        /// <summary>每个 Buff 一段 `名称 层数`，多段用两个空格连接；没有可显示的 Buff 时为空串。</summary>
+        private static string FormatBuffs(CombatantState who)
+        {
+            var builder = new StringBuilder();
+            foreach (var buff in who.Buffs)
+            {
+                // 0 层 Buff 在 0.7 轮末减层之前仍留在内部字典里（HasBuff 用 > 0 兜住），显示层只过滤、不改数据。
+                if (buff.Stacks <= 0)
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append("  ");
+                }
+
+                builder.Append(BuffDisplayNames.Of(buff.Id)).Append(' ').Append(buff.Stacks);
+            }
+
+            return builder.ToString();
         }
 
         private void RefreshEndScreen()
