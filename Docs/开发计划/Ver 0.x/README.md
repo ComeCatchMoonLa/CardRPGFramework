@@ -1,6 +1,6 @@
 # Ver 0.x：把局内做成「卡牌战斗」
 
-> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据，0.3 让规则在界面可见，0.4 证明了类型决定去向；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——遗物、会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
+> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据，0.3 让规则在界面可见，0.4 证明了类型决定去向，0.5 证明了遗物不是 Buff；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
 >
 > **不在 0.x 里的**：局外 Run、地图、奖励、商店（全部归 1.0 及以后）；Luban、出包、程序集拆分（归 1.x）。
 
@@ -26,7 +26,7 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 - ~~打出时序是先结算再移出手牌，抽牌卡会把 `handIndex` 指错~~（0.2 已解决：先离手 → 结算 → 再进弃牌）。
 - ~~Rule 只在测试里成立，Play 里卡面写 6、实际掉 9，看不见规则~~（0.3 已解决：`BattleSession` 两个只读预览 + Buff 行，预览 = 结算）。
 - ~~只有三个牌区，没有消耗堆~~（0.4 已解决：`CardPile` 消耗堆只进不出，`TryPlayCard` 按 `ExhaustsWhenPlayed` 分流落堆）。
-- `ApplyBuffAction` 的 `source` 尚无消费者（0.5 蛇颅骨兑现）。
+- ~~`ApplyBuffAction` 的 `source` 尚无消费者~~（0.5 已解决：`Execute` 先遍历施加方遗物里的 `IApplyBuffModifier`，蛇颅骨是第一个消费者）。
 - 敌人只有一个固定伤害数字，没有格挡、没有行动表（0.6）。
 - 虚弱 / 易伤层数永不衰减；0 层 Buff 留在字典里、`HasBuff` 用 `> 0` 兜住（0.7）。
 
@@ -82,14 +82,23 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 **证明的边界**：类型决定去向而不是效果；关键词与类型默认落到同一个牌区。新增消耗牌 / 能力牌都是一份 `CardData`，运行时代码为它们新增的分支为零。
 
-## 0.5 遗物三钩子
+## 0.5 遗物三钩子（已完成）
 
-文档：[`0.5/游戏设计.md`](0.5/游戏设计.md) / [`0.5/技术设计.md`](0.5/技术设计.md) / [`0.5/TODO.md`](0.5/TODO.md)（已对照 0.2～0.4 实现复核转正，四处 [待确认] 已定：施加钩子直接改 `BuffState`、加 `BuffIds` 并单独提交、遗物挂 `CombatantState`、显示名走 `RelicData` + Controller）。
+文档：[`0.5/游戏设计.md`](0.5/游戏设计.md) / [`0.5/技术设计.md`](0.5/技术设计.md) / [`0.5/TODO.md`](0.5/TODO.md)。
 
-- 遗物列表挂在玩家 `CombatantState` 上、与 Buff 字典并列；三件遗物各占一种钩子：金刚杵（开战注入，只入队 `ApplyBuffAction`）、蛇颅骨（`ApplyBuffAction` 执行前改这一次施加的层数）、纸鹤（`WeakDamageRule` 读目标是否持有，倍率 0.75 → 0.6）。钩子形状与 `IBuffTrigger` 相同，`BattleSession` 只认 `IBattleStartRelic`。
-- 第一步先把 Buff Id 字面量收进 `BuffIds` 单独提交，再开始遗物。
+- 遗物列表挂在玩家 `CombatantState` 上、与 Buff 字典并列；三件遗物各占一种钩子：金刚杵（开战注入，只入队 `ApplyBuffAction`）、蛇颅骨（`ApplyBuffAction` 执行前改这一次施加的层数）、纸鹤（`WeakDamageRule` 读目标是否持有，倍率 0.75 → 0.6）。钩子形状与 `IBuffTrigger` 相同，`BattleSession` 只认 `RelicState` 与 `IBattleStartRelic`。
+- 第一步先把 Buff Id 字面量收进 `BuffIds` 单独提交，再开始遗物；遗物 Id 同样只在 `RelicIds` 一处。
 
-**证明的边界**：遗物不是 Buff；「改公式常数」与「改一次施加」分属 Rule 与施加钩子两层。
+| 已有 | 说明 |
+| --- | --- |
+| 遗物容器 | `Core/Relics`：`RelicState`（只有 `Id`）、`RelicIds`、`RelicFactory`（Id → 实例的唯一转换，未知抛异常）；`CombatantState.Relics` / `AddRelic`（重复 Id / null 抛异常）/ `HasRelic`，与 Buff 字典互不出现 |
+| 三种钩子 | `IBattleStartRelic.OnBattleStart(owner, queue)`：`BattleSession.StartBattle` 在第一个玩家回合前遍历玩家遗物触发，只入队 Action——金刚杵入队 `ApplyBuffAction(owner, owner, BuffFactory.Create(力量, 1))`。`IApplyBuffModifier.ModifyOutgoingBuff(source, target, buff)`：`ApplyBuffAction.Execute` 先遍历**施加方**遗物再 `BuffEffect.Apply`——蛇颅骨只给中毒 +1 层。无钩子：`WeakDamageRule` 按 `Target.HasRelic(纸鹤)` 取 0.75 / 0.6，是 Core 里唯一读具体遗物 Id 的地方 |
+| Buff Id | `Core.Buffs.BuffIds` 单独提交；`Assets/Scripts/Runtime` 里四个字面量只剩这一处，测试与 `Assets/Data` 资产里的字面量有意保留 |
+| 配置 | `RelicData`（id / displayName；校验 id 非空且 `RelicFactory.IsKnown`、displayName 非空）三份资产；`BattleConfig.relics` 允许为空，校验空引用 / 逐个 / Id 重复（同一资产引用两次也算）；`Default.asset` 配三件 |
+| 表现 | `BattleController` 用 `ToRelicStates()` 构造 Session，`RelicDisplayName(id)` 从资产翻显示名（未知原样返回）；`BattleView` 遗物行 `遗物：金刚杵  蛇颅骨  纸鹤`，无遗物写 `遗物：无`；不设 `RelicDisplayNames` |
+| 测试 | 203 项 EditMode（0.1～0.4 的 165 项不改断言；新增 38 项：`CombatantStateTests` 遗物列表 4 项，用测试内 `FakeRelic`；`RelicFactoryTests` 10 项；`BattleSessionTests.Relics.cs` 16 项——开战钩子用替身锁接线 3 项、构造 3 项、金刚杵 / 蛇颅骨 / 纸鹤各先预览再结算比 HP、三件同配 `Buffs` 里只有力量；`ActionQueueTests` 施加钩子 4 项——中毒 3 → 4、力量不变、施加方无遗物不变、只目标持有不生效；`DamageRuleTests` 纸鹤 4 项——6 → 3.6 否则 4.5、施加方持有不生效、层数无关、无虚弱不变）。五个 `BattleSessionTests*.cs` partial 挪进 `EditMode/BattleSession/` |
+
+**证明的边界**：遗物不是 Buff；「改公式常数」与「改一次施加」分属 Rule 与施加钩子两层。三件遗物各自只是一个 C# 子类加一份 `RelicData`，`BattleSession` 里 grep 不到任何遗物 Id；删除任一件的类只影响它自己的用例。
 
 ## 0.6 敌人行动表
 

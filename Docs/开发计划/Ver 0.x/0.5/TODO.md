@@ -56,16 +56,16 @@
 - [x] 完整运行一局：开局 Buff 行 `力量 1`、攻击卡卡面 7；打剧毒看敌人 `中毒 4`；打虚弱给敌人后意图从 4 变 3，结束回合掉 3；对照游戏设计第 5 节逐条核对。
 - [x] 分别只配置一件遗物运行三次，核对 7 点伤害 / 4 层中毒 / 3 点敌人伤害各自独立成立。
 - [x] 故意配错一次看 Console：`RelicData.id` 改成未知值 → 启动报错；`Default.asset` 里同一遗物引用两次 → 启动报错；改回后无错误。
-- [ ] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `RelicIds` / `Vajra` / `Snecko` / `PaperKrane`，`ApplyBuffAction.cs` 只有 `IApplyBuffModifier`，`Assets/Scripts/Runtime` 里 `"strength"` / `"poison"` / `"weak"` / `"vulnerable"` 只出现在 `BuffIds.cs`（测试文件与 `Assets/Data` 资产里的字面量不在核对范围）。
+- [x] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `RelicIds` / `Vajra` / `Snecko` / `PaperKrane`，`ApplyBuffAction.cs` 只有 `IApplyBuffModifier`，`Assets/Scripts/Runtime` 里 `"strength"` / `"poison"` / `"weak"` / `"vulnerable"` 只出现在 `BuffIds.cs`（测试文件与 `Assets/Data` 资产里的字面量不在核对范围）。
 
 **阶段门槛：** 游戏设计第 5 节全部满足。
 
 ## 6. 文档与交付（约 0.5h）
 
-- [ ] 更新 `README.md`：`Core/Relics` 与 `BuffIds` 目录说明、遗物三件、遗物栏、测试数量、已知限制（钩子里只入队 Action；`IBattleStartRelic` 不带对手）。
-- [ ] 更新 [`../README.md`](../README.md) 的 0.5 状态（节标已完成、摘要表；0.1 遗留口子里"`ApplyBuffAction` 的 `source` 尚无消费者"那条划掉）。
-- [ ] 更新 [`../../README.md`](../../README.md)（开发计划总览）：路线总览 0.5 标已完成与测试数；文档地图。
-- [ ] 提交并推送 0.5（不带 `Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动）。
+- [x] 更新 `README.md`：`Core/Relics` 与 `BuffIds` 目录说明、遗物三件、遗物栏、测试数量、已知限制（钩子里只入队 Action；`IBattleStartRelic` 不带对手）。
+- [x] 更新 [`../README.md`](../README.md) 的 0.5 状态（节标已完成、摘要表；0.1 遗留口子里"`ApplyBuffAction` 的 `source` 尚无消费者"那条划掉）。
+- [x] 更新 [`../../README.md`](../../README.md)（开发计划总览）：路线总览 0.5 标已完成与测试数；文档地图。
+- [x] 提交并推送 0.5（不带 `Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动；分三次：Core 遗物、Data 与表现层、文档）。
 
 ## 建议日程
 
