@@ -26,6 +26,7 @@ namespace CardRPGFramework.Views
         [SerializeField] private TMP_Text enemyIntentText;
         [SerializeField] private TMP_Text energyText;
         [SerializeField] private TMP_Text pileCountsText;
+        [SerializeField] private TMP_Text relicsText;
         [SerializeField] private TMP_Text turnText;
         [SerializeField] private TMP_Text resultText;
 
@@ -80,6 +81,7 @@ namespace CardRPGFramework.Views
             energyText.text = $"能量 {battleController.Energy}/{battleController.EnergyPerTurn}";
             pileCountsText.text =
                 $"抽牌 {battleController.DrawPileCount}  弃牌 {battleController.DiscardPileCount}  消耗 {battleController.ExhaustPileCount}";
+            relicsText.text = FormatRelics(player);
             turnText.text = $"回合 {battleController.TurnNumber}";
 
             RefreshHand();
@@ -132,6 +134,28 @@ namespace CardRPGFramework.Views
                 }
 
                 builder.Append(BuffDisplayNames.Of(buff.Id)).Append(' ').Append(buff.Stacks);
+            }
+
+            return builder.ToString();
+        }
+
+        /// <summary>遗物是被动持有、没有层数，与 Buff 行分开显示；显示名由 Controller 从 RelicData 翻译，View 不认识 Data 层。</summary>
+        private string FormatRelics(CombatantState who)
+        {
+            if (who.Relics.Count == 0)
+            {
+                return "遗物：无";
+            }
+
+            var builder = new StringBuilder("遗物：");
+            for (var i = 0; i < who.Relics.Count; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append("  ");
+                }
+
+                builder.Append(battleController.RelicDisplayName(who.Relics[i].Id));
             }
 
             return builder.ToString();

@@ -35,27 +35,27 @@
 
 ## 3. Data：资产与配置（约 1.5h）
 
-- [ ] 新增 `RelicData`（`id` / `displayName` / `ToState` / `TryValidate`：id 非空且 `RelicFactory.IsKnown`、displayName 非空）；在 `Assets/Data/Relics/` 创建 `Vajra` / `SneckoSkull` / `PaperKrane` 三份资产（显示名：金刚杵 / 蛇颅骨 / 纸鹤）。
-- [ ] `BattleConfig` 增加 `relics` 列表（允许为空）、`Relics` 只读属性、`ToRelicStates`；`TryValidate` 增加：空引用 / 各自校验 / Id 重复（同一资产引用两次也算）。
-- [ ] `BattleController.Awake` 用 `battleConfig.ToRelicStates()` 构造 Session；新增 `RelicDisplayName(string id)`（Id → displayName 字典，未知原样返回）。
-- [ ] `Default.asset`：遗物三件。
-- [ ] 不写 SO 校验的单测（与 `CardData` / `BattleConfig` 既有做法一致），配错检查放到第 5 节联调。
+- [x] 新增 `RelicData`（`id` / `displayName` / `ToState` / `TryValidate`：id 非空且 `RelicFactory.IsKnown`、displayName 非空）；在 `Assets/Data/Relics/` 创建 `Vajra` / `SneckoSkull` / `PaperKrane` 三份资产（显示名：金刚杵 / 蛇颅骨 / 纸鹤）。
+- [x] `BattleConfig` 增加 `relics` 列表（允许为空）、`Relics` 只读属性、`ToRelicStates`；`TryValidate` 增加：空引用 / 各自校验 / Id 重复（同一资产引用两次也算）。
+- [x] `BattleController.Awake` 用 `battleConfig.ToRelicStates()` 构造 Session；新增 `RelicDisplayName(string id)`（Id → displayName 字典，未知原样返回）。
+- [x] `Default.asset`：遗物三件。
+- [x] 不写 SO 校验的单测（与 `CardData` / `BattleConfig` 既有做法一致），配错检查放到第 5 节联调。
 
 **阶段门槛：** 只改 Inspector 就能增减遗物。
 
 ## 4. 表现层（约 1h）
 
-- [ ] `BattleView` 新增 `relicsText`，`Refresh` 写 `遗物：金刚杵  蛇颅骨  纸鹤`（Id 经 `battleController.Player.Relics` 读、名字经 `RelicDisplayName`），无遗物写 `遗物：无`。
-- [ ] 场景：`TopBar` 下补文本对象（可 Duplicate `PileCounts`）并接线。
-- [ ] 不新增 `Views/RelicDisplayNames.cs`。
+- [x] `BattleView` 新增 `relicsText`，`Refresh` 写 `遗物：金刚杵  蛇颅骨  纸鹤`（Id 经 `battleController.Player.Relics` 读、名字经 `RelicDisplayName`），无遗物写 `遗物：无`。
+- [x] 场景：`TopBar` 下补文本对象（`TopBar/Relics/Text (TMP)`，Duplicate 自 `PileCounts`）并接线。
+- [x] 不新增 `Views/RelicDisplayNames.cs`。
 
 **阶段门槛：** 遗物栏显示三件名称；Buff 行里没有遗物。
 
 ## 5. 联调与验收（约 1.5h）
 
-- [ ] 完整运行一局：开局 Buff 行 `力量 1`、攻击卡卡面 7；打剧毒看敌人 `中毒 4`；打虚弱给敌人后意图从 4 变 3，结束回合掉 3；对照游戏设计第 5 节逐条核对。
-- [ ] 分别只配置一件遗物运行三次，核对 7 点伤害 / 4 层中毒 / 3 点敌人伤害各自独立成立。
-- [ ] 故意配错一次看 Console：`RelicData.id` 改成未知值 → 启动报错；`Default.asset` 里同一遗物引用两次 → 启动报错；改回后无错误。
+- [x] 完整运行一局：开局 Buff 行 `力量 1`、攻击卡卡面 7；打剧毒看敌人 `中毒 4`；打虚弱给敌人后意图从 4 变 3，结束回合掉 3；对照游戏设计第 5 节逐条核对。
+- [x] 分别只配置一件遗物运行三次，核对 7 点伤害 / 4 层中毒 / 3 点敌人伤害各自独立成立。
+- [x] 故意配错一次看 Console：`RelicData.id` 改成未知值 → 启动报错；`Default.asset` 里同一遗物引用两次 → 启动报错；改回后无错误。
 - [ ] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `RelicIds` / `Vajra` / `Snecko` / `PaperKrane`，`ApplyBuffAction.cs` 只有 `IApplyBuffModifier`，`Assets/Scripts/Runtime` 里 `"strength"` / `"poison"` / `"weak"` / `"vulnerable"` 只出现在 `BuffIds.cs`（测试文件与 `Assets/Data` 资产里的字面量不在核对范围）。
 
 **阶段门槛：** 游戏设计第 5 节全部满足。

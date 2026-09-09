@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
+using CardRPGFramework.Core.Relics;
 using UnityEngine;
 
 namespace CardRPGFramework.Data
 {
     /// <summary>
-    /// 一场战斗的 Inspector 配置资产，转换为 Core 可用的 BattleSetup 与初始牌组。
+    /// 一场战斗的 Inspector 配置资产，转换为 Core 可用的 BattleSetup、初始牌组与玩家遗物栏。
     /// </summary>
     [CreateAssetMenu(fileName = "BattleConfig", menuName = "CardRPG/Battle Config")]
     public sealed class BattleConfig : ScriptableObject
@@ -17,8 +18,11 @@ namespace CardRPGFramework.Data
         [SerializeField] private int energyPerTurn = 3;
         [SerializeField] private int handSize = 5;
         [SerializeField] private List<CardData> deck = new();
+        // 允许为空：没有遗物也是合法配置。1.0 起遗物栏改由 Run 提供，这里是否保留给 TestScene 单场调试到时一并决定。
+        [SerializeField] private List<RelicData> relics = new();
 
         public IReadOnlyList<CardData> Deck => deck;
+        public IReadOnlyList<RelicData> Relics => relics;
 
         public BattleSetup ToSetup()
         {
@@ -36,7 +40,18 @@ namespace CardRPGFramework.Data
             return result;
         }
 
-        /// <summary>启动期配置校验：空引用、非法数值、空 ID、不同资产间的重复 ID。</summary>
+        public List<RelicState> ToRelicStates()
+        {
+            var result = new List<RelicState>(relics.Count);
+            foreach (var relic in relics)
+            {
+                result.Add(relic.ToState());
+            }
+
+            return result;
+        }
+
+        /// <summary>启动期配置校验：空引用、非法数值、空 ID、不同资产间的重复 ID、遗物重复。</summary>
         public bool TryValidate(out string error)
         {
             if (playerMaxHp <= 0)
@@ -96,6 +111,34 @@ namespace CardRPGFramework.Data
                 }
 
                 seenIds[card.Id] = card;
+            }
+
+            return TryValidateRelics(out error);
+        }
+
+        // 与牌组的重复检查语义不同：同一张 CardData 引用多次是正常的（牌组里有 5 张攻击），
+        // 而遗物唯一，同一资产引用两次和两份资产同 Id 一样都是配置错误。
+        private bool TryValidateRelics(out string error)
+        {
+            var seenIds = new HashSet<string>();
+            foreach (var relic in relics)
+            {
+                if (relic == null)
+                {
+                    error = "BattleConfig: relics 中存在空引用";
+                    return false;
+                }
+
+                if (!relic.TryValidate(out error))
+                {
+                    return false;
+                }
+
+                if (!seenIds.Add(relic.Id))
+                {
+                    error = $"BattleConfig: 遗物 id '{relic.Id}' 重复（'{relic.name}'），同一件遗物不能持有两份";
+                    return false;
+                }
             }
 
             error = null;
