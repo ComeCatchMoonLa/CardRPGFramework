@@ -4,6 +4,7 @@ using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Relics;
 using NUnit.Framework;
 
 namespace CardRPGFramework.Tests
@@ -123,6 +124,63 @@ namespace CardRPGFramework.Tests
             queue.RunAll(new ActionContext(queue));
 
             Assert.AreEqual(2, target.GetBuffStacks("strength"));
+        }
+
+        // ---------- ApplyBuffAction × 施加方遗物钩子（IApplyBuffModifier） ----------
+
+        [Test]
+        public void ApplyBuffAction_SourceWithoutRelics_PoisonStacksUnchanged()
+        {
+            var queue = new ActionQueue();
+            var source = new CombatantState(30);
+            var target = new CombatantState(30);
+            queue.Enqueue(new ApplyBuffAction(source, target, new PoisonBuff(3)));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(3, target.GetBuffStacks("poison"));
+        }
+
+        [Test]
+        public void ApplyBuffAction_SourceHoldsSneckoSkull_PoisonGetsOneExtraStack()
+        {
+            var queue = new ActionQueue();
+            var source = new CombatantState(30);
+            source.AddRelic(new SneckoSkullRelic());
+            var target = new CombatantState(30);
+            queue.Enqueue(new ApplyBuffAction(source, target, new PoisonBuff(3)));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(4, target.GetBuffStacks("poison"));
+        }
+
+        [Test]
+        public void ApplyBuffAction_SourceHoldsSneckoSkull_StrengthUnchanged_HookIsById()
+        {
+            var queue = new ActionQueue();
+            var source = new CombatantState(30);
+            source.AddRelic(new SneckoSkullRelic());
+            var target = new CombatantState(30);
+            queue.Enqueue(new ApplyBuffAction(source, target, new StrengthBuff(2)));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(2, target.GetBuffStacks("strength"));
+        }
+
+        [Test]
+        public void ApplyBuffAction_OnlyTargetHoldsSneckoSkull_PoisonUnchanged_HookReadsSource()
+        {
+            var queue = new ActionQueue();
+            var source = new CombatantState(30);
+            var target = new CombatantState(30);
+            target.AddRelic(new SneckoSkullRelic());
+            queue.Enqueue(new ApplyBuffAction(source, target, new PoisonBuff(3)));
+
+            queue.RunAll(new ActionContext(queue));
+
+            Assert.AreEqual(3, target.GetBuffStacks("poison"));
         }
 
         [Test]

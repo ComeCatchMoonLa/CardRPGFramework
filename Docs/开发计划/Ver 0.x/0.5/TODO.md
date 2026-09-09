@@ -14,22 +14,22 @@
 ## 1. Core：BuffIds 与遗物基础设施（约 2～3h）
 
 - [x] **单独一步、单独提交**：新增 `Core.Buffs.BuffIds`；替换 `Assets/Scripts/Runtime` 里的 9 处字面量（四个 Buff 子类的 `Id`、`BuffFactory`、三条 Rule、`BuffDisplayNames`）；**不改**测试文件里的字面量；`Assets/Data/Cards/*.asset` 里的 `buffId: strength` 是资产数据，本来就不改，grep 核对只看 `Assets/Scripts/Runtime`；165 项全绿后提交（提交说明写"重构：Buff Id 字面量收进 BuffIds"，中文）。
-- [ ] 新增 `Core.Relics` 的基础部分：`RelicState`、`RelicIds`、`IBattleStartRelic`、`IApplyBuffModifier`。`RelicFactory` 和三个遗物类一起放第 2 节——工厂的 `Create` 要 `new` 三个类，拆开编不过。
-- [ ] `CombatantState` 增加 `Relics` / `AddRelic`（重复 Id 抛 `ArgumentException`）/ `HasRelic`。
-- [ ] `BattleSession` 构造函数增加可选 `relics` 参数；`StartBattle` 在 `StartPlayerTurn()` 之前调用 `TriggerBattleStartRelics(Player)`（`foreach` + `is IBattleStartRelic` + `RunAll`；此时还没有实现者，行为由第 2 节金刚杵的用例锁）。
-- [ ] 测试：`CombatantStateTests` 加 `AddRelic` / 重复抛异常 / `HasRelic`，用测试内定义的 `RelicState` 子类（与 `ActionQueueTests.RecordingAction` 同一做法），不依赖三件遗物；`BattleSessionTests.CreateSession` 加 `relics` 可选参数，0.1～0.4 用例不改。
+- [x] 新增 `Core.Relics` 的基础部分：`RelicState`、`RelicIds`、`IBattleStartRelic`、`IApplyBuffModifier`。`RelicFactory` 和三个遗物类一起放第 2 节——工厂的 `Create` 要 `new` 三个类，拆开编不过。
+- [x] `CombatantState` 增加 `Relics` / `AddRelic`（重复 Id 抛 `ArgumentException`，null 抛 `ArgumentNullException`）/ `HasRelic`。
+- [x] `BattleSession` 构造函数增加可选 `relics` 参数；`StartBattle` 在 `StartPlayerTurn()` 之前调用 `TriggerBattleStartRelics(Player)`（`foreach` + `is IBattleStartRelic` + `RunAll`）。接线本身用测试内的 `IBattleStartRelic` 替身锁在 `BattleSessionTests.Relics.cs`（只触发一次、队列被结算、重复 `StartBattle` 不再触发、无钩子的遗物被忽略）；金刚杵的数值用例在第 2 节。
+- [x] 测试：`CombatantStateTests` 加 `AddRelic` / 重复抛异常 / null 抛异常 / `HasRelic`（4 项），用测试内定义的 `RelicState` 子类（与 `ActionQueueTests.RecordingAction` 同一做法），不依赖三件遗物；`BattleSessionTests.CreateSession` 加 `relics` 可选参数，0.1～0.4 用例不改；新建 `BattleSessionTests.Relics.cs`（6 项：构造落在玩家 / 无遗物为空 / 重复 Id 抛异常 / 开战钩子接线 3 项）。第 1 节完成时合计 175 项。
 
 **阶段门槛：** `Core.Relics` 不引用 `UnityEngine`；`Assets/Scripts/Runtime` 里 Buff Id 字面量只剩 `BuffIds.cs`；0.1～0.4 测试不改仍通过。
 
 ## 2. Core：三件遗物（约 3h）
 
-- [ ] 金刚杵：`VajraRelic : RelicState, IBattleStartRelic`，`OnBattleStart` 只入队 `new ApplyBuffAction(owner, owner, BuffFactory.Create(BuffIds.Strength, 1))`，不 `new StrengthBuff`、不 `owner.ApplyBuff`。
-- [ ] 蛇颅骨：`ApplyBuffAction.Execute` 先遍历**施加方**遗物里的 `IApplyBuffModifier` 再 `BuffEffect.Apply`；`SneckoSkullRelic` 只在 `buff.Id == BuffIds.Poison` 时 `AddStacks(1)`；更新构造函数上"source 尚无消费者"的注释。
-- [ ] 纸鹤：`PaperKraneRelic` 无钩子；`WeakDamageRule` 倍率由 `context.Target.HasRelic(RelicIds.PaperKrane)` 决定（0.6 / 0.75 两个常量）。
-- [ ] `RelicFactory`（`IsKnown` / `Create`，未知 Id 抛 `ArgumentException`）；新增 `RelicFactoryTests`：三个 Id 各返回正确类型、`IsKnown` 三真一假、未知抛异常。
-- [ ] 测试（`BattleSessionTests.Relics.cs`）：金刚杵——开战力量 1、`Player.Buffs` 只有一条、`PreviewPlayerAttack(6) == 7` 且打出后敌人 HP 差 7、无遗物时 0 / 6；蛇颅骨——打出剧毒 4 层、无遗物 3 层、**只配蛇颅骨**时打出力量强化仍 2 层（带金刚杵会是 3，那 1 层是金刚杵的）；纸鹤——先打虚弱给敌人，`PreviewEnemyAttack() == 3` 且结束回合玩家 HP 差 3、无纸鹤 4 / 4、玩家自己带虚弱且持纸鹤时 `PreviewPlayerAttack(6) == 4`；三件同配——`Player.Relics.Count == 3`、`Buffs` 里只有力量且没有任何 `RelicIds.*`。
-- [ ] 测试（`ActionQueueTests`）：施加方持蛇颅骨 + 中毒 → 4；+ 力量 → 2；施加方无遗物 → 不变；**目标**持蛇颅骨、施加方没有 → 不变。
-- [ ] 测试（`DamageRuleTests`）：目标持纸鹤 6 → 3.6、否则 4.5；纸鹤在施加方身上不生效；2 层与 1 层相同。
+- [x] 金刚杵：`VajraRelic : RelicState, IBattleStartRelic`，`OnBattleStart` 只入队 `new ApplyBuffAction(owner, owner, BuffFactory.Create(BuffIds.Strength, 1))`，不 `new StrengthBuff`、不 `owner.ApplyBuff`。
+- [x] 蛇颅骨：`ApplyBuffAction.Execute` 先遍历**施加方**遗物里的 `IApplyBuffModifier` 再 `BuffEffect.Apply`；`SneckoSkullRelic` 只在 `buff.Id == BuffIds.Poison` 时 `AddStacks(1)`；更新构造函数上"source 尚无消费者"的注释。
+- [x] 纸鹤：`PaperKraneRelic` 无钩子；`WeakDamageRule` 倍率由 `context.Target.HasRelic(RelicIds.PaperKrane)` 决定（0.6 / 0.75 两个常量）。
+- [x] `RelicFactory`（`IsKnown` / `Create`，未知 Id 抛 `ArgumentException`）；新增 `RelicFactoryTests`（10 个用例：三个 Id 各返回正确类型、`IsKnown` 三真三假、未知抛异常；Id 用字面量锁 `RelicData` 要填的字符串）。
+- [x] 测试（`BattleSessionTests.Relics.cs`，+10）：金刚杵——开战力量 1、`Player.Buffs` 只有一条、`PreviewPlayerAttack(6) == 7` 且打出后敌人 HP 差 7、无遗物时 0 / 6；蛇颅骨——打出剧毒 4 层、无遗物 3 层、**只配蛇颅骨**时打出力量强化仍 2 层（带金刚杵会是 3，那 1 层是金刚杵的）；纸鹤——先打虚弱给敌人，`PreviewEnemyAttack() == 3` 且结束回合玩家 HP 差 3、无纸鹤 4 / 4、玩家自己带虚弱且持纸鹤时 `PreviewPlayerAttack(6) == 4`；三件同配——`Player.Relics.Count == 3`、`Buffs` 里只有力量且没有任何 `RelicIds.*`。五个 `BattleSessionTests*.cs` partial 已挪进 `Tests/EditMode/BattleSession/`（同一 asmdef，`EditMode/` 根目录回到 15 个文件以内）。
+- [x] 测试（`ActionQueueTests`，+4）：施加方持蛇颅骨 + 中毒 → 4；+ 力量 → 2；施加方无遗物 → 不变；**目标**持蛇颅骨、施加方没有 → 不变。
+- [x] 测试（`DamageRuleTests`，+4）：目标持纸鹤 6 → 3.6、否则 4.5；纸鹤在施加方身上不生效；2 层与 1 层相同；目标持纸鹤但攻击方无虚弱 → 不变（纸鹤不加虚弱）。第 2 节完成时合计 203 项。
 
 **阶段门槛：** 三件遗物分别位于三个不同挂钩点，删除任一件的类只影响它自己的用例；`BattleSession.cs` 里 grep 不到 `RelicIds` / `Vajra` / `Snecko` / `PaperKrane`。
 

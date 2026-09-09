@@ -1,11 +1,21 @@
+using System;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Relics;
 using NUnit.Framework;
 
 namespace CardRPGFramework.Tests
 {
     public class CombatantStateTests
     {
+        /// <summary>只有 Id 的遗物替身：容器测试不该依赖三件具体遗物，它们也不在这一切片里。</summary>
+        private sealed class FakeRelic : RelicState
+        {
+            public FakeRelic(string id) => Id = id;
+
+            public override string Id { get; }
+        }
+
         [Test]
         public void TakeDamage_AbsorbedByBlockFirst_RemainderHitsHp()
         {
@@ -125,6 +135,48 @@ namespace CardRPGFramework.Tests
 
             Assert.IsFalse(state.HasBuff("poison"));
             Assert.AreEqual(0, state.GetBuffStacks("poison"));
+        }
+
+        // ---------- 遗物容器 ----------
+
+        [Test]
+        public void AddRelic_ThenHasRelic_AndListedOnce_WithoutTouchingBuffs()
+        {
+            var state = new CombatantState(30);
+
+            state.AddRelic(new FakeRelic("vajra"));
+
+            Assert.IsTrue(state.HasRelic("vajra"));
+            Assert.AreEqual(1, state.Relics.Count);
+            Assert.AreEqual("vajra", state.Relics[0].Id);
+            Assert.AreEqual(0, state.Buffs.Count);
+        }
+
+        [Test]
+        public void HasRelic_NotHeld_ReturnsFalse()
+        {
+            var state = new CombatantState(30);
+            state.AddRelic(new FakeRelic("vajra"));
+
+            Assert.IsFalse(state.HasRelic("paper_krane"));
+        }
+
+        [Test]
+        public void AddRelic_DuplicateId_ThrowsAndKeepsSingleCopy()
+        {
+            var state = new CombatantState(30);
+            state.AddRelic(new FakeRelic("vajra"));
+
+            Assert.Throws<ArgumentException>(() => state.AddRelic(new FakeRelic("vajra")));
+            Assert.AreEqual(1, state.Relics.Count);
+        }
+
+        [Test]
+        public void AddRelic_Null_Throws()
+        {
+            var state = new CombatantState(30);
+
+            Assert.Throws<ArgumentNullException>(() => state.AddRelic(null));
         }
     }
 }

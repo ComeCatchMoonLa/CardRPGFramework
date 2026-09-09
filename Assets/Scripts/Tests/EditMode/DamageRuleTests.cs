@@ -1,5 +1,6 @@
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Relics;
 using CardRPGFramework.Core.Rules;
 using NUnit.Framework;
 
@@ -95,6 +96,56 @@ namespace CardRPGFramework.Tests
         public void WeakRule_IgnoresTargetWeak()
         {
             var context = Context(6, Plain(), With(new WeakBuff(1)));
+
+            new WeakDamageRule().Apply(context);
+
+            Assert.AreEqual(6, context.Damage, Tolerance);
+        }
+
+        // ---------- WeakDamageRule × 纸鹤（改常数，读目标的遗物） ----------
+
+        private static CombatantState WithPaperKrane(CombatantState state)
+        {
+            state.AddRelic(new PaperKraneRelic());
+            return state;
+        }
+
+        [Test]
+        public void WeakRule_TargetHoldsPaperKrane_Multiplies06()
+        {
+            var context = Context(6, With(new WeakBuff(1)), WithPaperKrane(Plain()));
+
+            new WeakDamageRule().Apply(context);
+
+            Assert.AreEqual(3.6, context.Damage, Tolerance);
+        }
+
+        [Test]
+        public void WeakRule_TargetHoldsPaperKrane_TwoStacksSameAsOne()
+        {
+            var context = Context(6, With(new WeakBuff(2)), WithPaperKrane(Plain()));
+
+            new WeakDamageRule().Apply(context);
+
+            Assert.AreEqual(3.6, context.Damage, Tolerance);
+        }
+
+        [Test]
+        public void WeakRule_SourceHoldsPaperKrane_StillMultiplies075()
+        {
+            // 纸鹤是"打你的虚弱敌人更弱"：持有者自己带虚弱去打人，目标没有纸鹤，仍是 0.75。
+            var context = Context(6, WithPaperKrane(With(new WeakBuff(1))), Plain());
+
+            new WeakDamageRule().Apply(context);
+
+            Assert.AreEqual(4.5, context.Damage, Tolerance);
+        }
+
+        [Test]
+        public void WeakRule_TargetHoldsPaperKrane_SourceWithoutWeak_DamageUnchanged()
+        {
+            // 纸鹤只改常数，不给攻击方加虚弱：没有虚弱就没有任何减伤。
+            var context = Context(6, Plain(), WithPaperKrane(Plain()));
 
             new WeakDamageRule().Apply(context);
 

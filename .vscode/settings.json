@@ -25,5 +25,5 @@
     "**/*.meta": true,
     "ProjectSettings/*.asset": true,
     "Assets/Settings/**/*.asset": true
-  }
+  },
 }

@@ -4,12 +4,15 @@ using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Relics;
 using CardRPGFramework.Core.Rules;
 
 namespace CardRPGFramework.Core.Battle
 {
     /// <summary>
     /// 一场战斗的唯一规则入口：阶段、回合、能量、双方状态和牌堆流转都只能通过这里修改。
+    /// 对遗物只认 RelicState（构造参数）与 IBattleStartRelic（开战遍历），不认任何具体遗物或遗物 Id：
+    /// 新增一件用现有钩子的遗物不改这里，改公式常数的遗物改对应 Rule。
     /// </summary>
     public sealed class BattleSession
     {
@@ -33,7 +36,9 @@ namespace CardRPGFramework.Core.Battle
         public int DiscardPileCount => _cardPile.DiscardPileCount;
         public int ExhaustPileCount => _cardPile.ExhaustPileCount;
 
-        public BattleSession(BattleSetup setup, IEnumerable<CardDefinition> deck, Random random)
+        // relics 可选：遗物只挂玩家，0.1～0.4 的调用点不用改。
+        public BattleSession(BattleSetup setup, IEnumerable<CardDefinition> deck, Random random,
+                             IEnumerable<RelicState> relics = null)
         {
             Player = new CombatantState(setup.PlayerMaxHp);
             Enemy = new CombatantState(setup.EnemyMaxHp);
@@ -41,6 +46,11 @@ namespace CardRPGFramework.Core.Battle
             EnergyPerTurn = setup.EnergyPerTurn;
             HandSize = setup.HandSize;
             _cardPile = new CardPile(deck, random);
+
+            foreach (var relic in relics ?? Array.Empty<RelicState>())
+            {
+                Player.AddRelic(relic);
+            }
         }
 
         /// <summary>开始战斗并进入第一个玩家回合。战斗已开始时不重复初始化。</summary>
@@ -51,6 +61,8 @@ namespace CardRPGFramework.Core.Battle
                 return;
             }
 
+            // 开战钩子在第一个玩家回合之前：金刚杵这类注入的 Buff 从第一回合起就可见，回合开始的 Buff 触发也能看到它。
+            TriggerBattleStartRelics(Player);
             StartPlayerTurn();
         }
 
@@ -169,6 +181,20 @@ namespace CardRPGFramework.Core.Battle
         }
 
         private CombatantState Opponent(CombatantState who) => who == Player ? Enemy : Player;
+
+        /// <summary>遍历 owner 的遗物里实现 IBattleStartRelic 的，触发其开战行为并立即结算产生的 Action。与 TriggerTurnStartBuffs 同形。</summary>
+        private void TriggerBattleStartRelics(CombatantState owner)
+        {
+            foreach (var relic in owner.Relics)
+            {
+                if (relic is IBattleStartRelic starter)
+                {
+                    starter.OnBattleStart(owner, _actionQueue);
+                }
+            }
+
+            _actionQueue.RunAll(new ActionContext(_actionQueue));
+        }
 
         /// <summary>遍历 owner 身上实现 IBuffTrigger 的 Buff，触发其回合开始行为并立即结算产生的 Action。</summary>
         private void TriggerTurnStartBuffs(CombatantState owner)

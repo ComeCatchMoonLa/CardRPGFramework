@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
+using CardRPGFramework.Core.Relics;
 using NUnit.Framework;
 
 namespace CardRPGFramework.Tests
@@ -45,11 +46,11 @@ namespace CardRPGFramework.Tests
 
         private static BattleSession CreateSession(
             int playerMaxHp = 40, int enemyMaxHp = 36, int enemyDamage = 6, int energyPerTurn = 3, int handSize = 5,
-            List<CardDefinition> deck = null)
+            List<CardDefinition> deck = null, IEnumerable<RelicState> relics = null)
         {
             var setup = new BattleSetup(playerMaxHp, enemyMaxHp, enemyDamage, energyPerTurn, handSize);
             deck ??= BuildDeck(5, 3, 2);
-            return new BattleSession(setup, deck, new Random(1));
+            return new BattleSession(setup, deck, new Random(1), relics);
         }
 
         [Test]
