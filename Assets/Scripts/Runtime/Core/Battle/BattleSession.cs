@@ -31,6 +31,7 @@ namespace CardRPGFramework.Core.Battle
         public IReadOnlyList<CardDefinition> Hand => _cardPile.Hand;
         public int DrawPileCount => _cardPile.DrawPileCount;
         public int DiscardPileCount => _cardPile.DiscardPileCount;
+        public int ExhaustPileCount => _cardPile.ExhaustPileCount;
 
         public BattleSession(BattleSetup setup, IEnumerable<CardDefinition> deck, Random random)
         {
@@ -73,7 +74,7 @@ namespace CardRPGFramework.Core.Battle
             }
 
             Energy -= card.Cost;
-            // 先离手、再结算、最后进弃牌堆（原版顺序）：结算中若抽牌触发重洗，这张牌不在弃牌堆里，不会被洗回去；
+            // 先离手、再结算、最后落堆（原版顺序）：结算中若抽牌触发重洗，这张牌不在弃牌堆里，不会被洗回去；
             // 抽到的牌落在手牌末尾，也不会让 handIndex 指错。
             var played = _cardPile.TakeFromHand(handIndex);
             foreach (var effect in played.Effects)
@@ -82,7 +83,15 @@ namespace CardRPGFramework.Core.Battle
             }
 
             _actionQueue.RunAll(new ActionContext(_actionQueue));
-            _cardPile.AddToDiscard(played);
+            // 去哪是牌自己的规则（类型默认 + 消耗关键词），这里只问结果，不按类型或卡 Id 分支。
+            if (played.ExhaustsWhenPlayed)
+            {
+                _cardPile.AddToExhaust(played);
+            }
+            else
+            {
+                _cardPile.AddToDiscard(played);
+            }
 
             if (Enemy.IsDead)
             {

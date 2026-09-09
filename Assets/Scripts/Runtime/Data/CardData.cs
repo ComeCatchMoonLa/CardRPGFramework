@@ -15,12 +15,15 @@ namespace CardRPGFramework.Data
         [SerializeField] private string displayName;
         [SerializeField] private CardType type;
         [SerializeField] private int cost;
+        // 能力牌不用勾：类型已决定进消耗堆（见 CardDefinition.ExhaustsWhenPlayed）；勾上的能力牌不报错也无额外效果。
+        [SerializeField] private bool exhaust;
         [SerializeField] private List<EffectSpecData> effects = new();
 
         public string Id => id;
         public string DisplayName => displayName;
         public CardType Type => type;
         public int Cost => cost;
+        public bool Exhaust => exhaust;
 
         public CardDefinition ToDefinition()
         {
@@ -30,7 +33,7 @@ namespace CardRPGFramework.Data
                 specs[i] = effects[i].ToSpec();
             }
 
-            return new CardDefinition(id, displayName, type, cost, specs);
+            return new CardDefinition(id, displayName, type, cost, specs, exhaust);
         }
 
         /// <summary>启动期配置校验：字段本身是否合法。跨资产的重复 ID 由 BattleConfig 统一检查。</summary>
@@ -50,6 +53,7 @@ namespace CardRPGFramework.Data
 
             // 0.1 的 type 按 Attack=0 … Vulnerable=6 序列化；收成 { Attack, Skill } 后旧资产会留下越界整数，
             // Inspector 显示为空白而不报错，这里拦住，逼迫每份资产都被显式重设过。
+            // 0.4 追加 Power = 2 后，残留的旧整数 2 会被当成合法的能力牌——这条校验拦不住它，只能靠人在 Inspector 里核对。
             if (!Enum.IsDefined(typeof(CardType), type))
             {
                 error = $"CardData '{name}': type 值 {(int)type} 不是合法的 CardType，需要在 Inspector 里重设";

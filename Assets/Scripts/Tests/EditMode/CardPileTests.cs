@@ -19,6 +19,9 @@ namespace CardRPGFramework.Tests
             return deck;
         }
 
+        private static CardDefinition ExhaustCard(string id) =>
+            new(id, "坚不可摧", CardType.Skill, cost: 2, new[] { EffectSpec.Block(30) }, exhaust: true);
+
         [Test]
         public void Draw_MovesCardsFromDrawPileToHand()
         {
@@ -125,6 +128,74 @@ namespace CardRPGFramework.Tests
 
             Assert.AreEqual(0, pile.Hand.Count);
             Assert.AreEqual(4, pile.DiscardPileCount);
+        }
+
+        [Test]
+        public void AddToExhaust_AddsCardToExhaustPile_WithoutTouchingHandOrDiscardPile()
+        {
+            var pile = new CardPile(BuildDeck(3), new Random(1));
+            pile.Draw(2);
+            var taken = pile.TakeFromHand(0);
+
+            pile.AddToExhaust(taken);
+
+            Assert.AreEqual(1, pile.ExhaustPileCount);
+            Assert.AreEqual(1, pile.Hand.Count);
+            Assert.AreEqual(0, pile.DiscardPileCount);
+            Assert.AreEqual(1, pile.DrawPileCount);
+        }
+
+        [Test]
+        public void AddToExhaust_NullCard_Throws()
+        {
+            var pile = new CardPile(BuildDeck(1), new Random(1));
+
+            Assert.Throws<ArgumentNullException>(() => pile.AddToExhaust(null));
+        }
+
+        [Test]
+        public void Draw_ReshuffleOnlyReturnsDiscardPile_ExhaustPileStaysOut()
+        {
+            var pile = new CardPile(BuildDeck(3), new Random(1));
+            pile.Draw(3);
+            var exhausted = pile.TakeFromHand(0);
+            pile.AddToExhaust(exhausted);
+            pile.DiscardHand();
+
+            pile.Draw(3);
+
+            Assert.AreEqual(2, pile.Hand.Count);
+            CollectionAssert.DoesNotContain(pile.Hand, exhausted);
+            Assert.AreEqual(0, pile.DrawPileCount);
+            Assert.AreEqual(0, pile.DiscardPileCount);
+            Assert.AreEqual(1, pile.ExhaustPileCount);
+        }
+
+        [Test]
+        public void Draw_WhenDrawAndDiscardPilesEmpty_DoesNotTakeFromExhaustPile()
+        {
+            var pile = new CardPile(BuildDeck(2), new Random(1));
+            pile.Draw(2);
+            pile.AddToExhaust(pile.TakeFromHand(0));
+            pile.AddToExhaust(pile.TakeFromHand(0));
+
+            Assert.DoesNotThrow(() => pile.Draw(1));
+            Assert.AreEqual(0, pile.Hand.Count);
+            Assert.AreEqual(0, pile.DrawPileCount);
+            Assert.AreEqual(2, pile.ExhaustPileCount);
+        }
+
+        [Test]
+        public void DiscardHand_ExhaustKeywordCardStillGoesToDiscardPile()
+        {
+            // "消耗"只在被打出时生效：留在手里的坚不可摧回合结束进弃牌堆，不进消耗堆。
+            var pile = new CardPile(new List<CardDefinition> { ExhaustCard("impervious") }, new Random(1));
+            pile.Draw(1);
+
+            pile.DiscardHand();
+
+            Assert.AreEqual(1, pile.DiscardPileCount);
+            Assert.AreEqual(0, pile.ExhaustPileCount);
         }
 
         [Test]

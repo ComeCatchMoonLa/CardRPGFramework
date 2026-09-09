@@ -59,5 +59,34 @@ namespace CardRPGFramework.Tests
             Assert.AreEqual(EffectKind.Damage, card.Effects[0].Kind);
             Assert.AreEqual(EffectKind.ApplyBuff, card.Effects[1].Kind);
         }
+
+        [Test]
+        public void Exhaust_DefaultsToFalse_AttackGoesToDiscardPile()
+        {
+            var card = new CardDefinition("attack", "攻击", CardType.Attack, cost: 1, new[] { EffectSpec.Damage(6) });
+
+            Assert.IsFalse(card.Exhaust);
+            Assert.IsFalse(card.ExhaustsWhenPlayed);
+        }
+
+        [Test]
+        public void ExhaustsWhenPlayed_Power_TrueByTypeWithoutKeyword()
+        {
+            var card = new CardDefinition("inflame", "力量强化", CardType.Power, cost: 1,
+                new[] { EffectSpec.ApplyBuff(EffectTarget.Self, "strength", 2) });
+
+            Assert.IsFalse(card.Exhaust);
+            Assert.IsTrue(card.ExhaustsWhenPlayed);
+        }
+
+        [Test]
+        public void ExhaustsWhenPlayed_SkillWithExhaustKeyword_True()
+        {
+            var card = new CardDefinition("impervious", "坚不可摧", CardType.Skill, cost: 2, new[] { EffectSpec.Block(30) },
+                exhaust: true);
+
+            Assert.IsTrue(card.Exhaust);
+            Assert.IsTrue(card.ExhaustsWhenPlayed);
+        }
     }
 }

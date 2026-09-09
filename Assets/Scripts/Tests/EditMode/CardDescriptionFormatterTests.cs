@@ -8,11 +8,18 @@ namespace CardRPGFramework.Tests
     /// <summary>
     /// 纯函数，直接锁定文案：卡面描述与效果列表逐条一致是 0.2 的验收标准之一。
     /// 0.3 的带委托重载只换 Damage 行的数字、其余行不动，是卡面预览的生成器契约；无委托用例不改断言。
+    /// 0.4 的"消耗"行只跟 Exhaust 关键词走：能力牌不印，两个重载都追加；0.2 / 0.3 用例都是未勾消耗的牌，断言不改。
     /// </summary>
     public class CardDescriptionFormatterTests
     {
         private static CardDefinition Card(params EffectSpec[] effects) =>
             new("card", "卡", CardType.Attack, cost: 1, effects);
+
+        private static CardDefinition ExhaustSkill(params EffectSpec[] effects) =>
+            new("impervious", "坚不可摧", CardType.Skill, cost: 2, effects, exhaust: true);
+
+        private static CardDefinition PowerCard(params EffectSpec[] effects) =>
+            new("inflame", "力量强化", CardType.Power, cost: 1, effects);
 
         [Test]
         public void Format_Damage() =>
@@ -79,5 +86,26 @@ namespace CardRPGFramework.Tests
         [Test]
         public void FormatWithPreview_NullDelegate_Throws() =>
             Assert.Throws<ArgumentNullException>(() => CardDescriptionFormatter.Format(Card(EffectSpec.Damage(6)), null));
+
+        [Test]
+        public void Format_ExhaustSkill_AppendsExhaustAsLastLine() =>
+            Assert.AreEqual("获得 30 点格挡\n消耗", CardDescriptionFormatter.Format(ExhaustSkill(EffectSpec.Block(30))));
+
+        [Test]
+        public void Format_Power_NoExhaustLine_EvenThoughItExhaustsWhenPlayed()
+        {
+            var card = PowerCard(EffectSpec.ApplyBuff(EffectTarget.Self, "strength", 2));
+
+            Assert.IsTrue(card.ExhaustsWhenPlayed);
+            Assert.AreEqual("获得 2 层力量", CardDescriptionFormatter.Format(card));
+        }
+
+        [Test]
+        public void FormatWithPreview_ExhaustSkill_AlsoAppendsExhaustLine()
+        {
+            var card = ExhaustSkill(EffectSpec.Damage(6), EffectSpec.Block(30));
+
+            Assert.AreEqual("造成 9 点伤害\n获得 30 点格挡\n消耗", CardDescriptionFormatter.Format(card, _ => 9));
+        }
     }
 }

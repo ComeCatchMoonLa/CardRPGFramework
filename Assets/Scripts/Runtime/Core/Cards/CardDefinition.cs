@@ -5,7 +5,7 @@ namespace CardRPGFramework.Core.Cards
 {
     /// <summary>
     /// 不可变的卡牌纯 C# 数据，由 Data 层的 CardData 转换生成，Core 不保留 ScriptableObject 引用。
-    /// 一张牌 = 类型 + 费用 + 效果列表；打出时按列表顺序逐条结算。
+    /// 一张牌 = 类型 + 费用 + 效果列表 + 关键词；打出时按列表顺序逐条结算，结算完按 ExhaustsWhenPlayed 落堆。
     /// </summary>
     public sealed class CardDefinition
     {
@@ -17,7 +17,22 @@ namespace CardRPGFramework.Core.Cards
         /// <summary>至少一条；构造时拷贝，调用方之后改自己的列表不影响这里。</summary>
         public IReadOnlyList<EffectSpec> Effects { get; }
 
-        public CardDefinition(string id, string displayName, CardType type, int cost, IReadOnlyList<EffectSpec> effects)
+        /// <summary>
+        /// "消耗"关键词，只在这张牌被打出时生效；回合结束弃牌、重洗都不看它。
+        /// 用 bool 而不是 [Flags]：当前只有这一个关键词有消费者，第二个（虚无 / 固有 / 保留）出现时再迁。
+        /// </summary>
+        public bool Exhaust { get; }
+
+        /// <summary>
+        /// 打出后去消耗堆还是弃牌堆。类型决定默认去向（能力牌进消耗堆，不必每张都写消耗），关键词覆盖。
+        /// 这是牌自己的规则，BattleSession 只问这个结果，不写 Type == Power。
+        /// </summary>
+        public bool ExhaustsWhenPlayed => Exhaust || Type == CardType.Power;
+
+        // exhaust 放最后且可选：0.1～0.3 的测试辅助方法不必全部改动。构造函数因此到 6 个参数，
+        // 不为此引入参数对象——第二个关键词出现时 bool 换成一个 [Flags] 值，参数数不再增长。
+        public CardDefinition(string id, string displayName, CardType type, int cost, IReadOnlyList<EffectSpec> effects,
+            bool exhaust = false)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -57,6 +72,7 @@ namespace CardRPGFramework.Core.Cards
             Type = type;
             Cost = cost;
             Effects = copy;
+            Exhaust = exhaust;
         }
     }
 }

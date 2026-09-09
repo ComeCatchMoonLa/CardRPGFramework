@@ -5,7 +5,8 @@ using CardRPGFramework.Core.Cards;
 namespace CardRPGFramework.Views
 {
     /// <summary>
-    /// 效果列表 → 每条一行的卡面描述。无委托版本只用 EffectSpec 的基础数值（1.0 奖励页没有战斗，用它）；
+    /// 效果列表 → 每条一行的卡面描述，勾了消耗关键词的牌末尾多一行"消耗"。
+    /// 无委托版本只用 EffectSpec 的基础数值（1.0 奖励页没有战斗，用它）；
     /// 带委托版本把 Damage 行的数字交给 previewAttackDamage 换成公式后数值，其余行不变。
     /// 生成器本身不算力量 / 易伤、不依赖 BattleController，只认 CardDefinition 与一个 int → int：
     /// 公式只在 Core 的 DamageCalculator 一处，View 不复算。
@@ -34,6 +35,12 @@ namespace CardRPGFramework.Views
                 }
 
                 builder.Append(Describe(effect, previewAttackDamage));
+            }
+
+            // 只看 Exhaust 不看 ExhaustsWhenPlayed：能力牌靠类型进消耗堆，原版卡面也不印"消耗"，去向由卡面的类型标签说明。
+            if (card.Exhaust)
+            {
+                builder.Append("\n消耗");
             }
 
             return builder.ToString();

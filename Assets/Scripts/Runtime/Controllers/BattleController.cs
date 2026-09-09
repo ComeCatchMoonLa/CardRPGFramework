@@ -33,6 +33,7 @@ namespace CardRPGFramework.Controllers
         public IReadOnlyList<CardDefinition> Hand => _session?.Hand ?? Array.Empty<CardDefinition>();
         public int DrawPileCount => _session?.DrawPileCount ?? 0;
         public int DiscardPileCount => _session?.DiscardPileCount ?? 0;
+        public int ExhaustPileCount => _session?.ExhaustPileCount ?? 0;
 
         private void Awake()
         {

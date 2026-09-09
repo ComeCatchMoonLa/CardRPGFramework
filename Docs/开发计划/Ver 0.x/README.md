@@ -1,6 +1,6 @@
 # Ver 0.x：把局内做成「卡牌战斗」
 
-> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——可见的规则、四个牌区、遗物、会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
+> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据，0.3 让规则在界面可见，0.4 证明了类型决定去向；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——遗物、会变招的敌人、有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
 >
 > **不在 0.x 里的**：局外 Run、地图、奖励、商店（全部归 1.0 及以后）；Luban、出包、程序集拆分（归 1.x）。
 
@@ -25,7 +25,7 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 - ~~`CardType` 同时表示「效果种类」，`EnqueueCardAction` 一种效果一个 `case`~~（0.2 已解决：`EffectSpec` 列表 + `ToAction` 穷举效果原语）。
 - ~~打出时序是先结算再移出手牌，抽牌卡会把 `handIndex` 指错~~（0.2 已解决：先离手 → 结算 → 再进弃牌）。
 - ~~Rule 只在测试里成立，Play 里卡面写 6、实际掉 9，看不见规则~~（0.3 已解决：`BattleSession` 两个只读预览 + Buff 行，预览 = 结算）。
-- 只有三个牌区，没有消耗堆（0.4）。
+- ~~只有三个牌区，没有消耗堆~~（0.4 已解决：`CardPile` 消耗堆只进不出，`TryPlayCard` 按 `ExhaustsWhenPlayed` 分流落堆）。
 - `ApplyBuffAction` 的 `source` 尚无消费者（0.5 蛇颅骨兑现）。
 - 敌人只有一个固定伤害数字，没有格挡、没有行动表（0.6）。
 - 虚弱 / 易伤层数永不衰减；0 层 Buff 留在字典里、`HasBuff` 用 `> 0` 兜住（0.7）。
@@ -65,13 +65,22 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 **证明的边界**：Rule 在 Play 模式里看得见，且预览等于结算（格挡前）。
 
-## 0.4 消耗堆与能力牌
+## 0.4 消耗堆与能力牌（已完成）
 
-文档：[`0.4/游戏设计.md`](0.4/游戏设计.md) / [`0.4/技术设计.md`](0.4/技术设计.md) / [`0.4/TODO.md`](0.4/TODO.md)（已对照 0.2 / 0.3 实现复核转正）。
+文档：[`0.4/游戏设计.md`](0.4/游戏设计.md) / [`0.4/技术设计.md`](0.4/技术设计.md) / [`0.4/TODO.md`](0.4/TODO.md)。
 
-- 第四牌区消耗堆；消耗关键词（`bool Exhaust`，已定）；能力牌类型默认进消耗堆。力量强化改为能力牌，新增坚不可摧（带消耗的技能）。卡面标类型，勾消耗的牌印"消耗"。
+- 第四牌区消耗堆；消耗关键词 `bool Exhaust`；能力牌类型默认进消耗堆。力量强化改为能力牌，新增坚不可摧（带消耗的技能），两者都只是配数据。卡面标类型，勾消耗的牌印"消耗"。
+- "消耗"只在打出时生效：`DiscardHand` 与重洗一字未改，留手的消耗牌回合结束照常进弃牌堆。
 
-**证明的边界**：类型决定去向而不是效果；关键词与类型默认落到同一个牌区。
+| 已有 | 说明 |
+| --- | --- |
+| 去向 | `CardType` 追加 `Power`（末尾，旧资产整数不错位）；`CardDefinition.Exhaust`（构造函数末尾可选参数，默认 false）与 `ExhaustsWhenPlayed => Exhaust \|\| Type == Power`——去向是牌自己的规则。`BattleSession.TryPlayCard` 结算后按它 `AddToExhaust` / `AddToDiscard`，Session 里没有 `CardType.Power` / `.Exhaust` |
+| 牌区 | `CardPile` 消耗堆只进不出：`AddToExhaust`（null 抛异常）、`ExhaustPileCount`，不公开列表；`ReshuffleDiscardIntoDrawPile` / `DiscardHand` 未改。`BattleSession` 新增只读 `ExhaustPileCount` |
+| 配置 | `CardData.exhaust`；`Strength.asset` 类型改为能力，新增 `Impervious.asset`（2 费技能、格挡 30、勾消耗）；18 张卡、11 种 |
+| 表现 | `BattleController` 转发 `ExhaustPileCount`；`BattleView` 牌堆数量行 `抽牌 X  弃牌 Y  消耗 Z`、卡面 `名字 / 类型 · 费用 X / 描述`（类型中文是 View 私有 `switch`）；`CardDescriptionFormatter` 在 `Exhaust` 为 true 时末行追加 `消耗`，能力牌不印，两个重载共用 |
+| 测试 | 165 项 EditMode（0.1～0.3 的 149 项不改断言；新增 16 项：`CardDefinitionTests` 三种去向 3 项；`CardPileTests` 消耗堆 / 重洗只回收弃牌堆 / `DiscardHand` 不看关键词 5 项；`BattleSessionTests.Exhaust.cs` 5 项——四区之和恒等于牌组张数且连续三回合抽不到能力牌、坚不可摧进消耗堆与留手进弃牌堆、0.1 的 `Strength()` 仍是技能进弃牌堆；`CardDescriptionFormatterTests` 卡面 `消耗` 行 3 项——勾消耗的技能印、能力牌不印、预览重载同样追加） |
+
+**证明的边界**：类型决定去向而不是效果；关键词与类型默认落到同一个牌区。新增消耗牌 / 能力牌都是一份 `CardData`，运行时代码为它们新增的分支为零。
 
 ## 0.5 遗物三钩子
 

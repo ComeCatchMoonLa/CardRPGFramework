@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c600e37172ad6064ba7f6413611f976d, type: 3}
-  m_Name: Strength
+  m_Name: Impervious
   m_EditorClassIdentifier: Runtime::CardRPGFramework.Data.CardData
-  id: Strength
-  displayName: "\u529B\u91CF\u5F3A\u5316"
-  type: 2
-  cost: 1
-  exhaust: 0
+  id: Impervious
+  displayName: "\u575A\u4E0D\u53EF\u6467"
+  type: 1
+  cost: 2
+  exhaust: 1
   effects:
-  - kind: 3
+  - kind: 1
     target: 0
-    value: 2
-    buffId: strength
+    value: 30
+    buffId: 

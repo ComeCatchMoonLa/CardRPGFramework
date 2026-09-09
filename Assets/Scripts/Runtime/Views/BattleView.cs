@@ -1,6 +1,8 @@
+using System;
 using System.Text;
 using CardRPGFramework.Controllers;
 using CardRPGFramework.Core.Battle;
+using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 using TMPro;
 using UnityEngine;
@@ -23,6 +25,7 @@ namespace CardRPGFramework.Views
         [SerializeField] private TMP_Text enemyBuffsText;
         [SerializeField] private TMP_Text enemyIntentText;
         [SerializeField] private TMP_Text energyText;
+        [SerializeField] private TMP_Text pileCountsText;
         [SerializeField] private TMP_Text turnText;
         [SerializeField] private TMP_Text resultText;
 
@@ -75,6 +78,8 @@ namespace CardRPGFramework.Views
             enemyBuffsText.text = FormatBuffs(enemy);
             enemyIntentText.text = $"敌人意图：攻击 {battleController.PreviewEnemyAttack()}";
             energyText.text = $"能量 {battleController.Energy}/{battleController.EnergyPerTurn}";
+            pileCountsText.text =
+                $"抽牌 {battleController.DrawPileCount}  弃牌 {battleController.DiscardPileCount}  消耗 {battleController.ExhaustPileCount}";
             turnText.text = $"回合 {battleController.TurnNumber}";
 
             RefreshHand();
@@ -90,7 +95,8 @@ namespace CardRPGFramework.Views
                 {
                     var card = hand[i];
                     var description = CardDescriptionFormatter.Format(card, battleController.PreviewPlayerAttack);
-                    cardSlots[i].Bind(i, $"{card.DisplayName}\n费用 {card.Cost}\n{description}", HandleCardClicked);
+                    cardSlots[i].Bind(i, $"{card.DisplayName}\n{TypeLabel(card.Type)} · 费用 {card.Cost}\n{description}",
+                        HandleCardClicked);
                 }
                 else
                 {
@@ -98,6 +104,15 @@ namespace CardRPGFramework.Views
                 }
             }
         }
+
+        // 类型中文暂时只有这一处用到，留在 View 里；出现第二个调用方（1.0 奖励页）再抽成与 BuffDisplayNames 同类的静态类。
+        private static string TypeLabel(CardType type) => type switch
+        {
+            CardType.Attack => "攻击",
+            CardType.Skill => "技能",
+            CardType.Power => "能力",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "未知的 CardType"),
+        };
 
         /// <summary>每个 Buff 一段 `名称 层数`，多段用两个空格连接；没有可显示的 Buff 时为空串。</summary>
         private static string FormatBuffs(CombatantState who)

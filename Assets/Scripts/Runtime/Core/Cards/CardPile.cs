@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace CardRPGFramework.Core.Cards
 {
     /// <summary>
-    /// 只处理牌的容器规则：抽牌堆、手牌、弃牌堆之间的流转，不关心卡牌效果。
+    /// 只处理牌的容器规则：抽牌堆、手牌、弃牌堆、消耗堆四个牌区之间的流转，不关心卡牌效果，
+    /// 也不判断一张牌该去哪——去向由调用方（BattleSession 问 CardDefinition）告诉它。
     /// </summary>
     public sealed class CardPile
     {
@@ -12,10 +13,13 @@ namespace CardRPGFramework.Core.Cards
         private readonly List<CardDefinition> _drawPile = new();
         private readonly List<CardDefinition> _hand = new();
         private readonly List<CardDefinition> _discardPile = new();
+        // 只进不出：重洗只动弃牌堆，消耗堆本场永不回来。不公开列表，界面只显示数量。
+        private readonly List<CardDefinition> _exhaustPile = new();
 
         public IReadOnlyList<CardDefinition> Hand => _hand;
         public int DrawPileCount => _drawPile.Count;
         public int DiscardPileCount => _discardPile.Count;
+        public int ExhaustPileCount => _exhaustPile.Count;
 
         public CardPile(IEnumerable<CardDefinition> initialDeck, Random random)
         {
@@ -77,7 +81,21 @@ namespace CardRPGFramework.Core.Cards
             _discardPile.Add(card);
         }
 
-        /// <summary>回合结束时把剩余手牌全部移入弃牌堆。</summary>
+        /// <summary>结算完毕后把牌放入消耗堆（能力牌或带消耗关键词的牌）。</summary>
+        public void AddToExhaust(CardDefinition card)
+        {
+            if (card == null)
+            {
+                throw new ArgumentNullException(nameof(card));
+            }
+
+            _exhaustPile.Add(card);
+        }
+
+        /// <summary>
+        /// 回合结束时把剩余手牌全部移入弃牌堆。有意不看牌：留在手里的带消耗关键词的牌也进弃牌堆，
+        /// "消耗"只在被打出时生效（原版规则）；在这里检查关键词是虚无的语义，不是消耗的。
+        /// </summary>
         public void DiscardHand()
         {
             _discardPile.AddRange(_hand);
