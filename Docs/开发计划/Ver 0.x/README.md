@@ -84,9 +84,10 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 ## 0.5 遗物三钩子
 
-文档：[`0.5/游戏设计.md`](0.5/游戏设计.md)；[`0.5/技术设计.md`](0.5/技术设计.md) / [`0.5/TODO.md`](0.5/TODO.md) 为草稿，进入前复核。
+文档：[`0.5/游戏设计.md`](0.5/游戏设计.md) / [`0.5/技术设计.md`](0.5/技术设计.md) / [`0.5/TODO.md`](0.5/TODO.md)（已对照 0.2～0.4 实现复核转正，四处 [待确认] 已定：施加钩子直接改 `BuffState`、加 `BuffIds` 并单独提交、遗物挂 `CombatantState`、显示名走 `RelicData` + Controller）。
 
-- 遗物列表挂在玩家身上、与 Buff 字典并列；三件遗物各占一种钩子：金刚杵（开战注入）、蛇颅骨（改这一次施加）、纸鹤（改虚弱倍率常数）。
+- 遗物列表挂在玩家 `CombatantState` 上、与 Buff 字典并列；三件遗物各占一种钩子：金刚杵（开战注入，只入队 `ApplyBuffAction`）、蛇颅骨（`ApplyBuffAction` 执行前改这一次施加的层数）、纸鹤（`WeakDamageRule` 读目标是否持有，倍率 0.75 → 0.6）。钩子形状与 `IBuffTrigger` 相同，`BattleSession` 只认 `IBattleStartRelic`。
+- 第一步先把 Buff Id 字面量收进 `BuffIds` 单独提交，再开始遗物。
 
 **证明的边界**：遗物不是 Buff；「改公式常数」与「改一次施加」分属 Rule 与施加钩子两层。
 

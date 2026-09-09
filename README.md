@@ -57,7 +57,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 ## 文档
 
 - **开发计划（按版本）**：[`Docs/开发计划/README.md`](Docs/开发计划/README.md) —— 版本约定、路线总览、[0.x 大纲](Docs/开发计划/Ver%200.x/README.md)、[1.x 大纲](Docs/开发计划/Ver%201.x/README.md)
-- 下一版本 0.5：[游戏设计](Docs/开发计划/Ver%200.x/0.5/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.5/TODO.md)（技术设计与 TODO 为草稿，进入 0.5 前对照 0.4 实现复核转正）
+- 下一版本 0.5：[游戏设计](Docs/开发计划/Ver%200.x/0.5/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.5/TODO.md)
 - 0.4（已完成）消耗堆与能力牌：[游戏设计](Docs/开发计划/Ver%200.x/0.4/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.4/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.4/TODO.md)
 - 0.3（已完成）可见规则：[游戏设计](Docs/开发计划/Ver%200.x/0.3/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.3/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.3/TODO.md)
 - 0.2（已完成）效果列表：[游戏设计](Docs/开发计划/Ver%200.x/0.2/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.2/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.2/TODO.md)
