@@ -61,7 +61,8 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 ## 文档
 
 - **开发计划（按版本）**：[`Docs/开发计划/README.md`](Docs/开发计划/README.md) —— 版本约定、路线总览、[0.x 大纲](Docs/开发计划/Ver%200.x/README.md)、[1.x 大纲](Docs/开发计划/Ver%201.x/README.md)
-- 下一版本 0.6 敌人行动表：[游戏设计](Docs/开发计划/Ver%200.x/0.6/游戏设计.md)（技术设计与 TODO 进入 0.6 前再补）
+- 下一版本 0.6 敌人行动表：[游戏设计](Docs/开发计划/Ver%200.x/0.6/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.6/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.6/TODO.md)
+- 0.7 回合型 Buff：[游戏设计](Docs/开发计划/Ver%200.x/0.7/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.7/技术设计.md)（草稿）/ [TODO](Docs/开发计划/Ver%200.x/0.7/TODO.md)（草稿）
 - 0.5（已完成）遗物三钩子：[游戏设计](Docs/开发计划/Ver%200.x/0.5/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.5/TODO.md)
 - 0.4（已完成）消耗堆与能力牌：[游戏设计](Docs/开发计划/Ver%200.x/0.4/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.4/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.4/TODO.md)
 - 0.3（已完成）可见规则：[游戏设计](Docs/开发计划/Ver%200.x/0.3/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.3/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.3/TODO.md)
