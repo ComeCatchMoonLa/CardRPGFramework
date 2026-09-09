@@ -1,9 +1,9 @@
 namespace CardRPGFramework.Core.Buffs
 {
-    /// <summary>纯数值型 Buff，无触发。Id 必须与 WeakDamageRule 读取的字符串一致，改一边就要同步改另一边。</summary>
+    /// <summary>纯数值型 Buff，无触发；由 WeakDamageRule 通过 BuffIds.Weak 读取。</summary>
     public sealed class WeakBuff : BuffState
     {
-        public override string Id => "weak";
+        public override string Id => BuffIds.Weak;
 
         public WeakBuff(int stacks) : base(stacks)
         {

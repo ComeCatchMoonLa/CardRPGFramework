@@ -1,3 +1,5 @@
+using CardRPGFramework.Core.Buffs;
+
 namespace CardRPGFramework.Core.Rules
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace CardRPGFramework.Core.Rules
     {
         public void Apply(DamageContext context)
         {
-            if (context.Source.HasBuff("weak"))
+            if (context.Source.HasBuff(BuffIds.Weak))
             {
                 context.Damage *= 0.75;
             }

@@ -13,7 +13,7 @@
 
 ## 1. Core：BuffIds 与遗物基础设施（约 2～3h）
 
-- [ ] **单独一步、单独提交**：新增 `Core.Buffs.BuffIds`；替换 `Assets/Scripts/Runtime` 里的 9 处字面量（四个 Buff 子类的 `Id`、`BuffFactory`、三条 Rule、`BuffDisplayNames`）；**不改**测试文件里的字面量；`Assets/Data/Cards/*.asset` 里的 `buffId: strength` 是资产数据，本来就不改，grep 核对只看 `Assets/Scripts/Runtime`；165 项全绿后提交（提交说明写"重构：Buff Id 字面量收进 BuffIds"，中文）。
+- [x] **单独一步、单独提交**：新增 `Core.Buffs.BuffIds`；替换 `Assets/Scripts/Runtime` 里的 9 处字面量（四个 Buff 子类的 `Id`、`BuffFactory`、三条 Rule、`BuffDisplayNames`）；**不改**测试文件里的字面量；`Assets/Data/Cards/*.asset` 里的 `buffId: strength` 是资产数据，本来就不改，grep 核对只看 `Assets/Scripts/Runtime`；165 项全绿后提交（提交说明写"重构：Buff Id 字面量收进 BuffIds"，中文）。
 - [ ] 新增 `Core.Relics` 的基础部分：`RelicState`、`RelicIds`、`IBattleStartRelic`、`IApplyBuffModifier`。`RelicFactory` 和三个遗物类一起放第 2 节——工厂的 `Create` 要 `new` 三个类，拆开编不过。
 - [ ] `CombatantState` 增加 `Relics` / `AddRelic`（重复 Id 抛 `ArgumentException`）/ `HasRelic`。
 - [ ] `BattleSession` 构造函数增加可选 `relics` 参数；`StartBattle` 在 `StartPlayerTurn()` 之前调用 `TriggerBattleStartRelics(Player)`（`foreach` + `is IBattleStartRelic` + `RunAll`；此时还没有实现者，行为由第 2 节金刚杵的用例锁）。

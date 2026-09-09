@@ -9,14 +9,14 @@ namespace CardRPGFramework.Core.Buffs
     /// </summary>
     public static class BuffFactory
     {
-        public static bool IsKnown(string id) => id is "strength" or "poison" or "weak" or "vulnerable";
+        public static bool IsKnown(string id) => id is BuffIds.Strength or BuffIds.Poison or BuffIds.Weak or BuffIds.Vulnerable;
 
         public static BuffState Create(string id, int stacks) => id switch
         {
-            "strength" => new StrengthBuff(stacks),
-            "poison" => new PoisonBuff(stacks),
-            "weak" => new WeakBuff(stacks),
-            "vulnerable" => new VulnerableBuff(stacks),
+            BuffIds.Strength => new StrengthBuff(stacks),
+            BuffIds.Poison => new PoisonBuff(stacks),
+            BuffIds.Weak => new WeakBuff(stacks),
+            BuffIds.Vulnerable => new VulnerableBuff(stacks),
             _ => throw new ArgumentException($"未知的 Buff Id: {id}", nameof(id)),
         };
     }

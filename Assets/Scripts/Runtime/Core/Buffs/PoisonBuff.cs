@@ -5,7 +5,7 @@ namespace CardRPGFramework.Core.Buffs
 {
     public sealed class PoisonBuff : BuffState, IBuffTrigger
     {
-        public override string Id => "poison";
+        public override string Id => BuffIds.Poison;
 
         public PoisonBuff(int stacks) : base(stacks)
         {
