@@ -14,7 +14,8 @@ namespace CardRPGFramework.Data
         [SerializeField] private string id;
         [SerializeField] private string displayName;
         [SerializeField] private CardType type;
-        [SerializeField] private int cost;
+        // -1 是"未填"：0 费合法（原版有 0 费牌），拿 0 当默认会让忘了填费用的新牌当 0 费打出去、启动不报错。
+        [SerializeField] private int cost = -1;
         // 能力牌不用勾：类型已决定进消耗堆（见 CardDefinition.ExhaustsWhenPlayed）；勾上的能力牌不报错也无额外效果。
         [SerializeField] private bool exhaust;
         [SerializeField] private List<EffectSpecData> effects = new();
@@ -62,7 +63,7 @@ namespace CardRPGFramework.Data
 
             if (cost < 0)
             {
-                error = $"CardData '{name}': cost 不能小于 0";
+                error = $"CardData '{name}': cost 不能小于 0（新建资产默认 -1，需要显式填写；0 费合法）";
                 return false;
             }
 

@@ -1,0 +1,33 @@
+---
+description: Data 层（ScriptableObject / [Serializable] 配置结构）字段默认值与启动校验约定：默认值不得掩盖漏配
+globs: Assets/Scripts/Runtime/Data/**/*.cs,Docs/**/*.md
+alwaysApply: false
+---
+
+# 配置默认值不能掩盖漏配
+
+配置错误要在启动校验（`TryValidate`）就报出来，不能靠一个"看起来合理"的默认值让战斗带着错误数据跑起来——那种错误只会在 Play 里以"数字不太对"的形式露头，最难查。
+
+## 三类字段，三种默认值
+
+| 字段 | 默认值 | 例子 |
+| --- | --- | --- |
+| 必填内容字段（id、显示名、血量、费用、卡牌效果列表） | 必须是校验会拒绝的值：不写初始化器，让数值为 0、引用为 null、列表为空；0 本身合法的字段用 -1 当"未填"哨兵 | `int maxHp;`（0 被 `> 0` 拒）；`int cost = -1;`（0 费合法，-1 被 `< 0` 拒） |
+| 模板字段（所有实例相同、有设计出处） | 允许写设计值，字段旁注明出处 | `BattleConfig.playerMaxHp = 80`（原版铁甲战士） |
+| 可选字段 | 默认值就是"不启用" | `exhaust = false`、`relics` 空列表 |
+
+分不清是模板还是占位时，按必填处理。
+
+## 具体做法
+
+- 枚举字段：默认 0 会落在第一个成员上，校验拦不住。新枚举从 1 开始编号（或把 0 留给不合法的哨兵成员），既有的 `Enum.IsDefined` 检查就能拦住未设置；改既有枚举的编号必须连资产迁移一起做、同一提交完成。
+- 校验信息带资产名与下标（`EnemyData 'JawWorm': actions[2] '咆哮' effects[0] value 必须大于 0`），让人能在 Inspector 里直接定位。
+- 技术设计里的 Data 草图同样遵守：实现会照着草图写，草图里的"能跑就行"初始值会原样变成代码。
+
+```csharp
+// ❌ 漏填也能通过校验，敌人带着 1 点血"正常"开战
+[SerializeField] private int maxHp = 1;
+
+// ✅ 漏填 → 0 → TryValidate 报 "maxHp 必须大于 0"
+[SerializeField] private int maxHp;
+```
