@@ -17,21 +17,22 @@
 - [ ] 新增 `Core/Enemies/EnemyDefinition.cs`：`Id` / `DisplayName` / `MaxHp` / `Actions`；id、displayName 空抛，`maxHp <= 0` 抛 `ArgumentOutOfRangeException`，actions 空或含 null 抛；构造时拷贝列表、元素引用不变。不建 `EnemyIds` / `EnemyFactory`。
 - [ ] `BattleSetup` 去掉 `EnemyMaxHp` / `EnemyDamage`（连同两条校验），只剩 `PlayerMaxHp` / `EnergyPerTurn` / `HandSize`。
 - [ ] `BattleSession`：构造函数改为 `(BattleSetup setup, EnemyDefinition enemy, IEnumerable<CardDefinition> deck, Random random, IEnumerable<RelicState> relics = null)`，`Enemy = new CombatantState(enemy.MaxHp)`；新增 `EnemyDefinition` / `CurrentEnemyAction` 只读属性与私有 `_enemyActionIndex`；删 `EnemyDamage`。
+- [ ] **编译桥（本节内必须做，否则第 1 节结束编不过、Play 跑不起来）**：`BattleConfig.ToSetup()` 改三参数；新增 `BattleConfig.ToEnemyDefinition()`，本节用仍在的 `enemyMaxHp` / `enemyDamage` 就地拼固定攻击敌人——`new EnemyDefinition("fixed_attacker", "固定攻击敌人", enemyMaxHp, 单一 EnemyAction(enemyDamage > 0 ? [EffectSpec.Damage(enemyDamage)] : 空))`，两个字段与其校验暂留、注释写明"第 2 节换成 `enemy.ToDefinition()`"；`BattleController.Awake` 改五参数构造 `new BattleSession(ToSetup(), ToEnemyDefinition(), ToDeckDefinitions(), random, ToRelicStates())`，删 `EnemyDamage` 属性（`BattleView` 不读它，意图行走 `PreviewEnemyAttack()`）。生产路径里 `new BattleSession` / `new BattleSetup` 只有这两处。
 - [ ] `TryEndPlayerTurn` 改为：`DiscardHand` → `Phase = EnemyTurn` → **`Enemy.ClearBlock()`** → `TriggerTurnStartBuffs(Enemy)` → 毒死则 Victory 返回 → `foreach effect in CurrentEnemyAction.Effects: Enqueue(ToAction(effect, Enemy))` → `RunAll` → `AdvanceEnemyAction()`（末尾回绕）→ 玩家死则 Defeat 否则 `StartPlayerTurn()`。`ToAction` 一行不改。
 - [ ] `PreviewEnemyAttack()` 签名不变，改为遍历 `CurrentEnemyAction.Effects` 里的 `Damage` 段各自过 `DamageCalculator` 后求和；无攻击段返回 0。更新注释里"配对"的说明。
 - [ ] 测试迁移：`BattleSessionTests.CreateSession` 保留 `enemyMaxHp` / `enemyDamage` 参数名，内部经 `FixedAttacker(maxHp, damage)` 构造 `EnemyDefinition`（`damage == 0` → 空行动），新增可选 `EnemyDefinition enemy = null`；0.1～0.5 用例正文不动。**改 1 项 0.1 断言**：`PoisonedEnemy_LosesHpIgnoringBlockAtEnemyTurnStart_AndStackDecrements` 的 `Assert.AreEqual(10, session.Enemy.Block)` 改为 `0`，用例改名为 `PoisonedEnemy_LosesHpAtEnemyTurnStart_BlockClearedFirst_AndStackDecrements`，注释写明原因（技术设计第 5 节）。
 - [ ] 新增 `EnemyDefinitionTests`（约 9 项：`EnemyAction` null / 含 Draw / 含 default / 空允许 / 拷贝；`EnemyDefinition` id 空 / displayName 空 / maxHp 0 / actions 空 / 拷贝且元素同引用）。
 - [ ] 新增 `BattleSession/BattleSessionTests.Enemies.cs`（约 10 项，测试内定义 `JawWorm()` / `TwoHits(a, b)` 与一个"对任何 Buff +1"的 `IApplyBuffModifier` 替身）：构造 42 血；循环 `[0]→[1]→[2]→[0]→[1]`（`AreSame`）；咬预览 11 = HP 差；猛击预览 7 = HP 差、之后格挡 5、玩家攻击 6 只掉 1；猛击后不打牌结束回合，咆哮后格挡 6 不是 11；咆哮后力量 3、咬预览 14 = HP 差、再下一回合第二圈猛击预览 10 = HP 差（这条用 `playerMaxHp: 80` 构造，40 血撑不到第 5 回合）；2 层虚弱时咬 8；`TwoHits(3, 3)` 对 1 层易伤玩家预览 `4 + 4 = 8` = HP 差；`enemyDamage: 0` 的空行动预览 0、HP 不变；玩家持 +1 替身时颚虫咆哮力量仍 3。
 
-**阶段门槛：** `Core.Enemies` 不引用 `UnityEngine` / `Core.Actions`；`ToAction`、`DamageCalculator`、三条 Rule 的 diff 为空；0.1～0.5 用例除 `CreateSession` 内部与那 1 项断言外不改仍通过；第 1 节完成约 222 项。
+**阶段门槛：** `Core.Enemies` 不引用 `UnityEngine` / `Core.Actions`；`ToAction`、`DamageCalculator`、三条 Rule 的 diff 为空；0.1～0.5 用例除 `CreateSession` 内部与那 1 项断言外不改仍通过；整个工程编译通过、Play 仍能以固定攻击敌人跑一局（意图行 `攻击 6`）；第 1 节完成约 222 项。
 
 ## 2. Data：`EnemyData` 与配置（约 2h）
 
 - [ ] 新增 `Data/EnemyActionData.cs`（`[Serializable] struct`：`name` + `List<EffectSpecData> effects`；测试构造函数；`ToAction`；`TryValidate`：空允许、逐条 `EffectSpecData.TryValidate`、`Draw` 拒绝、`ApplyBuff && Opponent` 拒绝并在注释里写"0.7 删这一条"）。新增 `EnemyActionDataTests`（约 7 项：Damage + Block 通过 / ApplyBuff Self 通过 / 空通过 / Draw 拒 / ApplyBuff Opponent 拒 / 内层 value 0 拒并透传错误 / `ToAction` 条数一致）。
 - [ ] 新增 `Data/EnemyData.cs`（SO：`id` / `displayName` / `maxHp` / `actions`；`ToDefinition`；`TryValidate` 错误信息带 `actions[i]` 与 `name`）。
-- [ ] `BattleConfig`：删 `enemyMaxHp` / `enemyDamage` 字段与校验；加 `EnemyData enemy`（非空 + `TryValidate`）；`playerMaxHp` 默认 80；`ToSetup()` 改三参数；新增 `ToEnemyDefinition()`。
+- [ ] `BattleConfig`：删 `enemyMaxHp` / `enemyDamage` 字段与校验；加 `EnemyData enemy`（非空 + `TryValidate`）；`playerMaxHp` 默认 80；`ToEnemyDefinition()` 方法体换成 `enemy.ToDefinition()`（`ToSetup()` 三参数与该方法本身第 1 节已落地）。
 - [ ] 资产：`Assets/Data/Enemies/JawWorm.asset`（`jaw_worm` / 颚虫 / 42；咬 11；猛击 7 + 格挡 5；咆哮 力量 3 + 格挡 6，力量条放前面）与 `FixedAttacker.asset`（`fixed_attacker` / 固定攻击敌人 / 36；攻击 6）；`Default.asset` 改 `playerMaxHp: 80`、`enemy` 指向 JawWorm、删 `enemyMaxHp` / `enemyDamage` 两行。
-- [ ] `BattleController.Awake` 改为五参数构造；新增 `EnemyDisplayName` / `CurrentEnemyAction`；删 `EnemyDamage`。
+- [ ] `BattleController` 新增 `EnemyDisplayName` / `CurrentEnemyAction`（五参数构造与删 `EnemyDamage` 第 1 节已做，本节不动 `Awake`）。
 - [ ] 不写 `EnemyData` / `BattleConfig` 的 SO 单测（与 `CardData` / `RelicData` 既有做法一致），配错检查放到第 4 节联调。第 2 节完成约 229 项。
 
 **阶段门槛：** 只改 Inspector 就能换敌人 / 加敌人；`BattleController` 里没有敌人数值。
@@ -46,7 +47,7 @@
 
 ## 4. 联调与验收（约 1.5h）
 
-- [ ] 完整运行一局颚虫：状态栏 `颚虫 HP 42/42`；意图序列如上；猛击后敌人格挡 5 顶住玩家一张 6 点攻击只掉 1；咆哮后敌人 Buff 行 `力量 3`、意图 `攻击 14`、结束回合掉 14；第二圈猛击意图 `攻击 10 · 防御`（力量永久）；给敌人上虚弱后咬显示 **6**——`Default.asset` 默认带纸鹤，8 是无遗物配置（测试）的数字，不要为了看到 8 去删默认遗物；对照游戏设计第 6 节逐条核对。
+- [ ] 完整运行一局颚虫（`Default.asset` 带三件遗物，下面是**带遗物**的数字）：状态栏 `颚虫 HP 42/42`；开战玩家 Buff 行 `力量 1`（金刚杵）、打击预览 7；意图序列如上；猛击后敌人格挡 5，一张打击打上去敌人掉 **2**（EditMode 无遗物是 6 → 掉 1，两个数字都对）；咆哮后敌人 Buff 行 `力量 3`、意图 `攻击 14`、结束回合掉 14；第二圈猛击意图 `攻击 10 · 防御`（力量永久）；给敌人上虚弱后咬显示 **6**——`Default.asset` 默认带纸鹤，8 是无遗物配置（测试）的数字，不要为了看到 8 去删默认遗物；对照游戏设计第 6 节逐条核对。
 - [ ] `Default.asset` 换成 FixedAttacker 跑一局：每回合掉 6；0.5 的三件遗物表现不变（金刚杵 7 / 蛇颅骨 4 层 / 虚弱后纸鹤 3，无遗物才是 4）；换回颚虫。
 - [ ] 故意配错各看一次 Console 后改回：颚虫某行动加一条 `Draw` → 启动报错；加一条 `ApplyBuff / Opponent / weak` → 启动报错；`Default.asset` 的 `enemy` 留空 → 报错；`EnemyData.id` 留空 → 报错；`maxHp` 填 0 → 报错。
 - [ ] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `jaw` / `fixed_attacker` / `EnemyData`，敌人相关符号只有 `EnemyDefinition` / `EnemyAction`；`Views` 无 `0.75` / `1.5`；`ToAction` / `DamageCalculator` / `*DamageRule.cs` 无改动。
@@ -65,7 +66,7 @@
 
 | 开发日 | 当日交付 |
 | --- | --- |
-| Day 1 | 第 1 节：`Core.Enemies`、`BattleSetup` / `BattleSession` 改造、`CreateSession` 迁移与那 1 项断言 |
+| Day 1 | 第 1 节：`Core.Enemies`、`BattleSetup` / `BattleSession` 改造、`BattleConfig` / `BattleController` 编译桥、`CreateSession` 迁移与那 1 项断言 |
 | Day 2 | 第 1 节余下的敌人用例 → 第 2 节：`EnemyActionData` / `EnemyData` / `BattleConfig` / 资产 / Controller |
 | Day 3 | 第 3～4 节：`IntentFormatter`、`BattleView`、联调与配错检查 |
 | Day 4 | 第 5 节：文档、0.7 草稿复核、提交（含缓冲） |
@@ -82,5 +83,6 @@
 - "顺便做多敌人 / 目标选择。"（1.2+ 候选池）
 - "顺便把测试里的玩家血量也改成 80。"（测试常量，所有 HP 断言相对它写；改了只是给自己找 diff）
 - "为了不改 0.1 那项断言，把清格挡放到中毒之后。"（顺序会与玩家侧不一致；改断言才是对的）
+- "Play 里的数字和测试对不上，先把 `Default.asset` 的遗物删了。"（Play 是带三件遗物的默认配置：打击 7、打 5 格挡掉 2、虚弱后咬 6；EditMode 无遗物：6 / 掉 1 / 8。两套数字都在游戏设计第 2.1、6 节写死，对不上先查是哪一套）
 
 只有阻止本版本验收的问题才进入当日任务。
