@@ -30,7 +30,6 @@ namespace CardRPGFramework.Controllers
         public int TurnNumber => _session?.TurnNumber ?? 0;
         public int Energy => _session?.Energy ?? 0;
         public int EnergyPerTurn => _session?.EnergyPerTurn ?? 0;
-        public int EnemyDamage => _session?.EnemyDamage ?? 0;
         public CombatantState Player => _session?.Player;
         public CombatantState Enemy => _session?.Enemy;
         public IReadOnlyList<CardDefinition> Hand => _session?.Hand ?? Array.Empty<CardDefinition>();
@@ -58,8 +57,8 @@ namespace CardRPGFramework.Controllers
             }
 
             var random = useFixedSeed ? new System.Random(seed) : new System.Random();
-            _session = new BattleSession(battleConfig.ToSetup(), battleConfig.ToDeckDefinitions(), random,
-                battleConfig.ToRelicStates());
+            _session = new BattleSession(battleConfig.ToSetup(), battleConfig.ToEnemyDefinition(),
+                battleConfig.ToDeckDefinitions(), random, battleConfig.ToRelicStates());
             _session.StartBattle();
         }
 

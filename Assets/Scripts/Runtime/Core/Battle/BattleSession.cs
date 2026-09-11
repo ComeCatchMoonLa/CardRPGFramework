@@ -4,6 +4,7 @@ using CardRPGFramework.Core.Actions;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Enemies;
 using CardRPGFramework.Core.Relics;
 using CardRPGFramework.Core.Rules;
 
@@ -13,6 +14,8 @@ namespace CardRPGFramework.Core.Battle
     /// 一场战斗的唯一规则入口：阶段、回合、能量、双方状态和牌堆流转都只能通过这里修改。
     /// 对遗物只认 RelicState（构造参数）与 IBattleStartRelic（开战遍历），不认任何具体遗物或遗物 Id：
     /// 新增一件用现有钩子的遗物不改这里，改公式常数的遗物改对应 Rule。
+    /// 对敌人只认 EnemyDefinition / EnemyAction：行动是效果列表，交给 ToAction 结算；不按敌人 Id 或"意图种类"分支，
+    /// 新增一只敌人是配一份数据，不改这里。
     /// </summary>
     public sealed class BattleSession
     {
@@ -20,16 +23,21 @@ namespace CardRPGFramework.Core.Battle
         // 贯穿整场战斗的同一个队列，不是每次 TryPlayCard 新建：Phase 2b 回合开始/结束的 Buff
         // 触发也需要复用它入队 Action。
         private readonly ActionQueue _actionQueue = new();
+        // 行动指针只是一个 int：1v1、固定循环，不需要 EnemyState / AI 对象；出现概率或"不能连用"时再抽行动模式。
+        private int _enemyActionIndex;
 
         public BattlePhase Phase { get; private set; } = BattlePhase.NotStarted;
         public int TurnNumber { get; private set; }
         public int Energy { get; private set; }
         public int EnergyPerTurn { get; }
-        public int EnemyDamage { get; }
         public int HandSize { get; }
 
         public CombatantState Player { get; }
         public CombatantState Enemy { get; }
+        public EnemyDefinition EnemyDefinition { get; }
+
+        /// <summary>敌人下一次行动时要执行的那条行动，也是意图预览的依据；行动执行完立刻推进到下一条。</summary>
+        public EnemyAction CurrentEnemyAction => EnemyDefinition.Actions[_enemyActionIndex];
 
         public IReadOnlyList<CardDefinition> Hand => _cardPile.Hand;
         public int DrawPileCount => _cardPile.DrawPileCount;
@@ -37,12 +45,12 @@ namespace CardRPGFramework.Core.Battle
         public int ExhaustPileCount => _cardPile.ExhaustPileCount;
 
         // relics 可选：遗物只挂玩家，0.1～0.4 的调用点不用改。
-        public BattleSession(BattleSetup setup, IEnumerable<CardDefinition> deck, Random random,
+        public BattleSession(BattleSetup setup, EnemyDefinition enemy, IEnumerable<CardDefinition> deck, Random random,
                              IEnumerable<RelicState> relics = null)
         {
+            EnemyDefinition = enemy ?? throw new ArgumentNullException(nameof(enemy));
             Player = new CombatantState(setup.PlayerMaxHp);
-            Enemy = new CombatantState(setup.EnemyMaxHp);
-            EnemyDamage = setup.EnemyDamage;
+            Enemy = new CombatantState(enemy.MaxHp);
             EnergyPerTurn = setup.EnergyPerTurn;
             HandSize = setup.HandSize;
             _cardPile = new CardPile(deck, random);
@@ -113,7 +121,7 @@ namespace CardRPGFramework.Core.Battle
             return true;
         }
 
-        /// <summary>结束玩家回合：弃掉剩余手牌，结算敌人攻击，未失败则进入下一玩家回合。</summary>
+        /// <summary>结束玩家回合：弃掉剩余手牌，结算敌人当前行动并推进到下一条，未失败则进入下一玩家回合。</summary>
         public bool TryEndPlayerTurn()
         {
             if (Phase != BattlePhase.PlayerTurn)
@@ -126,18 +134,27 @@ namespace CardRPGFramework.Core.Battle
             // 保留这个阶段值是为了让状态机语义完整，后续接入异步敌人行动时再拆分。
             Phase = BattlePhase.EnemyTurn;
 
+            // 敌人自己的回合开始先清自己的格挡，与 StartPlayerTurn 的"清格挡 → 回合开始触发"顺序对称；
+            // 中毒走 LoseHp 不看格挡，先后对它没有影响，放前面只为敌我两侧同一套生命周期。
+            Enemy.ClearBlock();
             TriggerTurnStartBuffs(Enemy);
             if (Enemy.IsDead)
             {
-                // 中毒把敌人打死时立即以胜利结束，不再执行敌人固定攻击。
+                // 中毒把敌人打死时立即以胜利结束，不执行行动，指针也不推进。
                 Phase = BattlePhase.Victory;
                 return true;
             }
 
-            // 敌人攻击和中毒结算是两次独立的 RunAll：先确认敌人没被毒死，再入队攻击，
-            // 否则毒杀之后这一下仍会打出去。
-            _actionQueue.Enqueue(new DamageAction(Enemy, Player, EnemyDamage));
+            // 敌人行动和中毒结算是两次独立的 RunAll：先确认敌人没被毒死，再入队行动，
+            // 否则毒杀之后这一下仍会打出去。多段行动一次 RunAll，胜负在整段之后判定。
+            foreach (var effect in CurrentEnemyAction.Effects)
+            {
+                _actionQueue.Enqueue(ToAction(effect, Enemy));
+            }
+
             _actionQueue.RunAll(new ActionContext(_actionQueue));
+            // 行动结束立刻决定下一意图，玩家整个回合看到的都是它；失败时它无意义，先后无所谓。
+            AdvanceEnemyAction();
 
             if (Player.IsDead)
             {
@@ -159,9 +176,23 @@ namespace CardRPGFramework.Core.Battle
         public int PreviewPlayerAttack(int baseDamage) =>
             DamageCalculator.CalculateFinalDamage(new DamageContext(baseDamage, Player, Enemy));
 
-        /// <summary>只读预览敌人固定攻击（格挡前），配对与 TryEndPlayerTurn 里的 DamageAction(Enemy, Player, EnemyDamage) 相同。</summary>
-        public int PreviewEnemyAttack() =>
-            DamageCalculator.CalculateFinalDamage(new DamageContext(EnemyDamage, Enemy, Player));
+        /// <summary>
+        /// 只读预览敌人当前行动的攻击总量（格挡前）：每个 Damage 段各自过 DamageCalculator 后求和，每段独立取整，与双击一致；没有攻击段返回 0。
+        /// (effect.Value, Enemy, Player) 的配对必须与 TryEndPlayerTurn 里 ToAction(effect, Enemy) 产生的 DamageAction 相同，否则预览会漂。
+        /// </summary>
+        public int PreviewEnemyAttack()
+        {
+            var total = 0;
+            foreach (var effect in CurrentEnemyAction.Effects)
+            {
+                if (effect.Kind == EffectKind.Damage)
+                {
+                    total += DamageCalculator.CalculateFinalDamage(new DamageContext(effect.Value, Enemy, Player));
+                }
+            }
+
+            return total;
+        }
 
         // 唯一的 EffectSpec → IAction 转换点。这个 switch 穷举的是五种效果原语，加一张卡不会再碰它；
         // 新增一种原语才需要加一行，这是有意的封闭点。留在 Session 而不抽成工厂，是因为它要的 Player / Enemy / _cardPile
@@ -181,6 +212,8 @@ namespace CardRPGFramework.Core.Battle
         }
 
         private CombatantState Opponent(CombatantState who) => who == Player ? Enemy : Player;
+
+        private void AdvanceEnemyAction() => _enemyActionIndex = (_enemyActionIndex + 1) % EnemyDefinition.Actions.Count;
 
         /// <summary>遍历 owner 的遗物里实现 IBattleStartRelic 的，触发其开战行为并立即结算产生的 Action。与 TriggerTurnStartBuffs 同形。</summary>
         private void TriggerBattleStartRelics(CombatantState owner)

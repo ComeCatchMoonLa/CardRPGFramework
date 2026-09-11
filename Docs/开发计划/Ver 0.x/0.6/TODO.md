@@ -6,25 +6,25 @@
 
 ## 0. 开始前检查（约 0.5h）
 
-- [ ] 0.5 已提交推送，工作区干净（`Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动还原或单独提交），Console 无错误，EditMode 203 项全绿。
+- [x] 0.5 已提交推送，工作区干净（`Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动还原或单独提交），Console 无错误，EditMode 203 项全绿。
 - [x] 技术设计第 4.3 节的 [待确认]（意图文案在 View 侧 `IntentFormatter` 拼，还是 Core 给结构化种类）已定并写回技术设计第 7 节：View 侧直接读效果列表，Core 不加意图类型。
 
 **阶段门槛：** 有干净的回归基线。
 
 ## 1. Core：`Core.Enemies` 与 `BattleSession`（约 3h）
 
-- [ ] 新增 `Core/Enemies/EnemyAction.cs`：`Effects` 只读列表，构造时拷贝；null 抛 `ArgumentNullException`，含 `Draw` 抛 `ArgumentException`，含 `Value <= 0` 抛 `ArgumentException`；空列表允许。
-- [ ] 新增 `Core/Enemies/EnemyDefinition.cs`：`Id` / `DisplayName` / `MaxHp` / `Actions`；id、displayName 空抛，`maxHp <= 0` 抛 `ArgumentOutOfRangeException`，actions 空或含 null 抛；构造时拷贝列表、元素引用不变。不建 `EnemyIds` / `EnemyFactory`。
-- [ ] `BattleSetup` 去掉 `EnemyMaxHp` / `EnemyDamage`（连同两条校验），只剩 `PlayerMaxHp` / `EnergyPerTurn` / `HandSize`。
-- [ ] `BattleSession`：构造函数改为 `(BattleSetup setup, EnemyDefinition enemy, IEnumerable<CardDefinition> deck, Random random, IEnumerable<RelicState> relics = null)`，`Enemy = new CombatantState(enemy.MaxHp)`；新增 `EnemyDefinition` / `CurrentEnemyAction` 只读属性与私有 `_enemyActionIndex`；删 `EnemyDamage`。
-- [ ] **编译桥（本节内必须做，否则第 1 节结束编不过、Play 跑不起来）**：`BattleConfig.ToSetup()` 改三参数；新增 `BattleConfig.ToEnemyDefinition()`，本节用仍在的 `enemyMaxHp` / `enemyDamage` 就地拼固定攻击敌人——`new EnemyDefinition("fixed_attacker", "固定攻击敌人", enemyMaxHp, 单一 EnemyAction(enemyDamage > 0 ? [EffectSpec.Damage(enemyDamage)] : 空))`，两个字段与其校验暂留、注释写明"第 2 节换成 `enemy.ToDefinition()`"；`BattleController.Awake` 改五参数构造 `new BattleSession(ToSetup(), ToEnemyDefinition(), ToDeckDefinitions(), random, ToRelicStates())`，删 `EnemyDamage` 属性（`BattleView` 不读它，意图行走 `PreviewEnemyAttack()`）。生产路径里 `new BattleSession` / `new BattleSetup` 只有这两处。
-- [ ] `TryEndPlayerTurn` 改为：`DiscardHand` → `Phase = EnemyTurn` → **`Enemy.ClearBlock()`** → `TriggerTurnStartBuffs(Enemy)` → 毒死则 Victory 返回 → `foreach effect in CurrentEnemyAction.Effects: Enqueue(ToAction(effect, Enemy))` → `RunAll` → `AdvanceEnemyAction()`（末尾回绕）→ 玩家死则 Defeat 否则 `StartPlayerTurn()`。`ToAction` 一行不改。
-- [ ] `PreviewEnemyAttack()` 签名不变，改为遍历 `CurrentEnemyAction.Effects` 里的 `Damage` 段各自过 `DamageCalculator` 后求和；无攻击段返回 0。更新注释里"配对"的说明。
-- [ ] 测试迁移：`BattleSessionTests.CreateSession` 保留 `enemyMaxHp` / `enemyDamage` 参数名，内部经 `FixedAttacker(maxHp, damage)` 构造 `EnemyDefinition`（`damage == 0` → 空行动），新增可选 `EnemyDefinition enemy = null`；0.1～0.5 用例正文不动。**改 1 项 0.1 断言**：`PoisonedEnemy_LosesHpIgnoringBlockAtEnemyTurnStart_AndStackDecrements` 的 `Assert.AreEqual(10, session.Enemy.Block)` 改为 `0`，用例改名为 `PoisonedEnemy_LosesHpAtEnemyTurnStart_BlockClearedFirst_AndStackDecrements`，注释写明原因（技术设计第 5 节）。
-- [ ] 新增 `EnemyDefinitionTests`（约 9 项：`EnemyAction` null / 含 Draw / 含 default / 空允许 / 拷贝；`EnemyDefinition` id 空 / displayName 空 / maxHp 0 / actions 空 / 拷贝且元素同引用）。
-- [ ] 新增 `BattleSession/BattleSessionTests.Enemies.cs`（约 10 项，测试内定义 `JawWorm()` / `TwoHits(a, b)` 与一个"对任何 Buff +1"的 `IApplyBuffModifier` 替身）：构造 42 血；循环 `[0]→[1]→[2]→[0]→[1]`（`AreSame`）；咬预览 11 = HP 差；猛击预览 7 = HP 差、之后格挡 5、玩家攻击 6 只掉 1；猛击后不打牌结束回合，咆哮后格挡 6 不是 11；咆哮后力量 3、咬预览 14 = HP 差、再下一回合第二圈猛击预览 10 = HP 差（这条用 `playerMaxHp: 80` 构造，40 血撑不到第 5 回合）；2 层虚弱时咬 8；`TwoHits(3, 3)` 对 1 层易伤玩家预览 `4 + 4 = 8` = HP 差；`enemyDamage: 0` 的空行动预览 0、HP 不变；玩家持 +1 替身时颚虫咆哮力量仍 3。
+- [x] 新增 `Core/Enemies/EnemyAction.cs`：`Effects` 只读列表，构造时拷贝；null 抛 `ArgumentNullException`，含 `Draw` 抛 `ArgumentException`，含 `Value <= 0` 抛 `ArgumentException`；空列表允许。
+- [x] 新增 `Core/Enemies/EnemyDefinition.cs`：`Id` / `DisplayName` / `MaxHp` / `Actions`；id、displayName 空抛，`maxHp <= 0` 抛 `ArgumentOutOfRangeException`，actions 空或含 null 抛；构造时拷贝列表、元素引用不变。不建 `EnemyIds` / `EnemyFactory`。
+- [x] `BattleSetup` 去掉 `EnemyMaxHp` / `EnemyDamage`（连同两条校验），只剩 `PlayerMaxHp` / `EnergyPerTurn` / `HandSize`。
+- [x] `BattleSession`：构造函数改为 `(BattleSetup setup, EnemyDefinition enemy, IEnumerable<CardDefinition> deck, Random random, IEnumerable<RelicState> relics = null)`，`Enemy = new CombatantState(enemy.MaxHp)`；新增 `EnemyDefinition` / `CurrentEnemyAction` 只读属性与私有 `_enemyActionIndex`；删 `EnemyDamage`。
+- [x] **编译桥（本节内必须做，否则第 1 节结束编不过、Play 跑不起来）**：`BattleConfig.ToSetup()` 改三参数；新增 `BattleConfig.ToEnemyDefinition()`，本节用仍在的 `enemyMaxHp` / `enemyDamage` 就地拼固定攻击敌人——`new EnemyDefinition("fixed_attacker", "固定攻击敌人", enemyMaxHp, 单一 EnemyAction(enemyDamage > 0 ? [EffectSpec.Damage(enemyDamage)] : 空))`，两个字段与其校验暂留、注释写明"第 2 节换成 `enemy.ToDefinition()`"；`BattleController.Awake` 改五参数构造 `new BattleSession(ToSetup(), ToEnemyDefinition(), ToDeckDefinitions(), random, ToRelicStates())`，删 `EnemyDamage` 属性（`BattleView` 不读它，意图行走 `PreviewEnemyAttack()`）。生产路径里 `new BattleSession` / `new BattleSetup` 只有这两处。
+- [x] `TryEndPlayerTurn` 改为：`DiscardHand` → `Phase = EnemyTurn` → **`Enemy.ClearBlock()`** → `TriggerTurnStartBuffs(Enemy)` → 毒死则 Victory 返回 → `foreach effect in CurrentEnemyAction.Effects: Enqueue(ToAction(effect, Enemy))` → `RunAll` → `AdvanceEnemyAction()`（末尾回绕）→ 玩家死则 Defeat 否则 `StartPlayerTurn()`。`ToAction` 一行不改。
+- [x] `PreviewEnemyAttack()` 签名不变，改为遍历 `CurrentEnemyAction.Effects` 里的 `Damage` 段各自过 `DamageCalculator` 后求和；无攻击段返回 0。更新注释里"配对"的说明。
+- [x] 测试迁移：`BattleSessionTests.CreateSession` 保留 `enemyMaxHp` / `enemyDamage` 参数名，内部经 `FixedAttacker(maxHp, damage)` 构造 `EnemyDefinition`（`damage == 0` → 空行动），新增可选 `EnemyDefinition enemy = null`；0.1～0.5 用例正文不动。**改 1 项 0.1 断言**：`PoisonedEnemy_LosesHpIgnoringBlockAtEnemyTurnStart_AndStackDecrements` 的 `Assert.AreEqual(10, session.Enemy.Block)` 改为 `0`，用例改名为 `PoisonedEnemy_LosesHpAtEnemyTurnStart_BlockClearedFirst_AndStackDecrements`，注释写明原因（技术设计第 5 节）。
+- [x] 新增 `EnemyDefinitionTests`（约 9 项：`EnemyAction` null / 含 Draw / 含 default / 空允许 / 拷贝；`EnemyDefinition` id 空 / displayName 空 / maxHp 0 / actions 空 / 拷贝且元素同引用）。
+- [x] 新增 `BattleSession/BattleSessionTests.Enemies.cs`（约 10 项，测试内定义 `JawWorm()` / `TwoHits(a, b)` 与一个"对任何 Buff +1"的 `IApplyBuffModifier` 替身）：构造 42 血；循环 `[0]→[1]→[2]→[0]→[1]`（`AreSame`）；咬预览 11 = HP 差；猛击预览 7 = HP 差、之后格挡 5、玩家攻击 6 只掉 1；猛击后不打牌结束回合，咆哮后格挡 6 不是 11；咆哮后力量 3、咬预览 14 = HP 差、再下一回合第二圈猛击预览 10 = HP 差（这条用 `playerMaxHp: 80` 构造，40 血撑不到第 5 回合）；2 层虚弱时咬 8；`TwoHits(3, 3)` 对 1 层易伤玩家预览 `4 + 4 = 8` = HP 差；`enemyDamage: 0` 的空行动预览 0、HP 不变；玩家持 +1 替身时颚虫咆哮力量仍 3；颚虫被 99 层中毒毒死后 Victory 且 `CurrentEnemyAction` 仍是 `Actions[0]`（单行动敌人 `% 1` 锁不住指针）。
 
-**阶段门槛：** `Core.Enemies` 不引用 `UnityEngine` / `Core.Actions`；`ToAction`、`DamageCalculator`、三条 Rule 的 diff 为空；0.1～0.5 用例除 `CreateSession` 内部与那 1 项断言外不改仍通过；整个工程编译通过、Play 仍能以固定攻击敌人跑一局（意图行 `攻击 6`）；第 1 节完成约 222 项。
+**阶段门槛：** `Core.Enemies` 不引用 `UnityEngine` / `Core.Actions`；`ToAction`、`DamageCalculator`、三条 Rule 的 diff 为空；0.1～0.5 用例除 `CreateSession` 内部与那 1 项断言外不改仍通过；整个工程编译通过、Play 仍能以固定攻击敌人跑一局（意图行 `攻击 6`）；第 1 节完成 229 项（203 + 26）。
 
 ## 2. Data：`EnemyData` 与配置（约 2h）
 

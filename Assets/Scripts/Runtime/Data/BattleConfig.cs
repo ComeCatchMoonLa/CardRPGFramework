@@ -1,13 +1,15 @@
+using System;
 using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
+using CardRPGFramework.Core.Enemies;
 using CardRPGFramework.Core.Relics;
 using UnityEngine;
 
 namespace CardRPGFramework.Data
 {
     /// <summary>
-    /// 一场战斗的 Inspector 配置资产，转换为 Core 可用的 BattleSetup、初始牌组与玩家遗物栏。
+    /// 一场战斗的 Inspector 配置资产，转换为 Core 可用的 BattleSetup、敌人定义、初始牌组与玩家遗物栏。
     /// </summary>
     [CreateAssetMenu(fileName = "BattleConfig", menuName = "CardRPG/Battle Config")]
     public sealed class BattleConfig : ScriptableObject
@@ -26,7 +28,16 @@ namespace CardRPGFramework.Data
 
         public BattleSetup ToSetup()
         {
-            return new BattleSetup(playerMaxHp, enemyMaxHp, enemyDamage, energyPerTurn, handSize);
+            return new BattleSetup(playerMaxHp, energyPerTurn, handSize);
+        }
+
+        // 0.6 第 1 节的编译桥：Core 已按 EnemyDefinition 建敌人，Data 层的 EnemyData 在第 2 节才到，
+        // 这里先用仍在的两个标量拼出 0.1 的固定攻击敌人；第 2 节换成 enemy.ToDefinition()，方法名与签名不变。
+        public EnemyDefinition ToEnemyDefinition()
+        {
+            // enemyDamage == 0 是"敌人不打人"：EffectSpec.Damage(0) 会被工厂拒绝，对应的是一条空行动（待机）。
+            var effects = enemyDamage > 0 ? new[] { EffectSpec.Damage(enemyDamage) } : Array.Empty<EffectSpec>();
+            return new EnemyDefinition("fixed_attacker", "固定攻击敌人", enemyMaxHp, new[] { new EnemyAction(effects) });
         }
 
         public List<CardDefinition> ToDeckDefinitions()

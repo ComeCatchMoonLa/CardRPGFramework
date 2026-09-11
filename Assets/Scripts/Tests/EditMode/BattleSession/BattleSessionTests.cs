@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Cards;
+using CardRPGFramework.Core.Enemies;
 using CardRPGFramework.Core.Relics;
 using NUnit.Framework;
 
@@ -44,13 +45,21 @@ namespace CardRPGFramework.Tests
             return deck;
         }
 
+        /// <summary>0.1 的固定攻击敌人：单一行动、每回合打 damage。damage == 0 是空行动（待机），EffectSpec.Damage(0) 会被工厂拒绝。</summary>
+        private static EnemyDefinition FixedAttacker(int maxHp, int damage) => new("fixed_attacker", "固定攻击敌人", maxHp, new[]
+        {
+            new EnemyAction(damage > 0 ? new[] { EffectSpec.Damage(damage) } : Array.Empty<EffectSpec>()),
+        });
+
+        // enemyMaxHp / enemyDamage 两个参数名保留，0.1～0.5 显式传它们的用例一字不改；传了 enemy 就忽略这两个标量。
         private static BattleSession CreateSession(
             int playerMaxHp = 40, int enemyMaxHp = 36, int enemyDamage = 6, int energyPerTurn = 3, int handSize = 5,
-            List<CardDefinition> deck = null, IEnumerable<RelicState> relics = null)
+            List<CardDefinition> deck = null, IEnumerable<RelicState> relics = null, EnemyDefinition enemy = null)
         {
-            var setup = new BattleSetup(playerMaxHp, enemyMaxHp, enemyDamage, energyPerTurn, handSize);
+            var setup = new BattleSetup(playerMaxHp, energyPerTurn, handSize);
             deck ??= BuildDeck(5, 3, 2);
-            return new BattleSession(setup, deck, new Random(1), relics);
+            enemy ??= FixedAttacker(enemyMaxHp, enemyDamage);
+            return new BattleSession(setup, enemy, deck, new Random(1), relics);
         }
 
         [Test]
@@ -281,7 +290,7 @@ namespace CardRPGFramework.Tests
         }
 
         [Test]
-        public void PoisonedEnemy_LosesHpIgnoringBlockAtEnemyTurnStart_AndStackDecrements()
+        public void PoisonedEnemy_LosesHpAtEnemyTurnStart_BlockClearedFirst_AndStackDecrements()
         {
             // 牌堆全用同一种卡：CardPile 构造时会打乱抽牌堆顺序，
             // 混合卡种类时 hand[0] 不保证是想测的那张牌，必须固定成单一类型。
@@ -295,7 +304,9 @@ namespace CardRPGFramework.Tests
             session.TryEndPlayerTurn();
 
             Assert.AreEqual(enemyHpBeforeEnemyTurn - 3, session.Enemy.CurrentHp);
-            Assert.AreEqual(10, session.Enemy.Block);
+            // 0.6 唯一改动的 0.1 断言：原来是 10。0.6 起敌人回合开始先清自己的格挡（与玩家侧对称），中毒在其后结算，
+            // 那条旧断言锁的是"0.1 敌人从不清格挡"的副产物而不是规则；"中毒无视格挡"由 CombatantState / Effect / Action / Buff 四层各自的用例锁住。
+            Assert.AreEqual(0, session.Enemy.Block);
             Assert.AreEqual(2, session.Enemy.GetBuffStacks("poison"));
         }
 
