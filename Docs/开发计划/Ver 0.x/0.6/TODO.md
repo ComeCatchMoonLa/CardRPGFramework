@@ -47,20 +47,20 @@
 
 ## 4. 联调与验收（约 1.5h）
 
-- [ ] 完整运行一局颚虫（`Default.asset` 带三件遗物，下面是**带遗物**的数字）：状态栏 `颚虫 HP 42/42`；开战玩家 Buff 行 `力量 1`（金刚杵）、打击预览 7；意图序列如上；猛击后敌人格挡 5，一张打击打上去敌人掉 **2**（EditMode 无遗物是 6 → 掉 1，两个数字都对）；咆哮后敌人 Buff 行 `力量 3`、意图 `攻击 14`、结束回合掉 14；第二圈猛击意图 `攻击 10 · 防御`（力量永久）；给敌人上虚弱后咬显示 **6**——`Default.asset` 默认带纸鹤，8 是无遗物配置（测试）的数字，不要为了看到 8 去删默认遗物；对照游戏设计第 6 节逐条核对。
-- [ ] `Default.asset` 换成 FixedAttacker 跑一局：每回合掉 6；0.5 的三件遗物表现不变（金刚杵 7 / 蛇颅骨 4 层 / 虚弱后纸鹤 3，无遗物才是 4）；换回颚虫。
-- [ ] 故意配错各看一次 Console 后改回：颚虫某行动加一条 `Draw` → 启动报错；加一条 `ApplyBuff / Opponent / weak` → 启动报错；`Default.asset` 的 `enemy` 留空 → 报错；`EnemyData.id` 留空 → 报错；`maxHp` 填 0 → 报错。
-- [ ] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `jaw` / `fixed_attacker` / `EnemyData`，敌人相关符号只有 `EnemyDefinition` / `EnemyAction`；`Views` 无 `0.75` / `1.5`；`ToAction` / `DamageCalculator` / `*DamageRule.cs` 无改动。
+- [x] 完整运行一局颚虫（`Default.asset` 带三件遗物，下面是**带遗物**的数字）：状态栏 `颚虫 HP 42/42`；开战玩家 Buff 行 `力量 1`（金刚杵）、打击预览 7；意图序列如上；猛击后敌人格挡 5，一张打击打上去敌人掉 **2**（EditMode 无遗物是 6 → 掉 1，两个数字都对）；咆哮后敌人 Buff 行 `力量 3`、意图 `攻击 14`、结束回合掉 14；第二圈猛击意图 `攻击 10 · 防御`（力量永久）；给敌人上虚弱后咬显示 **6**——`Default.asset` 默认带纸鹤，8 是无遗物配置（测试）的数字，不要为了看到 8 去删默认遗物；对照游戏设计第 6 节逐条核对。
+- [x] `Default.asset` 换成 FixedAttacker 跑一局：每回合掉 6；0.5 的三件遗物表现不变（金刚杵 7 / 蛇颅骨 4 层 / 虚弱后纸鹤 3，无遗物才是 4）；换回颚虫。
+- [x] 故意配错各看一次 Console 后改回：颚虫某行动加一条 `Draw` → 启动报错；加一条 `ApplyBuff / Opponent / weak` → 启动报错；`Default.asset` 的 `enemy` 留空 → 报错；`EnemyData.id` 留空 → 报错；`maxHp` 填 0 → 报错。
+- [x] 运行全部 EditMode 测试；Console 无错误；grep 核对：`BattleSession.cs` 无 `jaw` / `fixed_attacker` / `EnemyData`，敌人相关符号只有 `EnemyDefinition` / `EnemyAction`；`Views` 无 `0.75` / `1.5`；`ToAction` / `DamageCalculator` / `*DamageRule.cs` 无改动。（grep 结果：`BattleSession.cs` 三个词零命中，`Enemy*` 符号只有 `EnemyDefinition` / `EnemyAction` / `PreviewEnemyAttack` / `BattlePhase.EnemyTurn` 与一条注释里的 "EnemyState"；`Views` 零命中；`Core/Rules` 相对 0.5 末提交 diff 为空，`ToAction` 的 `switch` 各分支无 diff。EditMode 246 项在 .NET 侧全绿，Unity Test Runner 与 Console 由人工确认。）
 
 **阶段门槛：** 游戏设计第 6 节全部满足。
 
 ## 5. 文档与交付（约 0.5h）
 
-- [ ] 更新 `README.md`：目录说明加 `Core/Enemies`、`Data/EnemyData` / `EnemyActionData`、`Views/IntentFormatter`、`Assets/Data/Enemies`；"已完成"加 0.6 段；"范围外"去掉敌人行动表；运行方式改为颚虫与意图序列、玩家 80；测试数；已知限制里"`EnemyTurn` 是瞬时阶段"与"`BattleSession` 身兼多职"两段按 0.6 现状改写。
-- [ ] 更新 [`../README.md`](../README.md) 的 0.6 状态：节标"（已完成）"、摘要表；0.1 遗留口子里"敌人只有一个固定伤害数字"划掉；0.x 完成定义里"0.1 的 79 项测试不改断言"补上 0.6 因敌人清格挡改了 1 项的例外。
-- [ ] 更新 [`../../README.md`](../../README.md)（开发计划总览）：路线总览 0.6 标已完成与测试数；文档地图；第 2 节例外说明改为"0.7 的技术设计与 TODO 是草稿，进入前复核转正"。
-- [ ] 进入 0.7 前：对照本版本实际实现复核 [`../0.7/技术设计.md`](../0.7/技术设计.md) 与 [`../0.7/TODO.md`](../0.7/TODO.md) 的草稿并转正（那两份文首列了复核清单）。
-- [ ] 提交并推送 0.6（不带 `Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动；分三次：Core 与测试迁移、Data 与表现层、文档）。
+- [x] 更新 `README.md`：目录说明加 `Core/Enemies`、`Data/EnemyData` / `EnemyActionData`、`Views/IntentFormatter`、`Assets/Data/Enemies`；"已完成"加 0.6 段；"范围外"去掉敌人行动表；运行方式改为颚虫与意图序列、玩家 80；测试数；已知限制里"`EnemyTurn` 是瞬时阶段"与"`BattleSession` 身兼多职"两段按 0.6 现状改写。
+- [x] 更新 [`../README.md`](../README.md) 的 0.6 状态：节标"（已完成）"、摘要表；0.1 遗留口子里"敌人只有一个固定伤害数字"划掉；0.x 完成定义里"0.1 的 79 项测试不改断言"补上 0.6 因敌人清格挡改了 1 项的例外。
+- [x] 更新 [`../../README.md`](../../README.md)（开发计划总览）：路线总览 0.6 标已完成与测试数；文档地图；第 2 节例外说明改为"0.7 的技术设计与 TODO 是草稿，进入前复核转正"。
+- ~~进入 0.7 前：对照本版本实际实现复核 0.7 的草稿并转正~~（是 [`../0.7/TODO.md`](../0.7/TODO.md) 第 0 节的工作，不放在 0.6 里做——两个小版本的 TODO 不互相包含对方的条目）。
+- [x] 提交并推送 0.6（不带 `Assets/TextMesh Pro/Fonts/*.asset` 的 Play 抖动；分三次：Core 与测试迁移、Data 与表现层、文档）。
 
 ## 建议日程
 
@@ -69,7 +69,7 @@
 | Day 1 | 第 1 节：`Core.Enemies`、`BattleSetup` / `BattleSession` 改造、`BattleConfig` / `BattleController` 编译桥、`CreateSession` 迁移与那 1 项断言 |
 | Day 2 | 第 1 节余下的敌人用例 → 第 2 节：`EnemyActionData` / `EnemyData` / `BattleConfig` / 资产 / Controller |
 | Day 3 | 第 3～4 节：`IntentFormatter`、`BattleView`、联调与配错检查 |
-| Day 4 | 第 5 节：文档、0.7 草稿复核、提交（含缓冲） |
+| Day 4 | 第 5 节：文档、提交（含缓冲） |
 
 ## 范围控制
 
