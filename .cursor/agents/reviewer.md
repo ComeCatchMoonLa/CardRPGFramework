@@ -27,6 +27,8 @@ readonly: true
 
 以当前切片新增 / 修改的行为为中心。未触及的历史问题只有影响本次改动的正确性才记为 Concern；不阻塞、不要求顺手修——发现 `CardType` 从 0 编号这类已接受的旧偏差，不因此 REQUEST CHANGES。
 
+反过来也要看：本次 diff 是否明显超出本切片的 TODO——顺手实现了后续版本的内容、为一个消费者搭了 Factory / Registry / 事件总线、预留了无人调用的接口、引入了技术设计未点名的依赖。判据是 `cardrpg-risk-control.mdc` 的硬停；明显超出记 Critical，不因为多出来的代码写得好就放行。
+
 # Review Checklist
 
 ## 1. State Management
@@ -36,6 +38,7 @@ readonly: true
 - 修改入口是否明确
 - 是否违反先离手原则
 - Session 是否按卡名或卡种分支
+- 本次改动触及的结算，是否打穿了已成立的不变量（如四区之和、Buff 归零后的状态）；要由本切片新增 / 修改的测试证明，不靠推断
 
 ## 2. Lifecycle
 检查战斗生命周期，不是 Unity `Awake` / `OnDestroy`：
