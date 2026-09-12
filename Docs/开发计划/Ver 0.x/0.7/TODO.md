@@ -1,6 +1,6 @@
-# 0.7 TODO：回合型 Buff（草稿）
+# 0.7 TODO：回合型 Buff
 
-> **草稿。** 随 0.6 三件套一并写成，条目基于 [`技术设计.md`](技术设计.md)（草稿）；进入 0.7 前先走完第 0 节的复核清单，再去掉本头转正（两处接口形状已在 0.6 评审时定下，见技术设计第 7 节）。数量与文件名以复核后为准。
+> 随 0.6 三件套一并写成草稿；0.6 完成后已按技术设计第 9 节复核清单对照实际代码转正（第 0 节的复核三条在 0.6 第 5 节做完），条目基于转正后的 [`技术设计.md`](技术设计.md)。0.6 完成时 EditMode 246 项，本文数字以此为基数。
 >
 > **预计 2～3 个有效开发日。风险有两条：一是把减层做成中毒那种"结算时自减"或挂到各自回合结束——减层只在轮结束、双方一起（[`../../../Phase 2 扩展边界批注.md`](../../../Phase%202%20扩展边界批注.md) 第 4 节）；二是"叠加也刷新保护"的直觉——原版不刷新，游戏设计第 4 节第三个例子就是为它写的。验收时对照技术设计第 8 节检查。**
 
@@ -8,10 +8,10 @@
 
 ## 0. 开始前检查与复核（约 1h）
 
-- [ ] 0.6 已提交推送，工作区干净，Console 无错误，EditMode 全绿（记下总数，替换本文与技术设计里的估算）。
-- [ ] 走完技术设计第 9 节复核清单：`ToAction` 形状、`TryEndPlayerTurn` 里推进与判负的先后、`EnemyActionData.TryValidate` 那条校验的实际写法、`CreateSession` 签名、"上 Buff → 结束回合 → 断言"用例清单、意图文案所在层。
-- [ ] 确认两处已定的接口形状与 0.6 实际代码兼容：保护标记走 `BuffFactory.Create` 可选参数（要求 `ToAction` 的 `ApplyBuff` 分支仍是唯一 Buff 构造点）；`OnRoundEnd()` 无参数。不兼容才重开讨论，否则不改。
-- [ ] 去掉三份文档的草稿头。
+- [x] 0.6 已提交推送（`1245c29`），工作区干净，Console 无错误，EditMode 全绿（246 项，本文与技术设计的基数已按它替换）。
+- [x] 走完技术设计第 9 节复核清单：`ToAction` 形状、`TryEndPlayerTurn` 里推进与判负的先后、`EnemyActionData.TryValidate` 那条校验的实际写法、`CreateSession` 签名、"上 Buff → 结束回合 → 断言"用例清单（7 个，全部只断言 HP）、意图文案所在层。结论记在技术设计第 9 节。
+- [x] 确认两处已定的接口形状与 0.6 实际代码兼容：保护标记走 `BuffFactory.Create` 可选参数——`ToAction` 的 `ApplyBuff` 分支是 `EffectSpec → Buff` 的唯一构造点（`VajraRelic` 另有一处造力量，忽略该参数）；`OnRoundEnd()` 无参数。兼容，不改。
+- [x] 去掉三份文档的草稿头。
 
 **阶段门槛：** 技术设计与 0.6 实际代码一致，可以照着写。
 
@@ -28,7 +28,7 @@
 
 ## 2. Data：放开校验与蓝奴隶贩子（约 0.5h）
 
-- [ ] `EnemyActionData.TryValidate` 删掉"ApplyBuff 且 Opponent"那一条与注释；`Draw` 仍拒绝。`EnemyActionDataTests` 里对应用例改为通过。
+- [ ] `EnemyActionData.TryValidate` 删掉"ApplyBuff 且 Opponent"那一条与注释；`Draw` 与空 `effects` 仍拒绝。`EnemyActionDataTests.TryValidate_ApplyBuffOnOpponent_ReturnsError` 改为 `_Passes`。
 - [ ] 新增 `Assets/Data/Enemies/BlueSlaver.asset`（`blue_slaver` / 蓝奴隶贩子 / 48；刺击 12；耙 7 + 给玩家 1 层虚弱）。`Default.asset` 保持颚虫。
 
 **阶段门槛：** 换成蓝奴隶贩子只需改 `Default.asset` 的引用。
