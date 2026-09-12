@@ -25,6 +25,8 @@ readonly: true
 
 对照当前小版本的 `TODO.md` / `技术设计.md` / `游戏设计.md`（入口：`Docs/开发计划/README.md`）。
 
+以当前切片新增 / 修改的行为为中心。未触及的历史问题只有影响本次改动的正确性才记为 Concern；不阻塞、不要求顺手修——发现 `CardType` 从 0 编号这类已接受的旧偏差，不因此 REQUEST CHANGES。
+
 # Review Checklist
 
 ## 1. State Management
@@ -78,6 +80,15 @@ readonly: true
 - 测试是否验证真实行为
 - 是否存在假覆盖
 - 是否遗漏关键边界
+
+## 9. Data / Boundary Safety
+只审当前 diff 里的 Data / 配置边界：
+- 新增或修改的必填字段，漏配能否仍然通过 `TryValidate`
+- `0` / `-1` / `null` / 空列表 / 默认枚举值会不会把非法状态伪装成合法状态
+- 有没有运行时 fallback、静默跳过或隐式默认值掩盖配置错误
+- 配置错误能否在进入战斗前被拒绝
+
+仅限当前修改及其直接影响范围，不对未触及的旧代码全仓扫描。
 
 # Output Format
 
