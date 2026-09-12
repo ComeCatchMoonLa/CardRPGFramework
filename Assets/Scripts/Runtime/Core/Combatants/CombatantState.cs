@@ -80,6 +80,27 @@ namespace CardRPGFramework.Core.Combatants
 
         public bool HasBuff(string id) => GetBuffStacks(id) > 0;
 
+        /// <summary>
+        /// 把层数减到 0 的 Buff 从字典移除。只在轮结束步骤、轮末触发遍历之后调用：回合型 Buff 减到 0 和中毒在回合开始自减到 0 的都在这里清。
+        /// 先收集再删——枚举 Dictionary 时 Remove 会抛异常。
+        /// </summary>
+        public void RemoveExpiredBuffs()
+        {
+            var expired = new List<string>();
+            foreach (var pair in _buffs)
+            {
+                if (pair.Value.Stacks <= 0)
+                {
+                    expired.Add(pair.Key);
+                }
+            }
+
+            foreach (var id in expired)
+            {
+                _buffs.Remove(id);
+            }
+        }
+
         /// <summary>同 Id 重复添加抛异常而不是静默合并：遗物唯一（原版拾取时直接跳过重复），重复只可能是配置错误。</summary>
         public void AddRelic(RelicState relic)
         {

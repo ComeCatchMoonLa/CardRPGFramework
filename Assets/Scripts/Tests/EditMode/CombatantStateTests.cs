@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
 using CardRPGFramework.Core.Relics;
@@ -135,6 +136,42 @@ namespace CardRPGFramework.Tests
 
             Assert.IsFalse(state.HasBuff("poison"));
             Assert.AreEqual(0, state.GetBuffStacks("poison"));
+        }
+
+        [Test]
+        public void RemoveExpiredBuffs_RemovesZeroStackBuffs_KeepsOthers()
+        {
+            var state = new CombatantState(30);
+            var weak = new WeakBuff(1);
+            var poison = new PoisonBuff(1);
+            state.ApplyBuff(weak);
+            state.ApplyBuff(poison);
+            state.ApplyBuff(new StrengthBuff(2));
+            state.ApplyBuff(new VulnerableBuff(1));
+            weak.OnRoundEnd();
+            poison.RemoveStacks(1);
+
+            state.RemoveExpiredBuffs();
+
+            CollectionAssert.AreEquivalent(new[] { "strength", "vulnerable" }, state.Buffs.Select(b => b.Id));
+            Assert.AreEqual(2, state.GetBuffStacks("strength"));
+            Assert.AreEqual(1, state.GetBuffStacks("vulnerable"));
+        }
+
+        [Test]
+        public void ApplyBuff_StackingOntoExisting_KeepsOriginalInstance_ProtectionNotRefreshed()
+        {
+            var state = new CombatantState(30);
+            var first = new WeakBuff(1);
+            state.ApplyBuff(first);
+
+            state.ApplyBuff(new WeakBuff(1, justApplied: true));
+
+            Assert.AreSame(first, state.Buffs.Single());
+            Assert.AreEqual(2, first.Stacks);
+            // 带保护的新实例被丢弃，原实例没有保护：轮末照减。
+            first.OnRoundEnd();
+            Assert.AreEqual(1, first.Stacks);
         }
 
         // ---------- 遗物容器 ----------

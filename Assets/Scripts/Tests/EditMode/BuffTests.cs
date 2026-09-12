@@ -68,5 +68,53 @@ namespace CardRPGFramework.Tests
             Assert.AreEqual(10, owner.Block);
             Assert.AreEqual(2, poison.Stacks);
         }
+
+        // ---------- 回合型 Buff：轮末减层与刚施加保护 ----------
+
+        [Test]
+        public void WeakBuff_OnRoundEnd_RemovesOneStack()
+        {
+            var weak = new WeakBuff(2);
+
+            weak.OnRoundEnd();
+
+            Assert.AreEqual(1, weak.Stacks);
+        }
+
+        [Test]
+        public void WeakBuff_JustApplied_SkipsFirstRoundEndOnly()
+        {
+            var weak = new WeakBuff(1, justApplied: true);
+
+            weak.OnRoundEnd();
+            Assert.AreEqual(1, weak.Stacks);
+
+            weak.OnRoundEnd();
+            Assert.AreEqual(0, weak.Stacks);
+        }
+
+        [Test]
+        public void VulnerableBuff_OnRoundEnd_DecrementsAndJustAppliedSkipsOnce()
+        {
+            var plain = new VulnerableBuff(2);
+            var justApplied = new VulnerableBuff(1, justApplied: true);
+
+            plain.OnRoundEnd();
+            justApplied.OnRoundEnd();
+            Assert.AreEqual(1, plain.Stacks);
+            Assert.AreEqual(1, justApplied.Stacks);
+
+            justApplied.OnRoundEnd();
+            Assert.AreEqual(0, justApplied.Stacks);
+        }
+
+        [Test]
+        public void OnlyWeakAndVulnerable_AreRoundEndTriggers()
+        {
+            Assert.IsInstanceOf<IRoundEndTrigger>(new WeakBuff(1));
+            Assert.IsInstanceOf<IRoundEndTrigger>(new VulnerableBuff(1));
+            Assert.IsNotInstanceOf<IRoundEndTrigger>(new StrengthBuff(1));
+            Assert.IsNotInstanceOf<IRoundEndTrigger>(new PoisonBuff(1));
+        }
     }
 }

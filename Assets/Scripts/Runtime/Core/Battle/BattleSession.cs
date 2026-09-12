@@ -121,7 +121,7 @@ namespace CardRPGFramework.Core.Battle
             return true;
         }
 
-        /// <summary>结束玩家回合：弃掉剩余手牌，结算敌人当前行动并推进到下一条，未失败则进入下一玩家回合。</summary>
+        /// <summary>结束玩家回合：弃掉剩余手牌，结算敌人当前行动并推进到下一条，未失败则轮结束（回合型 Buff 减层）并进入下一玩家回合。</summary>
         public bool TryEndPlayerTurn()
         {
             if (Phase != BattlePhase.PlayerTurn)
@@ -162,6 +162,8 @@ namespace CardRPGFramework.Core.Battle
             }
             else
             {
+                // 轮结束在行动指针前进之后、下一玩家回合之前；失败时不执行。
+                EndRound();
                 StartPlayerTurn();
             }
 
@@ -205,7 +207,10 @@ namespace CardRPGFramework.Core.Battle
                 EffectKind.Damage => new DamageAction(source, target, effect.Value),
                 EffectKind.Block => new BlockAction(target, effect.Value),
                 EffectKind.Heal => new HealAction(target, effect.Value),
-                EffectKind.ApplyBuff => new ApplyBuffAction(source, target, BuffFactory.Create(effect.BuffId, effect.Value)),
+                // 刚施加保护只看施加方（一代 isSourceMonster）：敌人施加的回合型 Buff 跳过本轮末的减层，玩家下一回合才吃得到；
+                // 不看目标是谁、也不看所有者本轮是否已行动——敌人给自己上的同样带保护。力量 / 中毒忽略这个参数。
+                EffectKind.ApplyBuff => new ApplyBuffAction(source, target,
+                    BuffFactory.Create(effect.BuffId, effect.Value, justApplied: source == Enemy)),
                 EffectKind.Draw => new DrawCardsAction(_cardPile, effect.Value),
                 _ => throw new ArgumentOutOfRangeException(nameof(effect), effect.Kind, "未知的 EffectKind"),
             };
@@ -241,6 +246,29 @@ namespace CardRPGFramework.Core.Battle
             }
 
             _actionQueue.RunAll(new ActionContext(_actionQueue));
+        }
+
+        /// <summary>
+        /// 轮结束：双方回合型 Buff 各减 1（本轮刚由敌人施加的跳过一次），然后统一移除 0 层。
+        /// 与开战遗物、回合开始 Buff 并列的第三个固定时机遍历，不合并成事件；遍历中只改 Stacks，移除放在遍历之后。
+        /// </summary>
+        private void EndRound()
+        {
+            TriggerRoundEnd(Player);
+            TriggerRoundEnd(Enemy);
+            Player.RemoveExpiredBuffs();
+            Enemy.RemoveExpiredBuffs();
+        }
+
+        private static void TriggerRoundEnd(CombatantState owner)
+        {
+            foreach (var buff in owner.Buffs)
+            {
+                if (buff is IRoundEndTrigger trigger)
+                {
+                    trigger.OnRoundEnd();
+                }
+            }
         }
 
         private void StartPlayerTurn()
