@@ -1,6 +1,6 @@
 # Ver 0.x：把局内做成「卡牌战斗」
 
-> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据，0.3 让规则在界面可见，0.4 证明了类型决定去向，0.5 证明了遗物不是 Buff，0.6 证明了会变招的敌人也只是配数据；0.x 剩下的工作是把这套分层用真实的卡牌战斗内容压一遍——有时限的 Debuff——每一步都必须多证明一个边界，而不是多几张同质卡。
+> **大版本目标**：0.1 已经证明 Action / Effect / Buff / Rule 的分层能跑，0.2 证明了复合卡只是配数据，0.3 让规则在界面可见，0.4 证明了类型决定去向，0.5 证明了遗物不是 Buff，0.6 证明了会变招的敌人也只是配数据，0.7 证明了回合型 Buff 的时间语义可以加在 `BuffState` 之外的一层里。每一步都多证明了一个边界，而不是多几张同质卡；0.x 至此完成，进入 1.0 的门槛见文末完成定义（已逐条核对）。
 >
 > **不在 0.x 里的**：局外 Run、地图、奖励、商店（全部归 1.0 及以后）；Luban、出包、程序集拆分（归 1.x）。
 
@@ -28,7 +28,7 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 - ~~只有三个牌区，没有消耗堆~~（0.4 已解决：`CardPile` 消耗堆只进不出，`TryPlayCard` 按 `ExhaustsWhenPlayed` 分流落堆）。
 - ~~`ApplyBuffAction` 的 `source` 尚无消费者~~（0.5 已解决：`Execute` 先遍历施加方遗物里的 `IApplyBuffModifier`，蛇颅骨是第一个消费者）。
 - ~~敌人只有一个固定伤害数字，没有格挡、没有行动表~~（0.6 已解决：`EnemyDefinition` 行动表固定循环、行动 = 效果列表走同一个 `ToAction`，敌人回合开始清敌人格挡）。
-- 虚弱 / 易伤层数永不衰减；0 层 Buff 留在字典里、`HasBuff` 用 `> 0` 兜住（0.7）。
+- ~~虚弱 / 易伤层数永不衰减；0 层 Buff 留在字典里、`HasBuff` 用 `> 0` 兜住（0.7）。~~（0.7 已解决：`DurationBuff` 轮末减 1、刚施加的跳过一次；`RemoveExpiredBuffs` 轮末清 0 层。`HasBuff` 的 `> 0` 保留——中毒在回合开始自减到 0 后要到轮末才出字典。）
 
 ## 0.2 效果列表（已完成）
 
@@ -117,23 +117,34 @@ Phase 1 + Phase 2a / 2b / 2c，文档在 [`0.1/`](0.1/)。
 
 **证明的边界**：敌人行动与卡牌走同一套效果原语；新敌人 = 配数据。颚虫与固定攻击敌人各自只是一份 `EnemyData`，`BattleSession` 里 grep 不到任何敌人 Id，`ToAction` / `DamageCalculator` / 三条 Rule 的 diff 为空。
 
-## 0.7 回合型 Buff
+## 0.7 回合型 Buff（已完成）
 
-文档：[`0.7/游戏设计.md`](0.7/游戏设计.md) / [`0.7/技术设计.md`](0.7/技术设计.md) / [`0.7/TODO.md`](0.7/TODO.md)——随 0.6 一并写成草稿，已在 0.7 TODO 第 0 节对照 0.6 实际实现复核转正。
+文档：[`0.7/游戏设计.md`](0.7/游戏设计.md) / [`0.7/技术设计.md`](0.7/技术设计.md) / [`0.7/TODO.md`](0.7/TODO.md)。
 
 - 虚弱 / 易伤的层数是「剩余轮数」：轮结束统一减 1，刚施加的不减，0 层移除。
-- 加入蓝奴隶贩子（耙：7 伤 + 给玩家 1 层虚弱）当刚施加保护的消费者。
+- 加入蓝奴隶贩子（刺击 12；耙：7 伤 + 给玩家 1 层虚弱）当刚施加保护的消费者——只是一份 `EnemyData` 加删一条配置校验。
 
-**证明的边界**：回合型 Buff 的衰减时机与中毒不同；敌人给玩家上的 Debuff 要能活到玩家下一回合。
+| 已有 | 说明 |
+| --- | --- |
+| 轮末触发 | `Core/Buffs`：`IRoundEndTrigger.OnRoundEnd()`（无参，减层没有对外效果）；`DurationBuff : BuffState, IRoundEndTrigger` 是虚弱 / 易伤的中间基类，`_justApplied` 为真时跳过第一次减层并清标记，否则 `RemoveStacks(1)`；`BuffState` 不加字段，力量 / 中毒不实现它 |
+| 保护标记 | `BuffFactory.Create(id, stacks, justApplied = false)` 只对虚弱 / 易伤传下去；`BattleSession.ToAction` 的 `ApplyBuff` 分支传 `justApplied: source == Enemy`——只看施加方（一代 `isSourceMonster`），不看目标是谁、不看所有者本轮是否已行动。叠加走 `ApplyBuff` 的 `AddStacks`，带保护的新实例被丢弃，保护不随叠加刷新 |
+| 轮结束 | `TryEndPlayerTurn`：推进指针 → 判负 → 未失败则 `EndRound()`（双方 `TriggerRoundEnd`：`foreach` + `is IRoundEndTrigger`；再双方 `CombatantState.RemoveExpiredBuffs()`：先收集 0 层 key 再删）→ `StartPlayerTurn`。与开战遗物、回合开始 Buff 并列的第三个固定时机遍历，不抽公共方法、不合并成事件；中毒在回合开始自减到 0 的也在这里清 |
+| 配置 | `EnemyActionData.TryValidate` 删掉"ApplyBuff 且 Opponent"一条，空 `effects` 与 `Draw` 仍拒；`Assets/Data/Enemies/BlueSlaver.asset`（`blue_slaver` / 48 血；刺击 12 → 耙 7 + weak 1）；`Default.asset` 保持颚虫，换敌人只改引用 |
+| 表现 | 不改代码。`BattleView` 的 0 层过滤保留（回合开始自减到 0 的中毒要到轮末才出字典）；意图 `攻击 7 · 减益` 是 0.6 的 `IntentFormatter` 现成的 |
+| 测试 | 263 项 EditMode：0.1～0.6 的 246 项不改断言；新增 17 项——`BuffTests` 4、`BuffFactoryTests` 2、`CombatantStateTests` 2、`BattleSessionTests.RoundEnd.cs` 9（痛击 2 层覆盖本回合与下回合再移除、玩家上的虚弱轮末消失、耙后保护与下一回合 ×0.75、`[耙, 耙, 待机, 待机]` 层数 1 / 1 / 0、敌人给自己上易伤轮末不减——锁住判定看施加方而不是"目标是玩家"、中毒不轮末减、中毒 0 层轮末移除、玩家自带虚弱无保护、失败时不轮结束）；`EnemyActionDataTests` 的 ApplyBuff Opponent 用例由拒改通过 |
+
+**证明的边界**：回合型 Buff 的衰减时机与中毒不同（轮末 vs 回合开始结算时），敌人给玩家上的 Debuff 能活到玩家下一回合。时间语义加在 `DurationBuff` 一层，`BuffState.cs` / `ApplyBuffAction.cs` / 三条 Rule 的 diff 为空，蓝奴隶贩子零 C#。
 
 ## 0.x 完成定义（进入 1.0 的门槛）
 
-- 新增一张卡、一只敌人、一件用现有钩子的遗物，各自最多新增一个 C# 子类，不在 `BattleSession` 里新增按卡牌 / 敌人 / 遗物 Id 或种类的分支。新的效果原语或新的钩子时机仍要改一处 `switch` 或一处遍历——那是有意的封闭点。
-- 四个牌区齐全，能力牌打出后本场不再出现。
-- 三条伤害规则在界面可见，预览数值与结算一致。
-- 遗物三种钩子各有一件标本，且没有任何遗物进入 Buff 字典。
-- 至少两只配置不同的敌人，意图循环，公式后预览。
-- 虚弱 / 易伤会随轮结束衰减，刚施加的不被立刻减掉；0 层 Buff 不残留。
-- 以上全部有 EditMode 测试；0.1 的 79 项测试不改断言仍通过（因接口改动而改构造方式除外）。唯一的例外记录在案：0.6 起敌人回合开始先清敌人格挡，中毒用例 `PoisonedEnemy_…` 里"敌人格挡仍是 10"的断言改为 0——规则本身变了才允许改断言，且要在当版本 TODO 与技术设计里写明。
+0.7 完成时逐条核对：
 
-满足后，局内已经能支撑「三场不同的战斗 + 战后选卡 + 遗物栏」，才值得开 1.0。
+- [x] 新增一张卡、一只敌人、一件用现有钩子的遗物，各自最多新增一个 C# 子类，不在 `BattleSession` 里新增按卡牌 / 敌人 / 遗物 Id 或种类的分支。新的效果原语或新的钩子时机仍要改一处 `switch` 或一处遍历——那是有意的封闭点。（卡：0.2 起一张卡 = 一份 `CardData`；敌人：0.6 颚虫、0.7 蓝奴隶贩子都只是 `EnemyData`；遗物：0.5 每件一个子类 + 一份 `RelicData`。`BattleSession` 里 grep 不到卡牌 / 敌人 / 遗物 Id。）
+- [x] 四个牌区齐全，能力牌打出后本场不再出现。（0.4：`CardPile` 抽牌 / 手牌 / 弃牌 / 消耗四区，`ExhaustsWhenPlayed`。）
+- [x] 三条伤害规则在界面可见，预览数值与结算一致。（0.3：`PreviewPlayerAttack` / `PreviewEnemyAttack` 与结算共用 `DamageCalculator`，`Preview.cs` 用例锁住。）
+- [x] 遗物三种钩子各有一件标本，且没有任何遗物进入 Buff 字典。（0.5：金刚杵 / 蛇颅骨 / 纸鹤；`Relics` 列表与 `Buffs` 字典并列。）
+- [x] 至少两只配置不同的敌人，意图循环，公式后预览。（0.6 颚虫、固定攻击敌人；0.7 蓝奴隶贩子，共三份 `EnemyData`。）
+- [x] 虚弱 / 易伤会随轮结束衰减，刚施加的不被立刻减掉；0 层 Buff 不残留。（0.7：`DurationBuff` / `EndRound` / `RemoveExpiredBuffs`。）
+- [x] 以上全部有 EditMode 测试；0.1 的 79 项测试不改断言仍通过（因接口改动而改构造方式除外）。唯一的例外记录在案：0.6 起敌人回合开始先清敌人格挡，中毒用例 `PoisonedEnemy_…` 里"敌人格挡仍是 10"的断言改为 0——规则本身变了才允许改断言，且要在当版本 TODO 与技术设计里写明。（0.7 完成时 263 项全部通过；0.7 没有新的例外。）
+
+全部满足：局内已经能支撑「三场不同的战斗 + 战后选卡 + 遗物栏」，可以开 1.0。1.0 目前只有游戏设计，进入前按细化深度规则补技术设计与 TODO。

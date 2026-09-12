@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace CardRPGFramework.Tests
 {
     /// <summary>
-    /// 只测敌人行动特有的三条拒绝（空效果、Draw、给玩家上 Buff）；
+    /// 只测敌人行动特有的两条拒绝（空效果、Draw）与 0.7 放开的"给玩家上 Buff"；
     /// 单条效果的 kind / target / value 校验已由 EffectSpecDataTests 覆盖，这里只确认内层错误会带下标转发出来。
     /// </summary>
     public class EnemyActionDataTests
@@ -53,13 +53,13 @@ namespace CardRPGFramework.Tests
         }
 
         [Test]
-        public void TryValidate_ApplyBuffOnOpponent_ReturnsError()
+        public void TryValidate_ApplyBuffOnOpponent_Passes()
         {
-            var action = Action(new EffectSpecData(EffectKind.ApplyBuff, EffectTarget.Opponent, 1, "weak"));
+            // 0.6 拒绝这一条（虚弱没有减层会永远挂着）；0.7 有了轮末减层与刚施加保护，耙（7 伤 + 给玩家 1 层虚弱）只是配数据。
+            var action = Action(Damage(7), new EffectSpecData(EffectKind.ApplyBuff, EffectTarget.Opponent, 1, "weak"));
 
-            Assert.IsFalse(action.TryValidate(out var error));
-            StringAssert.Contains("effects[0]", error);
-            StringAssert.Contains("ApplyBuff", error);
+            Assert.IsTrue(action.TryValidate(out var error));
+            Assert.IsNull(error);
         }
 
         [Test]

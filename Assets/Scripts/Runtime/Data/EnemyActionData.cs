@@ -38,18 +38,17 @@ namespace CardRPGFramework.Data
         }
 
         /// <summary>
-        /// 启动期校验。空列表拒绝：Core 允许空行动（测试的无害敌人、将来的沉睡意图，显示为"待机"），但 0.6 没有任何内容需要它，
+        /// 启动期校验。空列表拒绝：Core 允许空行动（测试的无害敌人、将来的沉睡意图，显示为"待机"），但目前没有任何内容需要它，
         /// 行动表里名字叫"咬"却忘了填效果的行应该在这里报出来，而不是显示成"待机"跑起来；配沉睡类敌人时删掉这一条。
-        /// 之后逐条先过 EffectSpecData 自己的校验，再按转换后的 Core 值查敌人特有的两条：
-        /// Draw 是规则真相（敌人没有牌堆，Core 也会拦，这里提前到启动期）；ApplyBuff 给 Opponent 是 0.6 的范围限制——
-        /// 回合型 Buff 还没有减层，敌人给玩家上的虚弱会永远挂着。0.7 随蓝奴隶贩子删掉这一条。
+        /// 之后逐条先过 EffectSpecData 自己的校验，再按转换后的 Core 值查敌人特有的一条：Draw 是规则真相（敌人没有牌堆，Core 也会拦，这里提前到启动期）。
+        /// 0.6 曾拒绝 ApplyBuff 给 Opponent（回合型 Buff 没有减层，敌人上的虚弱会永远挂着），0.7 有了轮末减层与刚施加保护后放开，蓝奴隶贩子的耙靠它。
         /// </summary>
         public bool TryValidate(out string error)
         {
             var count = effects?.Count ?? 0;
             if (count == 0)
             {
-                error = "effects 不能为空（0.6 没有待机 / 沉睡类敌人，漏填效果的行在这里报出）";
+                error = "effects 不能为空（没有待机 / 沉睡类敌人之前，漏填效果的行在这里报出）";
                 return false;
             }
 
@@ -61,16 +60,9 @@ namespace CardRPGFramework.Data
                     return false;
                 }
 
-                var spec = effects[i].ToSpec();
-                if (spec.Kind == EffectKind.Draw)
+                if (effects[i].ToSpec().Kind == EffectKind.Draw)
                 {
                     error = $"effects[{i}] 敌人行动不能抽牌（Draw）";
-                    return false;
-                }
-
-                if (spec.Kind == EffectKind.ApplyBuff && spec.Target == EffectTarget.Opponent)
-                {
-                    error = $"effects[{i}] 0.6 不支持敌人给玩家施加 Buff（ApplyBuff 的 target 不能是 Opponent）";
                     return false;
                 }
             }
