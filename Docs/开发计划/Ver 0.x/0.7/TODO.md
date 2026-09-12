@@ -1,6 +1,6 @@
 # 0.7 TODO：回合型 Buff
 
-> 随 0.6 三件套一并写成草稿；0.6 完成后已按技术设计第 9 节复核清单对照实际代码转正（第 0 节的复核三条在 0.6 第 5 节做完），条目基于转正后的 [`技术设计.md`](技术设计.md)。0.6 完成时 EditMode 246 项，本文数字以此为基数。
+> 随 0.6 三件套一并写成草稿；第 0 节（对照 0.6 实际代码复核转正）已做完（`098f2cd`），实现从第 1 节开始。条目基于转正后的 [`技术设计.md`](技术设计.md)。0.6 完成时 EditMode 246 项，本文数字以此为基数。
 >
 > **预计 2～3 个有效开发日。风险有两条：一是把减层做成中毒那种"结算时自减"或挂到各自回合结束——减层只在轮结束、双方一起（[`../../../Phase 2 扩展边界批注.md`](../../../Phase%202%20扩展边界批注.md) 第 4 节）；二是"叠加也刷新保护"的直觉——原版不刷新，游戏设计第 4 节第三个例子就是为它写的。验收时对照技术设计第 8 节检查。**
 
@@ -20,9 +20,9 @@
 - [ ] 新增 `IRoundEndTrigger`（`OnRoundEnd()`）与 `DurationBuff : BuffState, IRoundEndTrigger`（`_justApplied` 跳过一次，否则 `RemoveStacks(1)`）；`WeakBuff` / `VulnerableBuff` 改为继承它，构造函数多一个 `justApplied = false`。`BuffState` 不改。
 - [ ] `BuffFactory.Create(id, stacks, justApplied = false)`：只对虚弱 / 易伤传下去。`IsKnown` 不改。
 - [ ] `BattleSession.ToAction` 的 `ApplyBuff` 分支传 `justApplied: source == Enemy`；注释写清"只看施加方（一代 `isSourceMonster`），不看目标是谁、也不看所有者本轮是否已行动"。
-- [ ] `CombatantState.RemoveExpiredBuffs()`：移除 `Stacks <= 0` 的条目；`ApplyBuff` / `HasBuff` 不改。
+- [ ] `CombatantState.RemoveExpiredBuffs()`：移除 `Stacks <= 0` 的条目——先收集 key 再逐个 `Remove`，不在枚举 `_buffs` 时删；`ApplyBuff` / `HasBuff` 不改。
 - [ ] `BattleSession.TryEndPlayerTurn`：在 `AdvanceEnemyAction` 之后、未失败分支里 `EndRound()` 再 `StartPlayerTurn()`；`EndRound` = 双方 `TriggerRoundEnd`（`foreach` + `is IRoundEndTrigger`）→ 双方 `RemoveExpiredBuffs`。与开战 / 回合开始两个遍历并列，不抽公共方法。
-- [ ] 测试：`BuffTests`（+4：减层、保护跳过一次、易伤同、力量 / 中毒不是 `IRoundEndTrigger`）；`BuffFactoryTests`（+2）；`CombatantStateTests`（+2：`RemoveExpiredBuffs`、叠加保留原实例）；新建 `BattleSession/BattleSessionTests.RoundEnd.cs`（+8：痛击 2 层覆盖两轮、玩家上虚弱轮末消失、耙后保护与下一回合 ×0.75、连续两次耙 1 / 1 / 0、中毒不轮末减、中毒 0 层移除、玩家自己带虚弱、失败时不轮结束），用测试内 `Raker()` 与 `[耙, 耙, 待机, 待机]` 两个敌人定义。
+- [ ] 测试：`BuffTests`（+4：减层、保护跳过一次、易伤同、力量 / 中毒不是 `IRoundEndTrigger`）；`BuffFactoryTests`（+2）；`CombatantStateTests`（+2：`RemoveExpiredBuffs`、叠加保留原实例）；新建 `BattleSession/BattleSessionTests.RoundEnd.cs`（+9：痛击 2 层覆盖两轮、玩家上虚弱轮末消失、耙后保护与下一回合 ×0.75、连续两次耙 1 / 1 / 0、敌人给自己上易伤轮末不减（锁住判定看施加方而不是"目标是玩家"）、中毒不轮末减、中毒 0 层移除、玩家自己带虚弱、失败时不轮结束），用测试内 `Raker()`、`[耙, 耙, 待机, 待机]` 与 `[ApplyBuff Self vulnerable 1]` 三个敌人定义；待机是 Core 的空 `EnemyAction`（`Array.Empty<EffectSpec>()`），不用 `Damage(0)`，也不为测试放开 Data 校验。
 
 **阶段门槛：** 游戏设计第 4 节三个例子各有用例通过；`BuffState.cs`、`ApplyBuffAction.cs`、三条 Rule 无改动；0.1～0.6 用例不改断言。
 
@@ -59,7 +59,7 @@
 
 | 开发日 | 当日交付 |
 | --- | --- |
-| Day 1 | 第 0 节复核转正 → 第 1 节 Core 与用例 |
+| Day 1 | 第 1 节 Core 与用例（第 0 节已完成） |
 | Day 2 | 第 2～4 节：校验、资产、联调 |
 | Day 3 | 第 5 节：文档、0.x 完成定义核对、提交（含缓冲） |
 
@@ -72,6 +72,6 @@
 - "顺便让叠加刷新保护，玩家体验更直观。"（原版不刷新；会多出一回合谁都没施加过的虚弱）
 - "顺便做人工制品，施加钩子已经有了。"（需要取消与极性，另一个版本）
 - "顺便让蓝奴隶贩子按原版 60/40 随机。"（随机行动随 1.0 的 Run 种子一起考虑）
-- "顺便把 0 层过滤从 `BattleView` 删掉。"（留着无害；负层出现时再看）
+- "顺便把 0 层过滤从 `BattleView` 删掉。"（不是无害，是还在用：回合开始自减到 0 的中毒要到轮末才出字典；负层出现时再看）
 
 只有阻止本版本验收的问题才进入当日任务。
