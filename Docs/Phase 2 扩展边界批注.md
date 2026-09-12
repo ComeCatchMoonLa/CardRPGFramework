@@ -2,7 +2,7 @@
 
 > **性质：风险备忘，不是需求清单。** 本文不改变 Phase 2a/2b/2c 技术设计的完成定义、排除项与工期；只记录按杀戮尖塔 1 局内机制逐条核对后，现有设计将来会碰壁的位置、缺的能力和正确的引入时机。机制事实以官方 wiki 与一代反编译资料为准（见文末参考），不以其它项目（如 CardLordRng 的 RuleSystem）的既有实现作为迁移依据。
 >
-> **冻结声明**：本文不作为 Phase 2 实现要求；除第 1 节已吸收的接口形状外，其余能力仅在出现对应机制消费者时引入。本文自本次修订后冻结，不再继续扩充机制清单。
+> **冻结声明**：本文不作为 Phase 2 实现要求；除第 1 节已吸收的接口形状外，其余能力仅在出现对应机制消费者时引入。本文自本次修订后冻结，不再继续扩充机制清单。（2026-09 勘误两处、不新增条目：第 2 节冰淇淋一行原写「能量保留」，按 wiki.gg 改为「当前能量 += 上限」；第 4 节补 `justApplied` 的原版语义。）
 >
 > **0.1 之后怎么用**：第 1 节两处已在代码里。第 2～4 节是加遗物 / 新挂钩时的对照表——先查表判断挂哪一层，再动手；它**不是**按行做完的 TODO。哪一版做哪件见 [`开发计划/README.md`](开发计划/README.md)（0.5 消费蛇颅骨 / 纸鹤 / 金刚杵，0.7 消费轮末减层与刚施加保护）。
 
@@ -48,7 +48,7 @@ CurrentHp -= value
 | `DamageCalculator` 两段管线止于取整（2c §4） | 无实体在**格挡前**把伤害改为 1（原版 `atDamageFinal*` 钩子），对 HP Loss 同样生效 | 格挡前的 Final 修正点；`DamageAction` 与 `HpLossAction` 都要经过它（HP Loss 不进 Calculator 的力量/虚弱段，但要进 Final） | 无实体 |
 | `TakeDamage` 扣完格挡直接进扣血（2b §4） | 鸟居（Torii）看的是"**未被格挡**的攻击伤害 ≤5 → 1"，仅 Attack | 格挡后、仅 Attack 的观察点；不放进 Calculator，也不放进 `LoseHp` | 鸟居 |
 | `HpLossAction` 不经过 Calculator（2b §4） | 钨条对中毒同样减 1（"即将失去生命"时机，不是 Final） | `LoseHp` 前的数值修正——`LoseHp` 已是唯一生命减少入口（见第 1 节），届时在入口前加一次修正即可 | 钨条 |
-| `ClearBlock`/能量重置硬编码在 `BattleSession`（2b §5） | 路障（Barricade）：回合开始不清格挡；冰淇淋：能量保留 | "清格挡/重置能量"成为可跳过的流程步骤（检查 Power/遗物旗标即可），不需要规则引擎 | 路障/冰淇淋 |
+| `ClearBlock`/能量重置硬编码在 `BattleSession`（2b §5） | 路障（Barricade）：回合开始不清格挡；冰淇淋（Ice Cream）：回合开始不是「当前能量 = 上限」而是「当前能量 += 上限」（上限 3、剩 2 → 5；剩 10 → 13），**不是**跳过重置只带着剩余 | "清格挡"成为可跳过的步骤，"重置能量"成为可换算法（set → add）的步骤，检查 Power/遗物旗标即可，不需要规则引擎；同时重置必须早于狂暴等「回合开始获得能量」的效果 | 路障/冰淇淋 |
 | `ActionQueue` 纯 FIFO、不可取消（2a §4） | 荆棘反伤插到队列头（原版 addToTop）；人工制品取消当前施加 | `EnqueueFront`；当前 Action 的取消标记 | 荆棘/人工制品 |
 | `DamageContext` 只读 Source/Target 的 Buff（2c §4） | 纸鹤（虚弱 25%→40%）、纸蛙（Paper Phrog，易伤 50%→75%）、怪异蘑菇（Odd Mushroom，自身易伤 50%→25%）都不是交战双方身上的 Buff | Context 可读"本场持有的遗物/旗标" | 纸鹤类遗物 |
 
@@ -72,6 +72,8 @@ CardLordRng 的 `BuffModify`（通用的"某 Buff 强度/上限/时长 ±N%"配�
 
 由此有两条禁令：`WeakDamageRule` 永远按"有无"乘倍率，不要改成按层数放大；将来引入虚弱/易伤衰减时，加的是"轮结束统一减 1 层 + 本轮刚施加不减（justApplied）"，不能复用中毒那种"结算时自减"的模式（时机、粒度都不同，见研究文档 §2）。
 
+`justApplied` 的原版语义：由 Power 构造参数 `isSourceMonster`（施加者是不是怪物）决定，只跳过第一次轮末减层；它**不是**"所有者本轮是否已行动完"的通用判断。1 人局里"敌人给玩家 / 玩家给敌人"两支下两种表述等价，"敌人给自己"这一支只有施加方版本正确；不要把玩家向的直觉表述推广成多人或自施 Debuff 的通用规则。本仓库 0.7 已按施加方实现，见 [`开发计划/Ver 0.x/0.7/游戏设计.md`](开发计划/Ver%200.x/0.7/游戏设计.md) 第 4 节。
+
 ## 5. 明确不做的（尖塔 1 局内没有对应物）
 
 | 不做 | 理由 |
@@ -86,7 +88,7 @@ CardLordRng 的 `BuffModify`（通用的"某 Buff 强度/上限/时长 ±N%"配�
 
 - [Paper Krane](https://slaythespire.wiki.gg/wiki/Paper_Krane) / [Paper Phrog](https://slaythespire.wiki.gg/wiki/Paper_Phrog) / [Odd Mushroom](https://slaythespire.wiki.gg/wiki/Odd_Mushroom)：改虚弱/易伤倍率的三件遗物
 - [Snecko Skull](https://slaythespire.wiki.gg/wiki/Snecko_Skull) / [Champion Belt](https://slaythespire.wiki.gg/wiki/Champion_Belt) / [Artifact](https://slay-the-spire.fandom.com/wiki/Artifact)：响应/拦截施加的机制
-- [Tungsten Rod](https://slaythespire.wiki.gg/wiki/Tungsten_Rod)（含与无实体、鸟居的结算顺序）/ [Barricade](https://slaythespire.wiki.gg/wiki/Barricade)
+- [Tungsten Rod](https://slaythespire.wiki.gg/wiki/Tungsten_Rod)（含与无实体、鸟居的结算顺序）/ [Barricade](https://slaythespire.wiki.gg/wiki/Barricade) / [Ice Cream](https://slaythespire.wiki.gg/wiki/Ice_Cream)（*adds the maximum energy limit to the player's current energy*）
 - [Flex](https://slaythespire.wiki.gg/wiki/Flex)：力量 + 回合末"力量下降"的配对 Buff 实现
 - [Catalyst](https://slaythespire.wiki.gg/wiki/Catalyst) / [Sacred Bark](https://slaythespire.wiki.gg/wiki/Sacred_Bark)：容易被误判成"通用倍率"的两个实例
 - 一代 Power 钩子全解（中文）：[杀戮尖塔如何实现Buff效果](https://rinkastone.com/2022/06/16/archives/290/)（`onApplyPower` / `atDamageFinal*` / `stackPower` 等钩子清单）
