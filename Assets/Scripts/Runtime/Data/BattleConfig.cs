@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
@@ -14,9 +13,10 @@ namespace CardRPGFramework.Data
     [CreateAssetMenu(fileName = "BattleConfig", menuName = "CardRPG/Battle Config")]
     public sealed class BattleConfig : ScriptableObject
     {
-        [SerializeField] private int playerMaxHp = 40;
-        [SerializeField] private int enemyMaxHp = 36;
-        [SerializeField] private int enemyDamage = 6;
+        // 80 是原版铁甲战士的初始生命；EditMode 测试里的 40 是测试自己的常量，不跟这里走。
+        [SerializeField] private int playerMaxHp = 80;
+        // 敌人整体由一份 EnemyData 描述（血量 + 行动表），换敌人 = 换这个引用。
+        [SerializeField] private EnemyData enemy;
         [SerializeField] private int energyPerTurn = 3;
         [SerializeField] private int handSize = 5;
         [SerializeField] private List<CardData> deck = new();
@@ -31,14 +31,7 @@ namespace CardRPGFramework.Data
             return new BattleSetup(playerMaxHp, energyPerTurn, handSize);
         }
 
-        // 0.6 第 1 节的编译桥：Core 已按 EnemyDefinition 建敌人，Data 层的 EnemyData 在第 2 节才到，
-        // 这里先用仍在的两个标量拼出 0.1 的固定攻击敌人；第 2 节换成 enemy.ToDefinition()，方法名与签名不变。
-        public EnemyDefinition ToEnemyDefinition()
-        {
-            // enemyDamage == 0 是"敌人不打人"：EffectSpec.Damage(0) 会被工厂拒绝，对应的是一条空行动（待机）。
-            var effects = enemyDamage > 0 ? new[] { EffectSpec.Damage(enemyDamage) } : Array.Empty<EffectSpec>();
-            return new EnemyDefinition("fixed_attacker", "固定攻击敌人", enemyMaxHp, new[] { new EnemyAction(effects) });
-        }
+        public EnemyDefinition ToEnemyDefinition() => enemy.ToDefinition();
 
         public List<CardDefinition> ToDeckDefinitions()
         {
@@ -62,7 +55,7 @@ namespace CardRPGFramework.Data
             return result;
         }
 
-        /// <summary>启动期配置校验：空引用、非法数值、空 ID、不同资产间的重复 ID、遗物重复。</summary>
+        /// <summary>启动期配置校验：空引用、非法数值、空 ID、不同资产间的重复 ID、遗物重复；敌人资产的字段交给 EnemyData 自己查。</summary>
         public bool TryValidate(out string error)
         {
             if (playerMaxHp <= 0)
@@ -71,15 +64,14 @@ namespace CardRPGFramework.Data
                 return false;
             }
 
-            if (enemyMaxHp <= 0)
+            if (enemy == null)
             {
-                error = "BattleConfig: enemyMaxHp 必须大于 0";
+                error = "BattleConfig: enemy 不能为空";
                 return false;
             }
 
-            if (enemyDamage < 0)
+            if (!enemy.TryValidate(out error))
             {
-                error = "BattleConfig: enemyDamage 不能小于 0";
                 return false;
             }
 

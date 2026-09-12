@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f630cef6016b53e4da4eba33a85b04fe, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: Runtime::CardRPGFramework.Data.BattleConfig
-  playerMaxHp: 40
-  enemyMaxHp: 36
-  enemyDamage: 6
+  playerMaxHp: 80
+  enemy: {fileID: 11400000, guid: 1f2a93499caa41ce80b2d591ea800a53, type: 2}
   energyPerTurn: 3
   handSize: 5
   deck:

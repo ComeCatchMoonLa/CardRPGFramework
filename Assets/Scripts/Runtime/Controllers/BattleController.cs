@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
+using CardRPGFramework.Core.Enemies;
 using CardRPGFramework.Data;
 using UnityEngine;
 
@@ -32,6 +33,10 @@ namespace CardRPGFramework.Controllers
         public int EnergyPerTurn => _session?.EnergyPerTurn ?? 0;
         public CombatantState Player => _session?.Player;
         public CombatantState Enemy => _session?.Enemy;
+        // 敌人显示名在 Core 的 EnemyDefinition 里（和 CardDefinition.DisplayName 一样是内容数据），不需要遗物那种 Id → 显示名字典。
+        public string EnemyDisplayName => _session?.EnemyDefinition.DisplayName ?? string.Empty;
+        /// <summary>未初始化时为 null；View 在 IsReady 为 false 时不会读。</summary>
+        public EnemyAction CurrentEnemyAction => _session?.CurrentEnemyAction;
         public IReadOnlyList<CardDefinition> Hand => _session?.Hand ?? Array.Empty<CardDefinition>();
         public int DrawPileCount => _session?.DrawPileCount ?? 0;
         public int DiscardPileCount => _session?.DiscardPileCount ?? 0;

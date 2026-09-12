@@ -28,20 +28,20 @@
 
 ## 2. Data：`EnemyData` 与配置（约 2h）
 
-- [ ] 新增 `Data/EnemyActionData.cs`（`[Serializable] struct`：`name` + `List<EffectSpecData> effects`；测试构造函数；`ToAction`；`TryValidate`：空允许、逐条 `EffectSpecData.TryValidate`、`Draw` 拒绝、`ApplyBuff && Opponent` 拒绝并在注释里写"0.7 删这一条"）。新增 `EnemyActionDataTests`（约 7 项：Damage + Block 通过 / ApplyBuff Self 通过 / 空通过 / Draw 拒 / ApplyBuff Opponent 拒 / 内层 value 0 拒并透传错误 / `ToAction` 条数一致）。
-- [ ] 新增 `Data/EnemyData.cs`（SO：`id` / `displayName` / `maxHp` / `actions`；`ToDefinition`；`TryValidate` 错误信息带 `actions[i]` 与 `name`）。
-- [ ] `BattleConfig`：删 `enemyMaxHp` / `enemyDamage` 字段与校验；加 `EnemyData enemy`（非空 + `TryValidate`）；`playerMaxHp` 默认 80；`ToEnemyDefinition()` 方法体换成 `enemy.ToDefinition()`（`ToSetup()` 三参数与该方法本身第 1 节已落地）。
-- [ ] 资产：`Assets/Data/Enemies/JawWorm.asset`（`jaw_worm` / 颚虫 / 42；咬 11；猛击 7 + 格挡 5；咆哮 力量 3 + 格挡 6，力量条放前面）与 `FixedAttacker.asset`（`fixed_attacker` / 固定攻击敌人 / 36；攻击 6）；`Default.asset` 改 `playerMaxHp: 80`、`enemy` 指向 JawWorm、删 `enemyMaxHp` / `enemyDamage` 两行。
-- [ ] `BattleController` 新增 `EnemyDisplayName` / `CurrentEnemyAction`（五参数构造与删 `EnemyDamage` 第 1 节已做，本节不动 `Awake`）。
-- [ ] 不写 `EnemyData` / `BattleConfig` 的 SO 单测（与 `CardData` / `RelicData` 既有做法一致），配错检查放到第 4 节联调。第 2 节完成约 229 项。
+- [x] 新增 `Data/EnemyActionData.cs`（`[Serializable] struct`：`name` + `List<EffectSpecData> effects`；测试构造函数；`ToAction`；`TryValidate`：空拒绝（Core 允许、显示层 `待机` 保留，配沉睡类敌人时放开）、逐条 `EffectSpecData.TryValidate`、`Draw` 拒绝、`ApplyBuff && Opponent` 拒绝并在注释里写"0.7 删这一条"）。新增 `EnemyActionDataTests`（约 7 项：Damage + Block 通过 / ApplyBuff Self 通过 / 空拒 / Draw 拒 / ApplyBuff Opponent 拒 / 内层 value 0 拒并透传错误 / `ToAction` 条数一致）。
+- [x] 新增 `Data/EnemyData.cs`（SO：`id` / `displayName` / `maxHp` / `actions`；`ToDefinition`；`TryValidate` 错误信息带 `actions[i]` 与 `name`）。
+- [x] `BattleConfig`：删 `enemyMaxHp` / `enemyDamage` 字段与校验；加 `EnemyData enemy`（非空 + `TryValidate`）；`playerMaxHp` 默认 80；`ToEnemyDefinition()` 方法体换成 `enemy.ToDefinition()`（`ToSetup()` 三参数与该方法本身第 1 节已落地）。
+- [x] 资产：`Assets/Data/Enemies/JawWorm.asset`（`jaw_worm` / 颚虫 / 42；咬 11；猛击 7 + 格挡 5；咆哮 力量 3 + 格挡 6，力量条放前面）与 `FixedAttacker.asset`（`fixed_attacker` / 固定攻击敌人 / 36；攻击 6）；`Default.asset` 改 `playerMaxHp: 80`、`enemy` 指向 JawWorm、删 `enemyMaxHp` / `enemyDamage` 两行。
+- [x] `BattleController` 新增 `EnemyDisplayName` / `CurrentEnemyAction`（五参数构造与删 `EnemyDamage` 第 1 节已做，本节不动 `Awake`）。
+- [x] 不写 `EnemyData` / `BattleConfig` 的 SO 单测（与 `CardData` / `RelicData` 既有做法一致），配错检查放到第 4 节联调。第 2 节完成 236 项（229 + `EnemyActionDataTests` 7）。
 
 **阶段门槛：** 只改 Inspector 就能换敌人 / 加敌人；`BattleController` 里没有敌人数值。
 
 ## 3. 表现层（约 1h）
 
-- [ ] 新增 `Views/IntentFormatter.cs`：`Format(EnemyAction action, int previewedAttackDamage)`——攻击段合成一项 `攻击 N`，`Block` → `防御`，`ApplyBuff(Self)` / `Heal` → `增益`，`ApplyBuff(Opponent)` → `减益`，按首次出现顺序去重、` · ` 连接，空行动 → `待机`；`Draw` 走 `ArgumentOutOfRangeException`（构造期已拦）。新增 `IntentFormatterTests`（约 8 项，见技术设计第 5 节）。
-- [ ] `BattleView.Refresh`：敌人状态行前缀改为 `EnemyDisplayName`；意图行改为 `敌人意图：{IntentFormatter.Format(CurrentEnemyAction, PreviewEnemyAttack())}`。
-- [ ] 场景不改。第 3 节完成约 237 项。
+- [x] 新增 `Views/IntentFormatter.cs`：`Format(EnemyAction action, int previewedAttackDamage)`——攻击段合成一项 `攻击 N`，`Block` → `防御`，`ApplyBuff(Self)` / `Heal` → `增益`，`ApplyBuff(Opponent)` → `减益`，按首次出现顺序去重、` · ` 连接，空行动 → `待机`；`Draw` 走 `ArgumentOutOfRangeException`（构造期已拦）。新增 `IntentFormatterTests`（约 8 项，见技术设计第 5 节）。
+- [x] `BattleView.Refresh`：敌人状态行前缀改为 `EnemyDisplayName`；意图行改为 `敌人意图：{IntentFormatter.Format(CurrentEnemyAction, PreviewEnemyAttack())}`。
+- [x] 场景不改。第 3 节完成 246 项（236 + `IntentFormatterTests` 10：技术设计的 8 项之外多锁了"首次出现顺序"与 null 抛异常）。
 
 **阶段门槛：** 颚虫一局里意图依次显示 `攻击 11` → `攻击 7 · 防御` → `增益 · 防御` → `攻击 14` → `攻击 10 · 防御`（完整序列与数字以游戏设计第 6 节为准）；`Views` 里没有公式常数。
 

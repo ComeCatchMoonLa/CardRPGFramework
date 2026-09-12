@@ -75,9 +75,10 @@ namespace CardRPGFramework.Views
 
             playerStatusText.text = $"HP {player.CurrentHp}/{player.MaxHp}  格挡 {player.Block}";
             playerBuffsText.text = FormatBuffs(player);
-            enemyStatusText.text = $"敌人 HP {enemy.CurrentHp}/{enemy.MaxHp}  格挡 {enemy.Block}";
+            enemyStatusText.text = $"{battleController.EnemyDisplayName} HP {enemy.CurrentHp}/{enemy.MaxHp}  格挡 {enemy.Block}";
             enemyBuffsText.text = FormatBuffs(enemy);
-            enemyIntentText.text = $"敌人意图：攻击 {battleController.PreviewEnemyAttack()}";
+            enemyIntentText.text =
+                $"敌人意图：{IntentFormatter.Format(battleController.CurrentEnemyAction, battleController.PreviewEnemyAttack())}";
             energyText.text = $"能量 {battleController.Energy}/{battleController.EnergyPerTurn}";
             pileCountsText.text =
                 $"抽牌 {battleController.DrawPileCount}  弃牌 {battleController.DiscardPileCount}  消耗 {battleController.ExhaustPileCount}";
