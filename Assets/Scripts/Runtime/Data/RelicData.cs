@@ -18,7 +18,7 @@ namespace CardRPGFramework.Data
 
         public RelicState ToState() => RelicFactory.Create(id);
 
-        /// <summary>启动期配置校验：字段本身是否合法。跨资产的重复 Id 由 BattleConfig 统一检查。</summary>
+        /// <summary>启动期配置校验：字段本身是否合法。跨资产的重复 Id 由 RunConfig 统一检查。</summary>
         public bool TryValidate(out string error)
         {
             if (string.IsNullOrEmpty(id))

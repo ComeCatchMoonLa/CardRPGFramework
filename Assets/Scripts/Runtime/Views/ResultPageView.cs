@@ -11,6 +11,7 @@ namespace CardRPGFramework.Views
         [SerializeField] private RunController runController;
         [SerializeField] private Button restartButton;
         [SerializeField] private TMP_Text resultText;
+        [SerializeField] private TMP_Text summaryText;
 
         private void Start()
         {
@@ -20,6 +21,10 @@ namespace CardRPGFramework.Views
         public void SetOutcome(bool cleared)
         {
             resultText.text = cleared ? "通关" : "失败";
+            var run = runController.Run;
+            // 失败不推进 NodeIndex，已打场数是当前节点 + 1；通关后 NodeIndex 就是场数。
+            var fights = run.IsFailed ? run.NodeIndex + 1 : run.NodeIndex;
+            summaryText.text = $"打了 {fights} 场 · 牌组 {run.Deck.Count} 张";
         }
     }
 }

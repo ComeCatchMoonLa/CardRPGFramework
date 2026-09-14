@@ -29,9 +29,9 @@
 
 ## 2. 壳 UI（约 2h）
 
-- [ ] 顶栏：生命 / 金币 / 牌组张数 / 遗物；战斗中生命跟局内。Start 页（`Run == null`）不读 `RunConfig`：遗物写 `遗物：无`，不要预填 80 / 0 / 10。Result 用 `Run.RelicIds` + `RelicDisplayName`。
-- [ ] Start / Combat / Result 三页显隐；`TestScene` 改成 Run 壳，不拆场景。
-- [ ] `RunConfig` 资产接线（10 张 / 1 遗物 / 80 血写在资产上，不写进类型默认值）。`BattleConfig` 不再开战；无引用则删。
+- [x] 顶栏：生命 / 金币 / 牌组张数 / 遗物；战斗中生命跟局内。Start 页（`Run == null`）不读 `RunConfig`：遗物写 `遗物：无`，不要预填 80 / 0 / 10。Result 用 `Run.RelicIds` + `RelicDisplayName`。
+- [x] Start / Combat / Result 三页显隐；`TestScene` 改成 Run 壳，不拆场景。
+- [x] `RunConfig` 资产接线（10 张 / 1 遗物 / 80 血写在资产上，不写进类型默认值）。`BattleConfig` 不再开战；无引用则删。
 
 **阶段门槛：** 开始页点一次能连打三场到结束页（无奖励、无地图、场间无结束遮罩）。
 

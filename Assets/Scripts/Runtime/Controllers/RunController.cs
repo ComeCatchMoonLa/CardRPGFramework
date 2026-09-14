@@ -15,6 +15,7 @@ namespace CardRPGFramework.Controllers
         [SerializeField] private RunConfig runConfig;
         [SerializeField] private BattleController battleController;
         [SerializeField] private BattleView battleView;
+        [SerializeField] private RunShellView runShellView;
         [SerializeField] private ResultPageView resultPageView;
         [SerializeField] private GameObject startPage;
         [SerializeField] private GameObject combatPage;
@@ -25,6 +26,7 @@ namespace CardRPGFramework.Controllers
         private void Awake()
         {
             ShowStart();
+            RefreshShell();
         }
 
         /// <summary>校验失败则停留在 Start。通过则填遗物字典、第一次 Begin、显示 Combat。</summary>
@@ -47,6 +49,7 @@ namespace CardRPGFramework.Controllers
             battleController.Begin(Run.CreateBattleInput());
             ShowCombat();
             battleView.Refresh();
+            RefreshShell();
         }
 
         public bool PlayCard(int handIndex)
@@ -58,6 +61,7 @@ namespace CardRPGFramework.Controllers
 
             var played = battleController.PlayCard(handIndex);
             ApplyOutcomeIfEnded();
+            RefreshShell();
             return played;
         }
 
@@ -70,6 +74,7 @@ namespace CardRPGFramework.Controllers
 
             var ended = battleController.EndTurn();
             ApplyOutcomeIfEnded();
+            RefreshShell();
             return ended;
         }
 
@@ -79,6 +84,7 @@ namespace CardRPGFramework.Controllers
             battleController.DiscardSession();
             battleController.SetRelicDisplayNames(Array.Empty<RelicData>());
             ShowStart();
+            RefreshShell();
         }
 
         private void ApplyOutcomeIfEnded()
@@ -128,6 +134,11 @@ namespace CardRPGFramework.Controllers
             startPage.SetActive(startVisible);
             combatPage.SetActive(combatVisible);
             resultPage.SetActive(resultVisible);
+        }
+
+        private void RefreshShell()
+        {
+            runShellView.Refresh();
         }
     }
 }
