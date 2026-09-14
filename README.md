@@ -72,7 +72,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - **开发计划（按版本）**：[`Docs/开发计划/README.md`](Docs/开发计划/README.md) —— 版本约定、路线总览、[0.x 大纲](Docs/开发计划/Ver%200.x/README.md)、[1.x 大纲](Docs/开发计划/Ver%201.x/README.md)
 - 短 Run 总设计：[游戏设计](Docs/开发计划/Ver%201.x/游戏设计.md)（第 8 节到 1.3 才勾）
 - 1.0（已完成）`RunState`：[游戏设计](Docs/开发计划/Ver%201.x/1.0/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.0/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.0/TODO.md)
-- 下一版本 1.1 Run 壳：[游戏设计](Docs/开发计划/Ver%201.x/1.1/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.1/技术设计.md)（草稿） / [TODO](Docs/开发计划/Ver%201.x/1.1/TODO.md)（草稿）
+- 下一版本 1.1 Run 壳：[游戏设计](Docs/开发计划/Ver%201.x/1.1/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.1/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.1/TODO.md)
 - 0.7（已完成）回合型 Buff：[游戏设计](Docs/开发计划/Ver%200.x/0.7/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.7/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.7/TODO.md)
 - 0.6（已完成）敌人行动表：[游戏设计](Docs/开发计划/Ver%200.x/0.6/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.6/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.6/TODO.md)
 - 0.5（已完成）遗物三钩子：[游戏设计](Docs/开发计划/Ver%200.x/0.5/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.5/TODO.md)

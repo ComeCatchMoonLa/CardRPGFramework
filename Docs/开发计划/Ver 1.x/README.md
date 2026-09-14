@@ -40,12 +40,13 @@
 
 ## 1.1 Run 壳与战斗接入
 
-文档：[`1.1/游戏设计.md`](1.1/游戏设计.md) / [`1.1/技术设计.md`](1.1/技术设计.md)（草稿） / [`1.1/TODO.md`](1.1/TODO.md)（草稿）。
+文档：[`1.1/游戏设计.md`](1.1/游戏设计.md) / [`1.1/技术设计.md`](1.1/技术设计.md) / [`1.1/TODO.md`](1.1/TODO.md)。
 
-- `RunController` + 顶栏 + Start / Combat / Result。
-- 流程层创建 / 销毁 Session：`BattleController.Begin`；不把 `RunState` 传入 Session。
-- 胜利自动下一场；最后一场或失败去结束页。无地图、无奖励。
-- `RunConfig` 与 `BattleConfig` 是否并存标 **[待确认]**，进入 1.1 前对照 1.0 再定。
+- `RunController` + 顶栏 + Start / Combat / Result。`TestScene` 改成 Run 壳。
+- 流程层创建 / 销毁 Session：`BattleController.Begin`；不把 `RunState` 传入 Session。Play 只走 `RunConfig`；`BattleConfig` 不再开战。局内命令只打 `RunController`。
+- 胜利自动下一场（场间无结束遮罩）；通关或失败去结束页。结束写回：`PlayCard` / `EndTurn` 内读一次 `Phase`，禁止 `Update` 轮询。删除 `EndScreenView`。
+- 遗物显示名：`SetRelicDisplayNames`；`StartRun` 在第一次 `Begin` 前调一次；场间不调；`Restart` 清空。
+- 无地图、无奖励。
 
 **证明的边界**：战斗页只管局内；Session 生命周期在流程层。
 
