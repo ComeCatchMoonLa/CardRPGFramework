@@ -20,7 +20,7 @@
 
 不拆 Start / 顶栏 / Result 成单独版本：没有其它页也不成壳。不把 1.0～1.3 合成一刀。不把 1.2 与 1.3 合并。
 
-## 1.0 `RunState`
+## 1.0 `RunState`（已完成）
 
 文档：[`1.0/游戏设计.md`](1.0/游戏设计.md) / [`1.0/技术设计.md`](1.0/技术设计.md) / [`1.0/TODO.md`](1.0/TODO.md)。
 
@@ -28,6 +28,13 @@
 - 输出 `BattleInput`（含当前生命的 `BattleSetup` + 牌组拷贝 + 遗物新实例 + 当前节点敌人 + 一次性 `Random`）；接收 `won` + `remainingHp`。`AddCard` 本版就有，1.3 才抽三张。
 - 无 `RunConfig` SO、无任何 Run UI。Play 仍是 `TestScene` + `BattleConfig`。
 - `BattleController` 里 0.x 那一处 `new BattleSession` 原样保留，1.1 才改成 `Begin`。
+
+| 已有 | 说明 |
+| --- | --- |
+| 残血开战 | `BattleSetup` 三参仍满血，四参当前生命 `> 0` 且 `≤ max`；`CombatantState(max, current)` 同一条边界；Session 用快照当前生命开战，敌人仍满血，构造签名不变 |
+| `Core.Run` | `RunState` / `BattleInput`；`CreateBattleInput` 浅拷贝牌组、每场 `RelicFactory.Create`、种子 `unchecked(runSeed * 397 ^ nodeIndex)`，不洗牌、不预支 `Random.Next` |
+| 写回 | `ApplyResult` 必须先发输入、每节点一次；胜利写血并推进，失败不写不推进；`AddCard` 只拒 null / 失败，通关后仍允许 |
+| 测试 | 302 项 EditMode（0.x 的 263 项不改断言；残血构造 11 项；`Tests/EditMode/Run/RunStateTests.cs` 28 项）。`Core/Run/` 无 `new BattleSession` |
 
 **证明的边界**：局外是状态；进战斗是快照，出战斗只写回约定结果。
 

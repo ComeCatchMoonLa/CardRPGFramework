@@ -25,27 +25,29 @@
 
 ## 2. `Core.Run`（约 3h）
 
-- [ ] 新增 `Core/Run/BattleInput.cs`、`Core/Run/RunState.cs`（命名空间 `CardRPGFramework.Core.Run`）。不引用 `UnityEngine` / `Core.Actions`。
-- [ ] `RunState` 构造：5 参数（`runSeed, playerSetup, deck, relicIds, encounters`）；列表浅拷贝；`encounters` 恰好 3 条；`relicIds` / `deck` 允许空列表、null 抛；遗物 Id 无重复且 `RelicFactory.IsKnown`；`Gold` 恒 0。
-- [ ] `CreateBattleInput`：按技术设计第 4.2 节组五个字段；`Random` 所有权交给调用方；`f = unchecked(runSeed * 397 ^ nodeIndex)`；`IsOver` 抛。同一节点多次调用不推进。**不**调用 `Random.Next`、**不**洗返回牌组。
-- [ ] `ApplyResult`：按技术设计第 4.4 节拒绝语义实现（必须先 `CreateBattleInput`、每节点一次、失败不写生命、胜利才推进、`remainingHp <= 0` 或 `> MaxHp` 抛）。通关用 `_encounters.Count`，不要写 `== 3`。
-- [ ] `AddCard`：null 抛；`IsFailed` 抛；`IsCleared` 后仍允许追加。不要写成 `IsOver` 就抛。
-- [ ] 测试：新建 `Tests/EditMode/Run/RunStateTests.cs`（不要往 EditMode 根目录加第 16 个文件）。覆盖技术设计第 5 节全部条目，含：快照与 Run 解耦、残血第二场、`AddCard`、消耗不写回、多种子稳定、牌组两次输入顺序相同（未洗）、`ApplyResult` 重复 / 未发输入 / 胜利+0 血 / `remainingHp > MaxHp`、**三场胜利后 `AddCard` 成功且再 `CreateBattleInput` 仍抛**、失败后 `AddCard` 抛、`relicIds: []` 通过 / `null` 抛。消耗不写回用例允许测试文件 `new BattleSession`（测试辅助，不算产品路径）。
+- [x] 新增 `Core/Run/BattleInput.cs`、`Core/Run/RunState.cs`（命名空间 `CardRPGFramework.Core.Run`）。不引用 `UnityEngine` / `Core.Actions`。
+- [x] `RunState` 构造：5 参数（`runSeed, playerSetup, deck, relicIds, encounters`）；列表浅拷贝；`encounters` 恰好 3 条；`relicIds` / `deck` 允许空列表、null 抛；遗物 Id 无重复且 `RelicFactory.IsKnown`；`Gold` 恒 0。
+- [x] `CreateBattleInput`：按技术设计第 4.2 节组五个字段；`Random` 所有权交给调用方；`f = unchecked(runSeed * 397 ^ nodeIndex)`；`IsOver` 抛。同一节点多次调用不推进。**不**调用 `Random.Next`、**不**洗返回牌组。
+- [x] `ApplyResult`：按技术设计第 4.4 节拒绝语义实现（必须先 `CreateBattleInput`、每节点一次、失败不写生命、胜利才推进、`remainingHp <= 0` 或 `> MaxHp` 抛）。通关用 `_encounters.Count`，不要写 `== 3`。
+- [x] `AddCard`：null 抛；`IsFailed` 抛；`IsCleared` 后仍允许追加。不要写成 `IsOver` 就抛。
+- [x] 测试：新建 `Tests/EditMode/Run/RunStateTests.cs`（不要往 EditMode 根目录加第 16 个文件）。覆盖技术设计第 5 节全部条目，含：快照与 Run 解耦、残血第二场、`AddCard`、消耗不写回、多种子稳定、牌组两次输入顺序相同（未洗）、`ApplyResult` 重复 / 未发输入 / 胜利+0 血 / `remainingHp > MaxHp`、**三场胜利后 `AddCard` 成功且再 `CreateBattleInput` 仍抛**、失败后 `AddCard` 抛、`relicIds: []` 通过 / `null` 抛。消耗不写回用例允许测试文件 `new BattleSession`（测试辅助，不算产品路径）。
 
 **阶段门槛：** 游戏设计第 4 节验收有用例通过；`Core/Run/` 里 grep 不到 `new BattleSession`。
 
 ## 3. 联调与验收（约 0.5h）
 
-- [ ] 跑全部 EditMode；0.x 断言未改。
-- [ ] grep：`Assets/Scripts/Runtime/Core/Run/` 无 `new BattleSession`；本刀新增的其它 Runtime 文件同样没有。`BattleController.cs` 仍有一处，这是预期。
-- [ ] `BattleSession` 构造仍是 `(setup, enemy, deck, random, relics = null)`。
+- [x] 跑全部 EditMode；0.x 断言未改。
+- [x] grep：`Assets/Scripts/Runtime/Core/Run/` 无 `new BattleSession`；本刀新增的其它 Runtime 文件同样没有。`BattleController.cs` 仍有一处，这是预期。
+- [x] `BattleSession` 构造仍是 `(setup, enemy, deck, random, relics = null)`。
 
 **阶段门槛：** 技术设计第 8 节全部满足。
 
 ## 4. 文档（约 0.5h）
 
-- [ ] 本版 TODO 勾完。1.x README 的 1.0 节标「（已完成）」只在实现提交时做，本次文档落盘不勾。
-- [ ] 进入 1.1 前按细化规则复核 [`../1.1/技术设计.md`](../1.1/技术设计.md) 草稿。
+- [x] 更新 [`../../../../README.md`](../../../../README.md)：当前阶段改为 1.0 已完成、下一步 1.1；已完成列表加 `Core.Run` / 残血开战；范围外去掉「局外短 Run 还没做」；目录加 `Core/Run`；测试数 302。
+- [x] 更新 [`../README.md`](../README.md)：1.0 节标「（已完成）」并补摘要表。
+- [x] 更新 [`../../README.md`](../../README.md)：路线总览 1.0 标已完成与测试数；文档地图；第 2 节改为下一个 1.1、下下个 1.2。
+- [x] 进入 1.1 前按细化规则复核 [`../1.1/技术设计.md`](../1.1/技术设计.md) 草稿第 9 节：`BattleInput` 五字段与 `ApplyResult` 先发输入与实现一致；`RunConfig` / `BattleConfig` 仍 **[待确认]**，不代选。
 
 ## 范围控制
 
