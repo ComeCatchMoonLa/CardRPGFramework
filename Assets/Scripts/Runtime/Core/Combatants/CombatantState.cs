@@ -21,15 +21,24 @@ namespace CardRPGFramework.Core.Combatants
         public IReadOnlyCollection<BuffState> Buffs => _buffs.Values;
         public IReadOnlyList<RelicState> Relics => _relics;
 
-        public CombatantState(int maxHp)
+        public CombatantState(int maxHp) : this(maxHp, maxHp)
+        {
+        }
+
+        public CombatantState(int maxHp, int currentHp)
         {
             if (maxHp <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxHp), "MaxHp 必须大于 0");
             }
 
+            if (currentHp <= 0 || currentHp > maxHp)
+            {
+                throw new ArgumentOutOfRangeException(nameof(currentHp), "CurrentHp 必须大于 0 且不超过 MaxHp");
+            }
+
             MaxHp = maxHp;
-            CurrentHp = maxHp;
+            CurrentHp = currentHp;
         }
 
         /// <summary>受到伤害时先扣格挡，剩余部分再扣生命值；生命值不低于 0。</summary>

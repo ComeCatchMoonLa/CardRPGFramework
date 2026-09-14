@@ -10,8 +10,14 @@ namespace CardRPGFramework.Core.Battle
         public int PlayerMaxHp { get; }
         public int EnergyPerTurn { get; }
         public int HandSize { get; }
+        public int PlayerCurrentHp { get; }
 
         public BattleSetup(int playerMaxHp, int energyPerTurn, int handSize)
+            : this(playerMaxHp, energyPerTurn, handSize, playerMaxHp)
+        {
+        }
+
+        public BattleSetup(int playerMaxHp, int energyPerTurn, int handSize, int playerCurrentHp)
         {
             if (playerMaxHp <= 0)
             {
@@ -28,9 +34,15 @@ namespace CardRPGFramework.Core.Battle
                 throw new ArgumentOutOfRangeException(nameof(handSize), "HandSize 不能小于 0");
             }
 
+            if (playerCurrentHp <= 0 || playerCurrentHp > playerMaxHp)
+            {
+                throw new ArgumentOutOfRangeException(nameof(playerCurrentHp), "PlayerCurrentHp 必须大于 0 且不超过 PlayerMaxHp");
+            }
+
             PlayerMaxHp = playerMaxHp;
             EnergyPerTurn = energyPerTurn;
             HandSize = handSize;
+            PlayerCurrentHp = playerCurrentHp;
         }
     }
 }

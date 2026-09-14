@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Buffs;
 using CardRPGFramework.Core.Combatants;
 using CardRPGFramework.Core.Relics;
@@ -15,6 +16,58 @@ namespace CardRPGFramework.Tests
             public FakeRelic(string id) => Id = id;
 
             public override string Id { get; }
+        }
+
+        [Test]
+        public void Constructor_SingleArg_StartsAtMaxHp()
+        {
+            var state = new CombatantState(80);
+
+            Assert.AreEqual(80, state.MaxHp);
+            Assert.AreEqual(80, state.CurrentHp);
+        }
+
+        [Test]
+        public void Constructor_TwoArgs_StartsAtCurrentHp()
+        {
+            var state = new CombatantState(80, 50);
+
+            Assert.AreEqual(80, state.MaxHp);
+            Assert.AreEqual(50, state.CurrentHp);
+        }
+
+        [TestCase(0)]
+        [TestCase(-1)]
+        [TestCase(81)]
+        public void Constructor_CurrentHpOutOfRange_Throws(int currentHp)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new CombatantState(80, currentHp));
+        }
+
+        [Test]
+        public void BattleSetup_ThreeArg_CurrentHpEqualsMaxHp()
+        {
+            var setup = new BattleSetup(80, 3, 5);
+
+            Assert.AreEqual(80, setup.PlayerMaxHp);
+            Assert.AreEqual(80, setup.PlayerCurrentHp);
+        }
+
+        [Test]
+        public void BattleSetup_FourArg_StartsAtCurrentHp()
+        {
+            var setup = new BattleSetup(80, 3, 5, 50);
+
+            Assert.AreEqual(80, setup.PlayerMaxHp);
+            Assert.AreEqual(50, setup.PlayerCurrentHp);
+        }
+
+        [TestCase(0)]
+        [TestCase(-5)]
+        [TestCase(81)]
+        public void BattleSetup_FourArg_CurrentHpOutOfRange_Throws(int currentHp)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new BattleSetup(80, 3, 5, currentHp));
         }
 
         [Test]

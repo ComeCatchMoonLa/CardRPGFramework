@@ -49,7 +49,7 @@ namespace CardRPGFramework.Core.Battle
                              IEnumerable<RelicState> relics = null)
         {
             EnemyDefinition = enemy ?? throw new ArgumentNullException(nameof(enemy));
-            Player = new CombatantState(setup.PlayerMaxHp);
+            Player = new CombatantState(setup.PlayerMaxHp, setup.PlayerCurrentHp);
             Enemy = new CombatantState(enemy.MaxHp);
             EnergyPerTurn = setup.EnergyPerTurn;
             HandSize = setup.HandSize;

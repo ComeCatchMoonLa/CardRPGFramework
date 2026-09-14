@@ -63,6 +63,16 @@ namespace CardRPGFramework.Tests
         }
 
         [Test]
+        public void Constructor_FourArgSetup_PlayerStartsAtCurrentHp()
+        {
+            var setup = new BattleSetup(40, 3, 5, 20);
+            var session = new BattleSession(setup, FixedAttacker(36, 6), BuildDeck(5), new Random(1));
+
+            Assert.AreEqual(20, session.Player.CurrentHp);
+            Assert.AreEqual(40, session.Player.MaxHp);
+        }
+
+        [Test]
         public void StartBattle_EntersPlayerTurn_WithFullEnergyAndHand()
         {
             var session = CreateSession();

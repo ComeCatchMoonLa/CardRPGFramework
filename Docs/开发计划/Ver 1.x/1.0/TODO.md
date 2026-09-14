@@ -6,9 +6,9 @@
 
 ## 0. 开始前检查（约 0.5h）
 
-- [ ] 0.7 已提交推送，工作区干净，Unity Console 无错误，263 项 EditMode 全绿。
-- [ ] 读过技术设计第 4.1 / 4.2 / 4.3 / 4.4 / 7 节的 [已定]：`BattleInput` 五字段、`AddCard` 通关后仍允许、`ApplyResult` 拒绝、`BattleSetup` 两个重载、种子公式、`CreateBattleInput` 不洗牌。
-- [ ] 确认 grep 范围：只扫 `Core/Run/` 与本刀新增 Runtime 文件，**不是**全 `Runtime`。`BattleController` 那一处不算本刀。
+- [x] 0.7 已提交推送，工作区干净，Unity Console 无错误，263 项 EditMode 全绿。
+- [x] 读过技术设计第 4.1 / 4.2 / 4.3 / 4.4 / 7 节的 [已定]：`BattleInput` 五字段、`AddCard` 通关后仍允许、`ApplyResult` 拒绝、`BattleSetup` 两个重载、种子公式、`CreateBattleInput` 不洗牌。
+- [x] 确认 grep 范围：只扫 `Core/Run/` 与本刀新增 Runtime 文件，**不是**全 `Runtime`。`BattleController` 那一处不算本刀。
 
 **阶段门槛：** 有干净的回归基线。
 
@@ -16,10 +16,10 @@
 
 与第 2 节可同一提交，但先改 Setup / `CombatantState` / Session，0.x 测试才能继续绿。
 
-- [ ] `BattleSetup`：三参重载当前生命 = `playerMaxHp`；四参校验 `current > 0` 且 `≤ max`（`0` / 负值 / `> max` 抛）。不要用 `< 0` 当未传哨兵。
-- [ ] `CombatantState`：保留单参满血；新增 `(maxHp, currentHp)`，校验同上。
-- [ ] `BattleSession` 构造：`Player = new CombatantState(setup.PlayerMaxHp, setup.PlayerCurrentHp)`。其余签名不变。
-- [ ] 测试：`CombatantStateTests` 残血 / 越界 / 单参满血；`BattleSetup` 三参满血、四参残血、四参越界（同文件或 `BattleSessionTests`，不新增根目录文件）；`BattleSessionTests` 残血开战 `CurrentHp == 20`。跑全部 0.x 用例，**不改断言**。
+- [x] `BattleSetup`：三参重载当前生命 = `playerMaxHp`；四参校验 `current > 0` 且 `≤ max`（`0` / 负值 / `> max` 抛）。不要用 `< 0` 当未传哨兵。
+- [x] `CombatantState`：保留单参满血；新增 `(maxHp, currentHp)`，校验同上。
+- [x] `BattleSession` 构造：`Player = new CombatantState(setup.PlayerMaxHp, setup.PlayerCurrentHp)`。其余签名不变。
+- [x] 测试：`CombatantStateTests` 残血 / 越界 / 单参满血；`BattleSetup` 三参满血、四参残血、四参越界（同文件或 `BattleSessionTests`，不新增根目录文件）；`BattleSessionTests` 残血开战 `CurrentHp == 20`。跑全部 0.x 用例，**不改断言**。
 
 **阶段门槛：** 0.x 263 项不改断言仍绿；`new BattleSetup(hp, energy, hand)` 与 `BattleConfig.ToSetup()` 不用改调用点。
 
