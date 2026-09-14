@@ -38,15 +38,23 @@
 
 **证明的边界**：局外是状态；进战斗是快照，出战斗只写回约定结果。
 
-## 1.1 Run 壳与战斗接入
+## 1.1 Run 壳与战斗接入（已完成）
 
 文档：[`1.1/游戏设计.md`](1.1/游戏设计.md) / [`1.1/技术设计.md`](1.1/技术设计.md) / [`1.1/TODO.md`](1.1/TODO.md)。
 
 - `RunController` + 顶栏 + Start / Combat / Result。`TestScene` 改成 Run 壳。
-- 流程层创建 / 销毁 Session：`BattleController.Begin`；不把 `RunState` 传入 Session。Play 只走 `RunConfig`；`BattleConfig` 不再开战。局内命令只打 `RunController`。
+- 流程层创建 / 销毁 Session：`BattleController.Begin`；不把 `RunState` 传入 Session。Play 只走 `RunConfig`；`BattleConfig` 已删。局内命令只打 `RunController`。
 - 胜利自动下一场（场间无结束遮罩）；通关或失败去结束页。结束写回：`PlayCard` / `EndTurn` 内读一次 `Phase`，禁止 `Update` 轮询。删除 `EndScreenView`。
 - 遗物显示名：`SetRelicDisplayNames`；`StartRun` 在第一次 `Begin` 前调一次；场间不调；`Restart` 清空。
 - 无地图、无奖励。
+
+| 已有 | 说明 |
+| --- | --- |
+| `Begin` / `DiscardSession` | `Awake` 不再 `new BattleSession`；只用 `input.Random`；`Begin` 不填遗物字典 |
+| `RunConfig` | Play 唯一开战真相；空牌组拒；恰好 3 敌人；生命 / 能量 / 手牌不写类型默认值 |
+| `RunController` | 无 `Update`；场间先 `ApplyResult` 再 `Begin`；通关 / 失败才 `DiscardSession` |
+| 壳 UI | `RunShellView` 常驻；Start 不读 `RunConfig`；Combat / Result 默认隐藏；删 `EndScreenView` |
+| 测试 | 302 项 EditMode，0.x 与 1.0 断言未改。壳与「第二场开局生命」靠 Play |
 
 **证明的边界**：战斗页只管局内；Session 生命周期在流程层。
 

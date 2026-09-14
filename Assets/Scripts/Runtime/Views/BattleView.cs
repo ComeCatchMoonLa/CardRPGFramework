@@ -104,7 +104,7 @@ namespace CardRPGFramework.Views
             }
         }
 
-        // 类型中文暂时只有这一处用到，留在 View 里；出现第二个调用方（1.0 奖励页）再抽成与 BuffDisplayNames 同类的静态类。
+        // 类型中文暂时只有这一处用到，留在 View 里；出现第二个调用方（1.3 奖励页）再抽成与 BuffDisplayNames 同类的静态类。
         private static string TypeLabel(CardType type) => type switch
         {
             CardType.Attack => "攻击",

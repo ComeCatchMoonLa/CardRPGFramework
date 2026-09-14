@@ -37,15 +37,18 @@
 
 ## 3. 联调与验收（约 1h）
 
-- [ ] Play：连打三场（场间无遮罩；**第二场开局生命 = 第一场结束生命**）、中途死亡、再来一局后 Start 顶栏 `遗物：无`、漏配进不了战斗；对照游戏设计第 4 节。场间顺序写反时 1.0 测试仍会绿，靠这一条 Play 锁。
-- [ ] 不要重写 1.0 的 `IsCleared` / 自动下一场复述用例。壳靠 Play。
-- [ ] grep：`RunController.cs` 无 `Update`；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`，无 `RefreshEndScreen` / `EndScreenView`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
-- [ ] 全部 EditMode；0.x 与 1.0 断言未改。
+- [x] Play：连打三场（场间无遮罩；**第二场开局生命 = 第一场结束生命**）、中途死亡、再来一局后 Start 顶栏 `遗物：无`、漏配进不了战斗；对照游戏设计第 4 节。场间顺序写反时 1.0 测试仍会绿，靠这一条 Play 锁。
+- [x] 不要重写 1.0 的 `IsCleared` / 自动下一场复述用例。壳靠 Play。
+- [x] grep：`RunController.cs` 无 `Update`；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`，无 `RefreshEndScreen` / `EndScreenView`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
+- [x] 全部 EditMode；0.x 与 1.0 断言未改。
 
 ## 4. 文档与交付（约 0.5h）
 
-- [ ] 更新根 `README.md`、[`../../README.md`](../../README.md)（开发计划总览）、[`../README.md`](../README.md)（1.1 节标「（已完成）」）。
-- [ ] 提交。
+- [x] 更新 [`../../../../README.md`](../../../../README.md)：当前阶段改为 1.1 已完成、下一步 1.2；已完成列表改 `Begin` / `RunConfig` / 壳 UI；删 `BattleConfig` / `EndScreenView`；运行方式改为开始页连打三场。
+- [x] 更新 [`../README.md`](../README.md)：1.1 节标「（已完成）」并补摘要表。
+- [x] 更新 [`../../README.md`](../../README.md)：路线总览 1.1 标已完成；文档地图；第 2 节改为下一个 1.2、下下个 1.3。
+- [x] 进入 1.2 前按细化规则核对 [`../1.2/游戏设计.md`](../1.2/游戏设计.md)：目前仅游戏设计、无技术设计草稿。1.1 的「胜利自动下一场」将改为回地图；`BattleSession` 里仍不应出现 `NodeType`。技术设计与 TODO 进入 1.2 再补，不代写。
+- [x] 提交。
 
 ## 范围控制
 
