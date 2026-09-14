@@ -4,27 +4,24 @@ using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 using CardRPGFramework.Core.Enemies;
+using CardRPGFramework.Core.Run;
 using CardRPGFramework.Data;
 using UnityEngine;
 
 namespace CardRPGFramework.Controllers
 {
     /// <summary>
-    /// 场景中的战斗组装入口：根据 BattleConfig 创建并持有一场 BattleSession，
-    /// 不实现具体战斗规则，只负责转发命令和暴露只读状态给 Views。
+    /// 一场战斗的组装入口：由 Begin 创建 Session，只负责转发命令和暴露只读状态。
+    /// 不持有 RunConfig，不在 Begin 里填遗物显示名。
     /// </summary>
     public sealed class BattleController : MonoBehaviour
     {
-        [SerializeField] private BattleConfig battleConfig;
-        [SerializeField] private bool useFixedSeed;
-        [SerializeField] private int seed;
-
         private BattleSession _session;
         // 遗物 Id → 显示名。显示名在 RelicData 资产里，View 不该认识 Data 类型，所以由这里翻一次；
-        // 遗物 Id 本身经 Player.Relics 读，与 Buff 行读 Player.Buffs 同一条路径。
+        // 遗物 Id 本身从 Player.Relics 读，和 Buff 行读 Player.Buffs 同一条路径。
         private readonly Dictionary<string, string> _relicDisplayNames = new();
 
-        /// <summary>配置缺失或校验失败时为 false，此时其余状态均为未初始化的默认值。</summary>
+        /// <summary>尚未 Begin 或已 DiscardSession 时为 false。</summary>
         public bool IsReady => _session != null;
 
         public BattlePhase Phase => _session?.Phase ?? BattlePhase.NotStarted;
@@ -42,34 +39,45 @@ namespace CardRPGFramework.Controllers
         public int DiscardPileCount => _session?.DiscardPileCount ?? 0;
         public int ExhaustPileCount => _session?.ExhaustPileCount ?? 0;
 
-        private void Awake()
+        /// <summary>
+        /// 用 input 五个字段 new BattleSession 再 StartBattle。Random 只用 input.Random。
+        /// 已有一场时先丢掉旧 Session。不读 RunConfig，不填遗物显示名。
+        /// </summary>
+        public void Begin(BattleInput input)
         {
-            if (battleConfig == null)
+            if (input == null)
             {
-                Debug.LogError("BattleController: 未指定 BattleConfig，战斗无法初始化。");
-                return;
+                throw new ArgumentNullException(nameof(input));
             }
 
-            if (!battleConfig.TryValidate(out var error))
-            {
-                Debug.LogError($"BattleController: {error}");
-                return;
-            }
-
-            foreach (var relic in battleConfig.Relics)
-            {
-                _relicDisplayNames[relic.Id] = relic.DisplayName;
-            }
-
-            var random = useFixedSeed ? new System.Random(seed) : new System.Random();
-            _session = new BattleSession(battleConfig.ToSetup(), battleConfig.ToEnemyDefinition(),
-                battleConfig.ToDeckDefinitions(), random, battleConfig.ToRelicStates());
+            _session = new BattleSession(input.Setup, input.Enemy, input.Deck, input.Random, input.Relics);
             _session.StartBattle();
+        }
+
+        /// <summary>丢掉当前 Session。不清遗物显示名表。</summary>
+        public void DiscardSession()
+        {
+            _session = null;
         }
 
         /// <summary>未知 Id 原样返回而不抛异常，与 BuffDisplayNames 同一条兜底规则：启动校验已经拦过未知遗物 Id。</summary>
         public string RelicDisplayName(string relicId) =>
             _relicDisplayNames.TryGetValue(relicId, out var displayName) ? displayName : relicId;
+
+        /// <summary>整表替换。null 抛。空列表 = 清空。不读 RunConfig，不碰 Session。</summary>
+        public void SetRelicDisplayNames(IReadOnlyList<RelicData> relics)
+        {
+            if (relics == null)
+            {
+                throw new ArgumentNullException(nameof(relics));
+            }
+
+            _relicDisplayNames.Clear();
+            foreach (var relic in relics)
+            {
+                _relicDisplayNames[relic.Id] = relic.DisplayName;
+            }
+        }
 
         public bool PlayCard(int handIndex)
         {

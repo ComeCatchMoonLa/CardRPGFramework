@@ -17,13 +17,13 @@
 
 ## 1. `Begin` 与流程（约 3h）
 
-- [ ] `BattleController.Begin(BattleInput)`：用五个字段构造 Session 并 `StartBattle`；`Awake` 不再 `new BattleSession`。`DiscardSession` 丢掉 Session、不清遗物字典。不挂 `RunConfig`，不在 `Begin` 里填遗物字典。
-- [ ] `SetRelicDisplayNames(IReadOnlyList<RelicData>)`：整表替换；null 抛；空列表清空。**先 Clear 再填**；现网 `Awake` 没有 Clear，不要按它抄。`RelicDisplayName` 一字不改。
-- [ ] `Begin` **只用 `input.Random`**；删掉 `useFixedSeed` / `seed`。
-- [ ] `RunConfig`：按技术设计 4.4 的字段、`TryValidate`、`CreateRunState`。生命 / 能量 / 手牌不写 80 / 3 / 5。产品空牌组拒；恰好 3 敌人；遗物不重复；`runSeed == 0` 合法。
-- [ ] `RunController`：按技术设计 4.5。唯一 SerializeField 持有 `RunConfig`。`StartRun`（校验 → `CreateRunState` → `SetRelicDisplayNames(runConfig.Relics)` → 第一次 `Begin`）/ `PlayCard` / `EndTurn` / `Restart`（`DiscardSession` 后空列表清空字典）。没有 `Update`。`ApplyOutcomeIfEnded` 只从两个命令方法调用；**场间先 `ApplyResult`，未通关再 `Begin(CreateBattleInput())`**，不要倒过来；通关 / 失败 `DiscardSession` 不清字典；场间 `Begin` 不再填字典。
-- [ ] `BattleView` 只调 `RunController.PlayCard` / `EndTurn`；`StartPageView` 只调 `StartRun`；`ResultPageView` 只调 `Restart`。每次 `Begin` 之后打战斗页 `Refresh`。未就绪文案不要再写「请检查 BattleConfig」。
-- [ ] Combat / Result **本节就默认隐藏**（不要等第 2 节）；进 Play 不要先刷出旧的战斗未初始化。删除 `EndScreenView.cs`（及 meta）、`BattleView.endScreenView` 与 `RefreshEndScreen`、`TestScene` 结束遮罩物体。场间 Victory 立刻下一场；通关或 `Defeat` 才切 Result。失败只认 `Phase == Defeat`。
+- [x] `BattleController.Begin(BattleInput)`：用五个字段构造 Session 并 `StartBattle`；`Awake` 不再 `new BattleSession`。`DiscardSession` 丢掉 Session、不清遗物字典。不挂 `RunConfig`，不在 `Begin` 里填遗物字典。
+- [x] `SetRelicDisplayNames(IReadOnlyList<RelicData>)`：整表替换；null 抛；空列表清空。**先 Clear 再填**；现网 `Awake` 没有 Clear，不要按它抄。`RelicDisplayName` 一字不改。
+- [x] `Begin` **只用 `input.Random`**；删掉 `useFixedSeed` / `seed`。
+- [x] `RunConfig`：按技术设计 4.4 的字段、`TryValidate`、`CreateRunState`。生命 / 能量 / 手牌不写 80 / 3 / 5。产品空牌组拒；恰好 3 敌人；遗物不重复；`runSeed == 0` 合法。
+- [x] `RunController`：按技术设计 4.5。唯一 SerializeField 持有 `RunConfig`。`StartRun`（校验 → `CreateRunState` → `SetRelicDisplayNames(runConfig.Relics)` → 第一次 `Begin`）/ `PlayCard` / `EndTurn` / `Restart`（`DiscardSession` 后空列表清空字典）。没有 `Update`。`ApplyOutcomeIfEnded` 只从两个命令方法调用；**场间先 `ApplyResult`，未通关再 `Begin(CreateBattleInput())`**，不要倒过来；通关 / 失败 `DiscardSession` 不清字典；场间 `Begin` 不再填字典。
+- [x] `BattleView` 只调 `RunController.PlayCard` / `EndTurn`；`StartPageView` 只调 `StartRun`；`ResultPageView` 只调 `Restart`。每次 `Begin` 之后打战斗页 `Refresh`。未就绪文案不要再写「请检查 BattleConfig」。
+- [x] Combat / Result **本节就默认隐藏**（不要等第 2 节）；进 Play 不要先刷出旧的战斗未初始化。删除 `EndScreenView.cs`（及 meta）、`BattleView.endScreenView` 与 `RefreshEndScreen`、`TestScene` 结束遮罩物体。场间 Victory 立刻下一场；通关或 `Defeat` 才切 Result。失败只认 `Phase == Defeat`。
 
 **阶段门槛：** 产品侧创建 Session 只剩 `Begin`；产品侧 `ApplyResult` 只在 `ApplyOutcomeIfEnded`、每节点一次。
 

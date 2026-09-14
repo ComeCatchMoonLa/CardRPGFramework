@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using CardRPGFramework.Controllers;
-using CardRPGFramework.Core.Battle;
 using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 using TMPro;
@@ -11,13 +10,13 @@ using UnityEngine.UI;
 namespace CardRPGFramework.Views
 {
     /// <summary>
-    /// 战斗整体状态显示与结束回合按钮。不直接调用 Core/Data，命令执行后主动读取
-    /// BattleController 的只读状态刷新界面，不引入事件/观察者机制。
+    /// 战斗整体状态显示与结束回合按钮。局内命令只打 RunController；只读状态仍读 BattleController。
     /// 卡面与意图上的伤害数字来自 Controller 转发的只读预览，这里不出现任何公式常数。
     /// </summary>
     public sealed class BattleView : MonoBehaviour
     {
         [SerializeField] private BattleController battleController;
+        [SerializeField] private RunController runController;
 
         [SerializeField] private TMP_Text playerStatusText;
         [SerializeField] private TMP_Text playerBuffsText;
@@ -33,8 +32,6 @@ namespace CardRPGFramework.Views
         [SerializeField] private CardButtonView[] cardSlots;
         [SerializeField] private Button endTurnButton;
 
-        [SerializeField] private EndScreenView endScreenView;
-
         private void Start()
         {
             endTurnButton.onClick.AddListener(HandleEndTurnClicked);
@@ -43,7 +40,7 @@ namespace CardRPGFramework.Views
 
         private void HandleEndTurnClicked()
         {
-            resultText.text = battleController.EndTurn() ? "回合结束" : "无法结束回合";
+            resultText.text = runController.EndTurn() ? "回合结束" : "无法结束回合";
             Refresh();
         }
 
@@ -58,15 +55,15 @@ namespace CardRPGFramework.Views
             }
 
             var cardName = hand[handIndex].DisplayName;
-            resultText.text = battleController.PlayCard(handIndex) ? $"使用了 {cardName}" : "无法使用该卡牌";
+            resultText.text = runController.PlayCard(handIndex) ? $"使用了 {cardName}" : "无法使用该卡牌";
             Refresh();
         }
 
-        private void Refresh()
+        public void Refresh()
         {
             if (!battleController.IsReady)
             {
-                resultText.text = "战斗未初始化，请检查 BattleConfig";
+                resultText.text = "战斗未开始";
                 return;
             }
 
@@ -86,7 +83,6 @@ namespace CardRPGFramework.Views
             turnText.text = $"回合 {battleController.TurnNumber}";
 
             RefreshHand();
-            RefreshEndScreen();
         }
 
         private void RefreshHand()
@@ -160,22 +156,6 @@ namespace CardRPGFramework.Views
             }
 
             return builder.ToString();
-        }
-
-        private void RefreshEndScreen()
-        {
-            switch (battleController.Phase)
-            {
-                case BattlePhase.Victory:
-                    endScreenView.Show("胜利！");
-                    break;
-                case BattlePhase.Defeat:
-                    endScreenView.Show("失败");
-                    break;
-                default:
-                    endScreenView.Hide();
-                    break;
-            }
         }
     }
 }
