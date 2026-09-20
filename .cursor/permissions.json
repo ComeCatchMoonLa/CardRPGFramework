@@ -1,0 +1,8 @@
+{
+  "autoRun": {
+    "block_instructions": [
+      "删除、清空或清理本仓库根目录下的 Library，或一条命令同时清理 Library 与 Temp/obj 时，必须先批准；包括为跑测试而清 Unity 缓存。单独删除 Temp 或 obj 不必按这条拦。",
+      "对本工作区以外的路径做写入或删除必须先批准，尤其是本仓库同级目录下的其他 Unity 工程。"
+    ]
+  }
+}
