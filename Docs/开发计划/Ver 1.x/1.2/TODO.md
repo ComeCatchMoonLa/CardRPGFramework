@@ -28,26 +28,26 @@
 
 ## 2. 地图 UI（约 2h）
 
-- [ ] `MapPageView`：三个点（已完成灰 / 当前高亮 / 未到暗）+ 一条线 + 一个进入按钮。圆点不是按钮。只调 `EnterCurrentNode`。不印敌人名。绑定跟 `StartPageView` 一样走 `Start`。
-- [ ] `MapPage` 与 Combat / Result 一样给顶栏留 inset。第 1 节已建物体并默认隐藏；本节只铺点和按钮。
-- [ ] 顶栏：地图页读 Run（`!IsReady`）。Start 仍不读 `RunConfig`。战斗中生命仍跟局内。`ShowMap` / `EnterCurrentNode` / `PlayCard` / `EndTurn` / `Restart` 已含 `RefreshShell`，不要另写一套。
+- [x] `MapPageView`：三个点（已完成灰 / 当前高亮 / 未到暗）+ 一条线 + 一个进入按钮。圆点不是按钮。只调 `EnterCurrentNode`。不印敌人名。绑定跟 `StartPageView` 一样走 `Start`。
+- [x] `MapPage` 与 Combat / Result 一样给顶栏留 inset。第 1 节已建物体并默认隐藏；本节只铺点和按钮。
+- [x] 顶栏：地图页读 Run（`!IsReady`）。Start 仍不读 `RunConfig`。战斗中生命仍跟局内。`ShowMap` / `EnterCurrentNode` / `PlayCard` / `EndTurn` / `Restart` 已含 `RefreshShell`，不要另写一套。
 
 **阶段门槛：** 开始页点一次到地图，再点进入能开战；打完一场能回到地图。
 
 ## 3. 联调与验收（约 1h）
 
-- [ ] Play：对照游戏设计第 4 节。场间无遮罩、**必须回地图**；第二场开局生命 = 第一场结束生命；第三场胜利去 Result；中途死亡不回地图；再来一局后 `遗物：无`。场间若仍 `Begin`，1.0 测试仍会绿，靠这一条 Play 锁。
-- [ ] 不要重写 1.0 的 `IsCleared` 用例，也不要补「Victory 未通关自动 `Begin`」的 1.1 复述。
-- [ ] grep：`RunController.cs` 无 `Update`；`battleController.Begin` 只在 `EnterCurrentNode`；`ApplyResult` 只在 `ApplyOutcomeIfEnded`；`Core/Battle/`、`BattleInput.cs`、`BattleSetup` 无 `NodeType`；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
-- [ ] 全部 EditMode；0.x～1.1 断言未改。
+- [x] Play：对照游戏设计第 4 节。场间无遮罩、**必须回地图**；第二场开局生命 = 第一场结束生命；第三场胜利去 Result；中途死亡不回地图；再来一局后 `遗物：无`。场间若仍 `Begin`，1.0 测试仍会绿，靠这一条 Play 锁。
+- [x] 不要重写 1.0 的 `IsCleared` 用例，也不要补「Victory 未通关自动 `Begin`」的 1.1 复述。
+- [x] grep：`RunController.cs` 无 `Update`；`battleController.Begin` 只在 `EnterCurrentNode`；`ApplyResult` 只在 `ApplyOutcomeIfEnded`；`Core/Battle/`、`BattleInput.cs`、`BattleSetup` 无 `NodeType`；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
+- [x] 全部 EditMode；0.x～1.1 断言未改。
 
 ## 4. 文档与交付（约 0.5h）
 
-- [ ] 更新 [`../../../../README.md`](../../../../README.md)：当前阶段改为 1.2 已完成、下一步 1.3；运行方式改为开始页 → 地图 → 三场（场间回地图）。
-- [ ] 更新 [`../README.md`](../README.md)：1.2 节标「（已完成）」并补摘要表。
-- [ ] 更新 [`../../README.md`](../../README.md)：路线总览 1.2 标已完成；文档地图；第 2 节改为下一个 1.3、下下个按细化规则（1.3 的技术设计进入前再补，或进入 1.3 时写全）。
-- [ ] 进入 1.3 前按细化规则核对 [`../1.3/游戏设计.md`](../1.3/游戏设计.md)：目前仅游戏设计。1.2 的「胜利回地图」将在写回与回地图之间插入奖励页；不要代写 1.3 技术设计。
-- [ ] 提交。
+- [x] 更新 [`../../../../README.md`](../../../../README.md)：当前阶段改为 1.2 已完成、下一步 1.3；运行方式改为开始页 → 地图 → 三场（场间回地图）。
+- [x] 更新 [`../README.md`](../README.md)：1.2 节标「（已完成）」并补摘要表。
+- [x] 更新 [`../../README.md`](../../README.md)：路线总览 1.2 标已完成；文档地图；第 2 节改为下一个 1.3、下下个按细化规则（1.3 的技术设计进入前再补，或进入 1.3 时写全）。
+- [x] 进入 1.3 前按细化规则核对 [`../1.3/游戏设计.md`](../1.3/游戏设计.md)：目前仅游戏设计。1.2 的「胜利回地图」将在写回与回地图之间插入奖励页；不要代写 1.3 技术设计。
+- [x] 提交。
 
 ## 范围控制
 

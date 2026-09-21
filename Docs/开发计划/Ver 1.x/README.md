@@ -58,15 +58,23 @@
 
 **证明的边界**：战斗页只管局内；Session 生命周期在流程层。
 
-## 1.2 地图与节点分发
+## 1.2 地图与节点分发（已完成）
 
 文档：[`1.2/游戏设计.md`](1.2/游戏设计.md) / [`1.2/技术设计.md`](1.2/技术设计.md) / [`1.2/TODO.md`](1.2/TODO.md)。
 
-- 三个战斗节点一条线，只能进当前节点；胜利回地图，最后一场去结束页。
-- 节点带 `NodeType`，流程按类型分发；`BattleSession` 里没有 `NodeType`。
-- 开始一局先到地图，不自动开战。场间 `DiscardSession` 回地图，禁止 `ApplyOutcomeIfEnded` 里 `Begin`。
+- 三个战斗节点一条线，只能进当前节点；开始一局先到地图；胜利回地图，最后一场去结束页。
+- 节点带 `NodeType`，流程按类型分发；`BattleSession` / `BattleInput` / `BattleSetup` 里没有 `NodeType`。
+- 场间 `DiscardSession` 回地图，禁止 `ApplyOutcomeIfEnded` 里 `Begin`。产品侧 `Begin` 只在 `EnterCurrentNode`。
 - 不加空商店、不做分支图。无奖励页。
-- `NodeType` **[已定]**：枚举只有 `Combat`；`RunState` 构造不变。
+- `NodeType` 枚举只有 `Combat`；`RunState` 构造不变。
+
+| 已有 | 说明 |
+| --- | --- |
+| `NodeType` | 枚举只有 `Combat`；不进 Session / `BattleInput` / `BattleSetup` |
+| `RunState` | 构造签名不变；`NodeTypes` / `CurrentNodeType`（`IsOver` 抛） |
+| `RunController` | `StartRun` 上地图；`EnterCurrentNode` 才 `Begin`；胜利未通关 `DiscardSession` 回地图 |
+| 地图 UI | 三点一线 + 进入按钮；圆点只展示；顶栏地图页读 Run |
+| 测试 | 306 项 EditMode（0.x～1.1 断言未改；`RunStateTests` +4）。地图枢纽与「第二场开局生命」靠 Play |
 
 **证明的边界**：新节点类型 = 新页 + 流程一个分支，不改 `BattleSession`。
 
