@@ -67,3 +67,14 @@ Thumbs.db
 *.temp
 *.log
 *.swp
+
+
+# ==================================================
+# Local / 不默认入库
+# ==================================================
+
+.cursor/agents/interviewer.md
+.cursor/agents/interviewee.md
+
+# 日常不提交。出包/发版前须把最新版上传到 GitHub（git add -f 后再提交）。
+Assets/TextMesh Pro/Fonts/MAPLEMONO-NF-CN-REGULAR SDF.asset
