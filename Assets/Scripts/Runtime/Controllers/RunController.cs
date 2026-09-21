@@ -8,16 +8,18 @@ using UnityEngine;
 namespace CardRPGFramework.Controllers
 {
     /// <summary>
-    /// 短 Run 流程：持有 RunState 与唯一一份 RunConfig。局内命令入口，写回只在 ApplyOutcomeIfEnded。
+    /// 短 Run 流程：持有 RunState 与唯一一份 RunConfig。开始去地图；进入节点才开战；写回只在 ApplyOutcomeIfEnded。
     /// </summary>
     public sealed class RunController : MonoBehaviour
     {
         [SerializeField] private RunConfig runConfig;
         [SerializeField] private BattleController battleController;
         [SerializeField] private BattleView battleView;
+        [SerializeField] private MapPageView mapPageView;
         [SerializeField] private RunShellView runShellView;
         [SerializeField] private ResultPageView resultPageView;
         [SerializeField] private GameObject startPage;
+        [SerializeField] private GameObject mapPage;
         [SerializeField] private GameObject combatPage;
         [SerializeField] private GameObject resultPage;
 
@@ -29,7 +31,7 @@ namespace CardRPGFramework.Controllers
             RefreshShell();
         }
 
-        /// <summary>校验失败则停留在 Start。通过则填遗物字典、第一次 Begin、显示 Combat。</summary>
+        /// <summary>校验失败则停留在 Start。通过则填遗物字典、显示地图，不 Begin。</summary>
         public void StartRun()
         {
             if (runConfig == null)
@@ -46,10 +48,32 @@ namespace CardRPGFramework.Controllers
 
             Run = runConfig.CreateRunState();
             battleController.SetRelicDisplayNames(runConfig.Relics);
-            battleController.Begin(Run.CreateBattleInput());
-            ShowCombat();
-            battleView.Refresh();
-            RefreshShell();
+            ShowMap();
+        }
+
+        /// <summary>
+        /// Run == null / IsOver / IsReady 则直接 return。
+        /// 未开战就是 Run == null，不要写成 !IsReady。
+        /// </summary>
+        public void EnterCurrentNode()
+        {
+            if (Run == null || Run.IsOver || battleController.IsReady)
+            {
+                return;
+            }
+
+            switch (Run.CurrentNodeType)
+            {
+                case NodeType.Combat:
+                    battleController.Begin(Run.CreateBattleInput());
+                    ShowCombat();
+                    battleView.Refresh();
+                    RefreshShell();
+                    break;
+                default:
+                    Debug.LogError($"RunController: 未实现的节点类型 {Run.CurrentNodeType}，留在地图。");
+                    break;
+            }
         }
 
         public bool PlayCard(int handIndex)
@@ -93,15 +117,14 @@ namespace CardRPGFramework.Controllers
             {
                 case BattlePhase.Victory:
                     Run.ApplyResult(true, battleController.Player.CurrentHp);
+                    battleController.DiscardSession();
                     if (Run.IsCleared)
                     {
-                        battleController.DiscardSession();
                         ShowResult(cleared: true);
                     }
                     else
                     {
-                        battleController.Begin(Run.CreateBattleInput());
-                        battleView.Refresh();
+                        ShowMap();
                     }
 
                     break;
@@ -115,23 +138,31 @@ namespace CardRPGFramework.Controllers
 
         private void ShowStart()
         {
-            SetPages(startVisible: true, combatVisible: false, resultVisible: false);
+            SetPages(startVisible: true, mapVisible: false, combatVisible: false, resultVisible: false);
+        }
+
+        private void ShowMap()
+        {
+            SetPages(startVisible: false, mapVisible: true, combatVisible: false, resultVisible: false);
+            mapPageView.Refresh();
+            RefreshShell();
         }
 
         private void ShowCombat()
         {
-            SetPages(startVisible: false, combatVisible: true, resultVisible: false);
+            SetPages(startVisible: false, mapVisible: false, combatVisible: true, resultVisible: false);
         }
 
         private void ShowResult(bool cleared)
         {
-            SetPages(startVisible: false, combatVisible: false, resultVisible: true);
+            SetPages(startVisible: false, mapVisible: false, combatVisible: false, resultVisible: true);
             resultPageView.SetOutcome(cleared);
         }
 
-        private void SetPages(bool startVisible, bool combatVisible, bool resultVisible)
+        private void SetPages(bool startVisible, bool mapVisible, bool combatVisible, bool resultVisible)
         {
             startPage.SetActive(startVisible);
+            mapPage.SetActive(mapVisible);
             combatPage.SetActive(combatVisible);
             resultPage.SetActive(resultVisible);
         }

@@ -8,7 +8,7 @@ namespace CardRPGFramework.Views
 {
     /// <summary>
     /// 常驻顶栏：Start 不读 RunConfig；战斗中生命跟局内，其它页读 Run。
-    /// 切页时始终显示，不进三页 SetActive。
+    /// 切页时始终显示，不进四页 SetActive。
     /// </summary>
     public sealed class RunShellView : MonoBehaviour
     {

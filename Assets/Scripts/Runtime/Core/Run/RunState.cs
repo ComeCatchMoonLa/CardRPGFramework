@@ -15,6 +15,7 @@ namespace CardRPGFramework.Core.Run
         private readonly List<CardDefinition> _deck;
         private readonly List<string> _relicIds;
         private readonly List<EnemyDefinition> _encounters;
+        private readonly NodeType[] _nodeTypes;
         // 同一节点第二次 ApplyResult 若当 no-op，胜利会落在已经 +1 的下标上，nodeIndex 偷偷 +2。
         private bool _inputIssued;
 
@@ -27,9 +28,26 @@ namespace CardRPGFramework.Core.Run
         public int NodeIndex { get; private set; }
         public IReadOnlyList<CardDefinition> Deck => _deck;
         public IReadOnlyList<string> RelicIds => _relicIds;
+        public IReadOnlyList<NodeType> NodeTypes => _nodeTypes;
         public bool IsFailed { get; private set; }
         public bool IsCleared => !IsFailed && NodeIndex >= _encounters.Count;
         public bool IsOver => IsFailed || IsCleared;
+
+        /// <summary>
+        /// 未结束返回当前节点类型。失败后下标仍合法，必须看 IsOver，不能用下标当哨兵。
+        /// </summary>
+        public NodeType CurrentNodeType
+        {
+            get
+            {
+                if (IsOver)
+                {
+                    throw new InvalidOperationException("本局已结束，不能读取当前节点类型");
+                }
+
+                return _nodeTypes[NodeIndex];
+            }
+        }
 
         public RunState(int runSeed, BattleSetup playerSetup,
             IReadOnlyList<CardDefinition> deck, IReadOnlyList<string> relicIds,
@@ -79,6 +97,12 @@ namespace CardRPGFramework.Core.Run
                 {
                     throw new ArgumentException($"遗物 Id 重复: {id}", nameof(relicIds));
                 }
+            }
+
+            _nodeTypes = new NodeType[_encounters.Count];
+            for (var i = 0; i < _nodeTypes.Length; i++)
+            {
+                _nodeTypes[i] = NodeType.Combat;
             }
 
             RunSeed = runSeed;

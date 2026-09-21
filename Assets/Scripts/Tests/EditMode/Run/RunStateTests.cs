@@ -354,5 +354,51 @@ namespace CardRPGFramework.Tests
 
             Assert.Throws<ArgumentNullException>(() => run.AddCard(null));
         }
+
+        [Test]
+        public void NodeTypes_CountThree_AllCombat()
+        {
+            var run = CreateRun();
+
+            Assert.AreEqual(3, run.NodeTypes.Count);
+            Assert.AreEqual(NodeType.Combat, run.NodeTypes[0]);
+            Assert.AreEqual(NodeType.Combat, run.NodeTypes[1]);
+            Assert.AreEqual(NodeType.Combat, run.NodeTypes[2]);
+        }
+
+        [Test]
+        public void CurrentNodeType_StartAndAfterVictory_IsCombat()
+        {
+            var run = CreateRun();
+
+            Assert.AreEqual(NodeType.Combat, run.CurrentNodeType);
+            WinCurrent(run, 50);
+            Assert.AreEqual(1, run.NodeIndex);
+            Assert.AreEqual(NodeType.Combat, run.CurrentNodeType);
+        }
+
+        [Test]
+        public void CurrentNodeType_AfterCleared_Throws()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+            WinCurrent(run, 60);
+            WinCurrent(run, 50);
+
+            Assert.IsTrue(run.IsCleared);
+            Assert.Throws<InvalidOperationException>(() => _ = run.CurrentNodeType);
+        }
+
+        [Test]
+        public void CurrentNodeType_AfterFailed_Throws()
+        {
+            var run = CreateRun();
+            run.CreateBattleInput();
+            run.ApplyResult(false, 1);
+
+            Assert.IsTrue(run.IsFailed);
+            Assert.AreEqual(0, run.NodeIndex);
+            Assert.Throws<InvalidOperationException>(() => _ = run.CurrentNodeType);
+        }
     }
 }
