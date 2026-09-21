@@ -15,14 +15,14 @@
 
 ## 1. `NodeType` 与流程（约 3h）
 
-- [ ] `Core/Run/NodeType.cs`：枚举只有 `Combat`。不要把枚举放到 `Controllers` / `Views`。
-- [ ] `RunState`：`NodeTypes` / `CurrentNodeType`（`IsOver` 抛）。构造签名不变。`CreateBattleInput` / `ApplyResult` / `AddCard` 语义相对 1.0 不变。
-- [ ] 测试：现有 `RunStateTests.cs` 加技术设计 4.2 的 NodeType 项（含 `IsFailed` 后 `CurrentNodeType` 抛）。**不要重写 1.0 的 `IsCleared` / 三场写回用例。** 不要往 EditMode 根目录加文件。
-- [ ] `RunController.StartRun`：校验 → `CreateRunState` → `SetRelicDisplayNames` → **`ShowMap`**。不 `CreateBattleInput`、不 `Begin`。
-- [ ] `EnterCurrentNode`：`Run == null` / `IsOver` / `IsReady` 则 return。`switch CurrentNodeType`：`Combat` → `CreateBattleInput` → `Begin` → 显示 Combat → `battleView.Refresh` → `RefreshShell`；未实现 → `LogError` 留在地图。禁止 `if (true)` 直接开战。
-- [ ] `ApplyOutcomeIfEnded`：Victory 未通关改为 **先 `ApplyResult`，再 `DiscardSession`（不清字典），再 `ShowMap`**。**禁止 `Begin`。** 通关 / 失败仍 Result，失败不回地图。失败只认 `Phase == Defeat`。
-- [ ] `SetPages` 四页；`Restart` 回 Start 时地图隐藏。没有 `Update`。产品侧 `battleController.Begin` 只出现在 `EnterCurrentNode`。
-- [ ] `TestScene` **本节**加默认隐藏的 `MapPage` 并接到 `mapPage` / `mapPageView`（1.1 的 Combat / Result 也是第 1 节就藏）。点和进入按钮仍第 2 节；`Refresh` 在点未接线时跳过。不要等第 2 节才建物体，否则 `ShowMap` 没有对象。
+- [x] `Core/Run/NodeType.cs`：枚举只有 `Combat`。不要把枚举放到 `Controllers` / `Views`。
+- [x] `RunState`：`NodeTypes` / `CurrentNodeType`（`IsOver` 抛）。构造签名不变。`CreateBattleInput` / `ApplyResult` / `AddCard` 语义相对 1.0 不变。
+- [x] 测试：现有 `RunStateTests.cs` 加技术设计 4.2 的 NodeType 项（含 `IsFailed` 后 `CurrentNodeType` 抛）。**不要重写 1.0 的 `IsCleared` / 三场写回用例。** 不要往 EditMode 根目录加文件。
+- [x] `RunController.StartRun`：校验 → `CreateRunState` → `SetRelicDisplayNames` → **`ShowMap`**。不 `CreateBattleInput`、不 `Begin`。
+- [x] `EnterCurrentNode`：`Run == null` / `IsOver` / `IsReady` 则 return。`switch CurrentNodeType`：`Combat` → `CreateBattleInput` → `Begin` → 显示 Combat → `battleView.Refresh` → `RefreshShell`；未实现 → `LogError` 留在地图。禁止 `if (true)` 直接开战。
+- [x] `ApplyOutcomeIfEnded`：Victory 未通关改为 **先 `ApplyResult`，再 `DiscardSession`（不清字典），再 `ShowMap`**。**禁止 `Begin`。** 通关 / 失败仍 Result，失败不回地图。失败只认 `Phase == Defeat`。
+- [x] `SetPages` 四页；`Restart` 回 Start 时地图隐藏。没有 `Update`。产品侧 `battleController.Begin` 只出现在 `EnterCurrentNode`。
+- [x] `TestScene` **本节**加默认隐藏的 `MapPage` 并接到 `mapPage` / `mapPageView`（1.1 的 Combat / Result 也是第 1 节就藏）。点和进入按钮仍第 2 节；`Refresh` 在点未接线时跳过。不要等第 2 节才建物体，否则 `ShowMap` 没有对象。
 
 **阶段门槛：** 产品侧 `Begin` 只剩进入当前战斗节点；场间胜利必须能看见地图（可以先是空页）。
 
