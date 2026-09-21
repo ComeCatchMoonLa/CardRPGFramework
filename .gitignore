@@ -67,18 +67,3 @@ Thumbs.db
 *.temp
 *.log
 *.swp
-
-
-# ==================================================
-# Unity Addressables generated files
-# ==================================================
-
-/ServerData/
-/[Aa]ssets/AddressableAssetsData/*/*.bin*
-
-
-# ==================================================
-# JetBrains generated files
-# ==================================================
-
-/[Aa]ssets/Plugins/Editor/JetBrains*

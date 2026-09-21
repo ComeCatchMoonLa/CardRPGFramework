@@ -5,25 +5,20 @@
   // 搜索面板 + 快速打开（Ctrl/Cmd+P）也遵循 .gitignore（多数版本默认已是 true，这里显式声明）
   "search.useIgnoreFiles": true,
   "files.exclude": {
-    // 生成目录兜底（即使 explorer.excludeGitIgnore 失效也不会露出来）
-    "**/Library": true,
-    "**/Temp": true,
-    "**/Obj": true,
-    "**/Logs": true,
-    "**/Build": true,
-    "**/Builds": true,
-    "**/UserSettings": true,
-    "**/.vs": true,
-    "**/.idea": true,
-    // Unity 每个资源自动生成的 .meta 文件，日常几乎不会手动打开
+    // git 已跟踪、人日常几乎不会打开；Agent 不受这里限制
     "**/*.meta": true,
-    // 引擎自动生成的设置/渲染资产（URP Volume Profile、AudioManager 等），不是手写代码或游戏数据
     "ProjectSettings/*.asset": true,
-    "Assets/Settings/**/*.asset": true
+    "Assets/Settings/**/*.asset": true,
+    "Assets/TextMesh Pro/Fonts": true,
+    "Assets/TextMesh Pro/Resources/Fonts & Materials": true,
+    "Assets/TextMesh Pro/Shaders": true
   },
   "search.exclude": {
     "**/*.meta": true,
     "ProjectSettings/*.asset": true,
-    "Assets/Settings/**/*.asset": true
+    "Assets/Settings/**/*.asset": true,
+    "Assets/TextMesh Pro/Fonts": true,
+    "Assets/TextMesh Pro/Resources/Fonts & Materials": true,
+    "Assets/TextMesh Pro/Shaders": true
   },
 }
