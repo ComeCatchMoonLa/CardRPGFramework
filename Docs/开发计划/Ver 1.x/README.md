@@ -4,7 +4,7 @@
 >
 > **进入 1.0 的门槛**：[`../Ver 0.x/README.md`](../Ver%200.x/README.md) 末尾的 0.x 完成定义全部满足。局内没有复合卡、消耗、遗物、多种敌人之前，战后三选一只是"再来一张打击"，证明不了局内外联调。
 >
-> 短 Run 总设计见 [`游戏设计.md`](游戏设计.md)。**第 8 节完成定义到 1.3 完成后才勾。**
+> 短 Run 总设计见 [`游戏设计.md`](游戏设计.md)。**第 8 节完成定义已勾。**
 
 版本号约定与细化深度规则见 [`../README.md`](../README.md)。
 
@@ -78,20 +78,28 @@
 
 **证明的边界**：新节点类型 = 新页 + 流程一个分支，不改 `BattleSession`。
 
-## 1.3 战后三选一
+## 1.3 战后三选一（已完成）
 
-文档：[`1.3/游戏设计.md`](1.3/游戏设计.md)（进入前补技术设计与 TODO）。
+文档：[`1.3/游戏设计.md`](1.3/游戏设计.md) / [`1.3/技术设计.md`](1.3/技术设计.md) / [`1.3/TODO.md`](1.3/TODO.md)。
 
-- 胜利 → `ApplyResult` 写回 → 奖励页 → `AddCard` / 跳过 → 地图或结束。`g(runSeed, rewardIndex)` 与战斗 `Random` 无关。第三场通关后仍走奖励页。
-- 不做遗物奖 / 升级 / 移除。
+- 胜利 → `ApplyResult` 写回 → `DiscardSession` → 奖励页 → `AddCard` / 跳过 → 地图或结束。`g(runSeed, rewardIndex)` 与战斗 `Random` 无关。第三场通关后仍走奖励页。失败不经奖励页。
+- 奖励池挂在 `RunConfig`，不进 `RunState` 构造。`NodeType` 仍只有 `Combat`。不做遗物奖 / 升级 / 移除。
+
+| 已有 | 说明 |
+| --- | --- |
+| `CreateRewardChoices` | `Core.Run`；`unchecked(runSeed * 389 ^ (NodeIndex - 1))`；Fisher-Yates 取前 3；`IsCleared` 后仍能抽；不碰战斗 `Random` |
+| `RunConfig.rewardPool` | 至少 3 张；拒 `Attack` / `Defend` 与重复 Id；`Default` 配 9 张可获得卡 |
+| `RunController` | Victory 一律 `ShowReward`；`RewardChoices` 兼等待标志；`AddCard` 只在 `SelectReward`；`Begin` 仍只在 `EnterCurrentNode` |
+| 奖励 UI | `RewardPageView` 三行卡面（无预览 `Format`）；类型中文 `CardTypeDisplayNames`；顶栏奖励页读 Run |
+| 测试 | 320 项 EditMode（0.x～1.2 断言未改）。奖励页枢纽与「选中的卡下一场能抽到」靠 Play |
 
 **证明的边界**：奖励抽卡发生在战斗页之外；奖励 RNG 独立于战斗洗牌。
 
-短 Run 完成定义见总设计 [第 8 节](游戏设计.md)。勾完 1.3 才勾那一节。
+短 Run 完成定义见总设计 [第 8 节](游戏设计.md)，已勾。
 
 ## 1.4 Core.asmdef（可选）
 
-把 `Core` 拆成独立程序集（`Core.asmdef`，零 `UnityEngine` 引用），让"纯 C# 战斗规则"从约定变成编译约束；`Data` / `Controllers` / `Views` 留在 Unity 侧。不为它倒逼 1.0～1.3 改引用。不建本版空文件夹，排进来再写三件套。
+把 `Core` 拆成独立程序集（`Core.asmdef`，零 `UnityEngine` 引用），让"纯 C# 战斗规则"从约定变成编译约束；`Data` / `Controllers` / `Views` 留在 Unity 侧。不为它倒逼 1.0～1.3 改引用。三件套已是草稿，进入前对照 1.3 实现复核后再转正。
 
 ## 演示前清单（不是版本）
 
