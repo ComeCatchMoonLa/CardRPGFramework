@@ -1,7 +1,5 @@
-using System;
 using System.Text;
 using CardRPGFramework.Controllers;
-using CardRPGFramework.Core.Cards;
 using CardRPGFramework.Core.Combatants;
 using TMPro;
 using UnityEngine;
@@ -94,7 +92,7 @@ namespace CardRPGFramework.Views
                 {
                     var card = hand[i];
                     var description = CardDescriptionFormatter.Format(card, battleController.PreviewPlayerAttack);
-                    cardSlots[i].Bind(i, $"{card.DisplayName}\n{TypeLabel(card.Type)} · 费用 {card.Cost}\n{description}",
+                    cardSlots[i].Bind(i, $"{card.DisplayName}\n{CardTypeDisplayNames.Of(card.Type)} · 费用 {card.Cost}\n{description}",
                         HandleCardClicked);
                 }
                 else
@@ -103,15 +101,6 @@ namespace CardRPGFramework.Views
                 }
             }
         }
-
-        // 类型中文暂时只有这一处用到，留在 View 里；出现第二个调用方（1.3 奖励页）再抽成与 BuffDisplayNames 同类的静态类。
-        private static string TypeLabel(CardType type) => type switch
-        {
-            CardType.Attack => "攻击",
-            CardType.Skill => "技能",
-            CardType.Power => "能力",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "未知的 CardType"),
-        };
 
         /// <summary>每个 Buff 一段 `名称 层数`，多段用两个空格连接；没有可显示的 Buff 时为空串。</summary>
         private static string FormatBuffs(CombatantState who)

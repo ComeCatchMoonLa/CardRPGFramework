@@ -27,6 +27,16 @@ namespace CardRPGFramework.Views
             {
                 return;
             }
+
+            var choices = runController.RewardChoices;
+            for (var i = 0; i < cardSlots.Length; i++)
+            {
+                var card = choices[i];
+                var description = CardDescriptionFormatter.Format(card);
+                cardSlots[i].Bind(i,
+                    $"{card.DisplayName}\n{CardTypeDisplayNames.Of(card.Type)} · 费用 {card.Cost}\n{description}",
+                    runController.SelectReward);
+            }
         }
     }
 }

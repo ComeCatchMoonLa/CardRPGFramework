@@ -100,6 +100,12 @@ namespace CardRPGFramework.Tests
             Assert.AreEqual("获得 2 层力量", CardDescriptionFormatter.Format(card));
         }
 
+        [TestCase(CardType.Attack, "攻击")]
+        [TestCase(CardType.Skill, "技能")]
+        [TestCase(CardType.Power, "能力")]
+        public void CardTypeDisplayNames_Of_UsesHandLabels(CardType type, string expected) =>
+            Assert.AreEqual(expected, CardTypeDisplayNames.Of(type));
+
         [Test]
         public void FormatWithPreview_ExhaustSkill_AlsoAppendsExhaustLine()
         {

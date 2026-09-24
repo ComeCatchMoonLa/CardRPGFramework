@@ -29,11 +29,11 @@
 
 ## 2. 奖励 UI（约 2.5h）
 
-- [ ] `CardTypeDisplayNames.Of`：攻击 / 技能 / 能力。`BattleView` 删私有 `TypeLabel`，手牌改走它。文案与现网三字一致。
-- [ ] 测试：3 条文案写进现有 `CardDescriptionFormatterTests.cs`，不新增根目录文件。
-- [ ] `RewardPageView`：三个 `CardButtonView` + 跳过按钮。卡面三行，对齐 `BattleView.RefreshHand`：`名字`、`类型 · 费用 X`、无委托 `Format`；不要拼成一行。只调 `SelectReward` / `SkipReward`；`Refresh` 只读 `RewardChoices`。绑定跟 `MapPageView` 一样走 `Start`。
-- [ ] `RewardPage` 与 Combat / Map / Result 一样给顶栏留 inset。第 1 节已建物体并默认隐藏，跳过按钮已挂；本节只铺三张卡槽。
-- [ ] 顶栏：奖励页读 Run（`!IsReady`）。选一张后顶栏牌组张数 +1 再切页。Start 仍不读 `RunConfig`。战斗中生命仍跟局内。不要另写一套顶栏刷新。
+- [x] `CardTypeDisplayNames.Of`：攻击 / 技能 / 能力。`BattleView` 删私有 `TypeLabel`，手牌改走它。文案与现网三字一致。
+- [x] 测试：3 条文案写进现有 `CardDescriptionFormatterTests.cs`，不新增根目录文件。
+- [x] `RewardPageView`：三个 `CardButtonView` + 跳过按钮。卡面三行，对齐 `BattleView.RefreshHand`：`名字`、`类型 · 费用 X`、无委托 `Format`；不要拼成一行。只调 `SelectReward` / `SkipReward`；`Refresh` 只读 `RewardChoices`。绑定跟 `MapPageView` 一样走 `Start`。
+- [x] `RewardPage` 与 Combat / Map / Result 一样给顶栏留 inset。第 1 节已建物体并默认隐藏，跳过按钮已挂；本节只铺三张卡槽。
+- [x] 顶栏：奖励页读 Run（`!IsReady`）。选一张后顶栏牌组张数 +1 再切页。Start 仍不读 `RunConfig`。战斗中生命仍跟局内。不要另写一套顶栏刷新。
 
 **阶段门槛：** 打完一场能看见三张不同的可获得卡，选或跳过后能回到地图；第三场选完去结束页。
 
