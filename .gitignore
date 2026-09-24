@@ -78,3 +78,6 @@ Thumbs.db
 
 # 日常不提交。出包/发版前须把最新版上传到 GitHub（git add -f 后再提交）。
 Assets/TextMesh Pro/Fonts/MAPLEMONO-NF-CN-REGULAR SDF.asset
+
+# 演示成片只放 GitHub Release，不进提交记录。
+Demo/
