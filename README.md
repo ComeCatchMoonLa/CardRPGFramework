@@ -2,6 +2,8 @@
 
 使用 Unity 与 C# 开发的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、战斗规则与客户端工程化能力，不追求商业级内容量。1.4 之后没有下一个小版本。版本路线见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。
 
+**下载。** [Windows 包 `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)（`CardRPGFramework.7z`，Windows 10/11 x64）。解压后运行 `CardRPGFramework.exe`：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。默认窗口 1600×900，可缩放，Alt+Enter 全屏。
+
 **运行。** 打开 `Assets/Scenes/TestScene.unity` 点 Play：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。
 
 **测试。** EditMode **320** 项。0.x～1.3 的断言没有改。
@@ -82,7 +84,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 **候选池（不排序）与演示前清单（不是版本）**
 
-商店、Luban 在候选池。出包和讲解稿在演示前清单。
+商店、Luban 在候选池。讲解稿和演示视频在演示前清单。Windows 包在 Release [`v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)。
 
 - 脆弱、再生、金属化等其它带时间语义的 Buff，`OnTurnEnd`（角色行动结束）时机，负层力量（缴械），人工制品（取消一次施加，需要极性标记），"叠加刷新保护"的变体——都没有消费者。战后三选一已在 1.3 完成（奖励池三张、可跳过；无遗物奖、无升级、无移除）。
 - 敌人的随机行动 / "不能连用同一招"（需要第二个随机源，1.0 之后随 Run 种子考虑）、敌人回合的分段动画 / 异步、Core 里的意图枚举或行动名字字段、沉睡 / 眩晕等意图变体（配置层暂不允许空行动，眩晕是"行动存在、执行前作废"，属于 Session 流程层）、第三只敌人。
@@ -93,7 +95,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - 可组合 Action（`CompositeAction`/`ConditionalAction` 等）、条件效果、随机目标、X 费、多敌人、目标选择、手牌上限。
 - 暴击、闪避、护甲穿透等规则；无实体/鸟居/钨条等更靠后的伤害挂钩点（见 [`Docs/Phase 2 扩展边界批注.md`](Docs/Phase%202%20扩展边界批注.md)）。
 - 卡牌升级、稀有度、装备、商店/事件节点、存档、战斗回放。
-- 配置驱动（Luban/Excel）、出包与静态字体（演示前清单）、正式美术、动画、音效。程序集拆分已在 1.4 完成。
+- 配置驱动（Luban/Excel）、正式美术、动画、音效。程序集拆分已在 1.4 完成。Windows 包在 Release [`v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)。
 
 ## 文档
 
@@ -153,7 +155,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 ## 已知限制
 
-- **中文字体**：TMP 默认字体 `LiberationSans SDF` 不含中文字形，目前是否已配置 Fallback 字体资产取决于本地环境；如果界面显示中文方块/警告，按 `Window → TextMeshPro → Font Asset Creator` 生成一个中文字体资产并加入 Fallback 列表（详见开发过程记录，未固化为文档）。
+- **中文字体**：界面用动态字体 Maple Mono NF CN Regular（`Assets/TextMesh Pro/Fonts/MAPLEMONO-NF-CN-REGULAR SDF.asset`，源文件是同目录的 `MAPLEMONO-NF-CN-REGULAR.TTF`）。图集 8192×8192，Multi Atlas 开着，采样点大小 96、Padding 10。`Clear Dynamic Data On Build` 开着，播放器里的字在运行时从这份 TTF 光栅。
 - **打出时序（0.1 的"`EnqueueCardAction` 结算顺序"一条，0.2 已解决）**：`BattleSession.TryPlayCard` 现在是"扣能量 → `TakeFromHand`（离手，此刻不在任何牌区）→ 按效果列表 `ToAction` 入队并 `RunAll` → 按 `ExhaustsWhenPlayed` `AddToDiscard` 或 `AddToExhaust`"。抽牌类效果结算时打出的牌已经离手，抽到的牌落在手牌末尾；抽牌堆为空触发重洗时它不在弃牌堆里，不会被洗回去。`EnqueueCardAction` 与 `CardPile.PlayCard` 已删除，见 [0.2 技术设计](Docs/开发计划/Ver%200.x/0.2/技术设计.md) 第 4.4 / 4.6 节。仍留的口子："离手到落堆"之间牌不在任何牌区，原版此时可以被"复制打出"类效果读到，那需要给 `CardPile` 加显式的"结算中"位置，出现消费者再做。
 - **"消耗"只在打出时生效**：`CardPile.DiscardHand` 与重洗都不看关键词——留在手里的坚不可摧回合结束进弃牌堆、下回合还能抽到，这是原版规则（在这里看关键词是"虚无"的语义，0.4 没有虚无）；被效果消耗（"消耗手牌中一张牌"）是另一个时机，尚无消费者。`CardType.Power = 2` 追加后，`CardData` 的越界校验拦不住 0.1 旧资产残留的整数 2（它现在是合法的能力牌），手改资产时只能靠 Inspector 核对类型。
 - **遗物钩子只有两种时机、且只入队 Action**：`IBattleStartRelic.OnBattleStart(owner, queue)` 不带对手参数（弹珠袋来了再加），钩子里只入队 Action、不直接改状态；`IApplyBuffModifier` 只能改这一次施加的 `BuffState`，不能取消施加（人工制品来了再加）；遗物没有回合开始 / 结束钩子，`LoseHp` 前也没有挂钩（钨条）。三件遗物都在玩家身上，敌人遗物没有消费者。遗物栏由 Run 提供（`RunConfig.relics` → `SetRelicDisplayNames`；默认短 Run 只配金刚杵）。`WeakDamageRule` 是 Core 里唯一按具体遗物 Id 分支的地方——改公式常数的遗物就该改对应 Rule 一处，Session 不认遗物 Id。
