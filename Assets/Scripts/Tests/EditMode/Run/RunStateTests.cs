@@ -400,5 +400,171 @@ namespace CardRPGFramework.Tests
             Assert.AreEqual(0, run.NodeIndex);
             Assert.Throws<InvalidOperationException>(() => _ = run.CurrentNodeType);
         }
+
+        private static List<CardDefinition> RewardPool()
+        {
+            var pool = new List<CardDefinition>(5);
+            for (var i = 0; i < 5; i++)
+            {
+                pool.Add(Attack($"reward_{i}"));
+            }
+
+            return pool;
+        }
+
+        private static List<string> Ids(IReadOnlyList<CardDefinition> cards)
+        {
+            var ids = new List<string>(cards.Count);
+            foreach (var card in cards)
+            {
+                ids.Add(card.Id);
+            }
+
+            return ids;
+        }
+
+        [Test]
+        public void CreateRewardChoices_AfterVictory_ReturnsThreeDistinctCardsFromPool()
+        {
+            var run = CreateRun();
+            var pool = RewardPool();
+            WinCurrent(run, 70);
+
+            var choices = run.CreateRewardChoices(pool);
+
+            Assert.AreEqual(3, choices.Count);
+            CollectionAssert.IsSubsetOf(choices, pool);
+            Assert.AreEqual(3, new HashSet<string>(Ids(choices)).Count);
+            Assert.AreEqual(1, run.NodeIndex);
+            Assert.AreEqual(10, run.Deck.Count);
+        }
+
+        [Test]
+        public void CreateRewardChoices_SameSeed_SameOrder_RepeatCallUnchanged()
+        {
+            var poolA = RewardPool();
+            var poolB = RewardPool();
+            var first = CreateRun(seed: 7);
+            var second = CreateRun(seed: 7);
+            WinCurrent(first, 70);
+            WinCurrent(second, 70);
+
+            var firstChoices = first.CreateRewardChoices(poolA);
+            var again = first.CreateRewardChoices(poolA);
+
+            CollectionAssert.AreEqual(Ids(firstChoices), Ids(second.CreateRewardChoices(poolB)));
+            CollectionAssert.AreEqual(Ids(firstChoices), Ids(again));
+            Assert.AreEqual(1, first.NodeIndex);
+            Assert.AreEqual(10, first.Deck.Count);
+        }
+
+        [Test]
+        public void CreateRewardChoices_IgnoresBattleRandomConsumption()
+        {
+            var consumed = CreateRun(seed: 7);
+            var input = consumed.CreateBattleInput();
+            for (var i = 0; i < 30; i++)
+            {
+                input.Random.Next();
+            }
+
+            consumed.ApplyResult(true, 70);
+            var clean = CreateRun(seed: 7);
+            WinCurrent(clean, 70);
+
+            CollectionAssert.AreEqual(
+                Ids(clean.CreateRewardChoices(RewardPool())),
+                Ids(consumed.CreateRewardChoices(RewardPool())));
+        }
+
+        [Test]
+        public void CreateRewardChoices_DoesNotChangeNextBattleRandom()
+        {
+            var drawn = CreateRun(seed: 7);
+            WinCurrent(drawn, 70);
+            drawn.CreateRewardChoices(RewardPool());
+            var drawnRandom = drawn.CreateBattleInput().Random;
+
+            var plain = CreateRun(seed: 7);
+            WinCurrent(plain, 70);
+            var plainRandom = plain.CreateBattleInput().Random;
+
+            for (var i = 0; i < 8; i++)
+            {
+                Assert.AreEqual(plainRandom.Next(), drawnRandom.Next());
+            }
+        }
+
+        [Test]
+        public void CreateRewardChoices_BeforeVictory_Throws()
+        {
+            Assert.Throws<InvalidOperationException>(() => CreateRun().CreateRewardChoices(RewardPool()));
+        }
+
+        [Test]
+        public void CreateRewardChoices_AfterFailed_Throws()
+        {
+            var run = CreateRun();
+            run.CreateBattleInput();
+            run.ApplyResult(false, 1);
+
+            Assert.Throws<InvalidOperationException>(() => run.CreateRewardChoices(RewardPool()));
+        }
+
+        [Test]
+        public void CreateRewardChoices_AfterCleared_Succeeds_AddCardStillAllowed()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+            WinCurrent(run, 60);
+            WinCurrent(run, 50);
+
+            Assert.IsTrue(run.IsCleared);
+            Assert.IsTrue(run.IsOver);
+            var choices = run.CreateRewardChoices(RewardPool());
+            Assert.AreEqual(3, choices.Count);
+            run.AddCard(choices[0]);
+            Assert.AreEqual(11, run.Deck.Count);
+        }
+
+        [Test]
+        public void CreateRewardChoices_NullPool_Throws()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+
+            Assert.Throws<ArgumentNullException>(() => run.CreateRewardChoices(null));
+        }
+
+        [Test]
+        public void CreateRewardChoices_PoolShorterThanThree_Throws()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+
+            Assert.Throws<ArgumentException>(() => run.CreateRewardChoices(new[] { Attack("a"), Attack("b") }));
+        }
+
+        [Test]
+        public void CreateRewardChoices_NullCard_Throws()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+            var pool = RewardPool();
+            pool[1] = null;
+
+            Assert.Throws<ArgumentException>(() => run.CreateRewardChoices(pool));
+        }
+
+        [Test]
+        public void CreateRewardChoices_DuplicateId_Throws()
+        {
+            var run = CreateRun();
+            WinCurrent(run, 70);
+            var pool = RewardPool();
+            pool.Add(Attack("reward_0"));
+
+            Assert.Throws<ArgumentException>(() => run.CreateRewardChoices(pool));
+        }
     }
 }

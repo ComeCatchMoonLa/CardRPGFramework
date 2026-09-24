@@ -6,24 +6,24 @@
 
 ## 0. 开始前检查与复核
 
-- [ ] 1.2 已提交推送；对照技术设计第 9 节：`BattleInput` 五字段、`ApplyResult` 必须先发输入、`AddCard` 通关后仍允许、遗物字典合同、`NodeType` 只有 `Combat`。
-- [ ] 奖励种子 **[已定]**：`g = unchecked(runSeed * 389 ^ rewardIndex)`；`rewardIndex = 写回后 NodeIndex - 1`；抽样与 `CardPile` 同形 Fisher-Yates 取前 3。
-- [ ] 奖励池挂在 `RunConfig`，不进 `RunState` 构造。产品拒绝 Id `Attack` / `Defend`；Core 抽取不按卡名过滤。
-- [ ] `BattleController.Begin` / `DiscardSession` / `SetRelicDisplayNames` 相对 1.2 不改合同。
+- [x] 1.2 已提交推送；对照技术设计第 9 节：`BattleInput` 五字段、`ApplyResult` 必须先发输入、`AddCard` 通关后仍允许、遗物字典合同、`NodeType` 只有 `Combat`。
+- [x] 奖励种子 **[已定]**：`g = unchecked(runSeed * 389 ^ rewardIndex)`；`rewardIndex = 写回后 NodeIndex - 1`；抽样与 `CardPile` 同形 Fisher-Yates 取前 3。
+- [x] 奖励池挂在 `RunConfig`，不进 `RunState` 构造。产品拒绝 Id `Attack` / `Defend`；Core 抽取不按卡名过滤。
+- [x] `BattleController.Begin` / `DiscardSession` / `SetRelicDisplayNames` 相对 1.2 不改合同。
 
 **阶段门槛：** 技术设计第 7 节无未拍的 **[待确认]**。**可以进第 1 节。**
 
 ## 1. 抽取与流程（约 3.5h）
 
-- [ ] `RunState.CreateRewardChoices`：按技术设计 4.1 / 4.2。构造签名不变。`CreateBattleInput` / `ApplyResult` / `AddCard` 语义相对 1.0 不变。**不要抄 `CreateBattleInput` 的 `if (IsOver)`**——第三场写回后 `IsOver` 已为 true，这时必须还能抽。
-- [ ] 测试：现有 `RunStateTests.cs` 加技术设计第 5 节的抽取项（含战斗 `Random.Next` 不改变候选、抽取不改变下一场战斗种子、**`IsCleared` 后仍能抽**、`NodeIndex == 0` / `IsFailed` 抛）。**不要重写 1.0 的 `IsCleared` / 三场写回 / `AddCard` 用例。** 不要往 EditMode 根目录加文件。这条 `IsCleared` 抽取不要省略。
-- [ ] `RunConfig`：`rewardPool` 字段、`RewardPool` getter、`TryValidate` 按 4.5（不足 3 张、重复、`Attack` / `Defend` 拒）。`CreateRunState` 仍不接收奖励池。生命 / 能量 / 手牌仍不写 80 / 3 / 5。
-- [ ] `Default.asset` 配齐 9 张可获得卡（痛击 / 双击 / 剑柄打击 / 坚不可摧 / 力量强化 / 剧毒 / 虚弱 / 易伤 / 治疗），不含打击 / 防御。
-- [ ] `RunController.ApplyOutcomeIfEnded`：Victory **无论是否通关** 都先 `ApplyResult`，再 `DiscardSession`（不清字典），再 `ShowReward`。**禁止 `Begin`，禁止在这里 `ShowMap` / `ShowResult`。** 失败仍 Result，不经奖励页。失败只认 `Phase == Defeat`。
-- [ ] `RewardChoices`：公开只读列表；未等待时为空列表，不要 null。`ShowReward` 赋值 `CreateRewardChoices`；`SelectReward` / `SkipReward` / `Restart` 清成空。`EnterCurrentNode` 在 `RewardChoices.Count != 0` 时 return。不要另做 `_awaitingReward` 再和缓存打架。Play 点不到隐藏的地图进入，不能当这道早退的锁。
-- [ ] `SelectReward` / `SkipReward`：按 4.4。产品侧 `AddCard` 只出现在 `SelectReward`（读 `RewardChoices[index]`）。选完 / 跳过：未通关 `ShowMap`，通关 `ShowResult`（这时才 `SetOutcome`）。`ShowReward` / `ShowMap` / `SelectReward` / `SkipReward` 都要能刷到顶栏（`RefreshShell`）。
-- [ ] `SetPages` 五页；`Restart` 回 Start 时奖励页隐藏。没有 `Update`。产品侧 `battleController.Begin` 只出现在 `EnterCurrentNode`。
-- [ ] `TestScene` **本节**加默认隐藏的 `RewardPage` 并接到 `rewardPage` / `rewardPageView`；**跳过按钮本节就挂上**（可以先没文案）。三张卡槽仍第 2 节；`Refresh` 在槽未接线时跳过。`RewardPageView.Start`：`skipButton == null` 则 return。不要等第 2 节才建物体，否则 `ShowReward` 没有对象。
+- [x] `RunState.CreateRewardChoices`：按技术设计 4.1 / 4.2。构造签名不变。`CreateBattleInput` / `ApplyResult` / `AddCard` 语义相对 1.0 不变。**不要抄 `CreateBattleInput` 的 `if (IsOver)`**——第三场写回后 `IsOver` 已为 true，这时必须还能抽。
+- [x] 测试：现有 `RunStateTests.cs` 加技术设计第 5 节的抽取项（含战斗 `Random.Next` 不改变候选、抽取不改变下一场战斗种子、**`IsCleared` 后仍能抽**、`NodeIndex == 0` / `IsFailed` 抛）。**不要重写 1.0 的 `IsCleared` / 三场写回 / `AddCard` 用例。** 不要往 EditMode 根目录加文件。这条 `IsCleared` 抽取不要省略。
+- [x] `RunConfig`：`rewardPool` 字段、`RewardPool` getter、`TryValidate` 按 4.5（不足 3 张、重复、`Attack` / `Defend` 拒）。`CreateRunState` 仍不接收奖励池。生命 / 能量 / 手牌仍不写 80 / 3 / 5。
+- [x] `Default.asset` 配齐 9 张可获得卡（痛击 / 双击 / 剑柄打击 / 坚不可摧 / 力量强化 / 剧毒 / 虚弱 / 易伤 / 治疗），不含打击 / 防御。
+- [x] `RunController.ApplyOutcomeIfEnded`：Victory **无论是否通关** 都先 `ApplyResult`，再 `DiscardSession`（不清字典），再 `ShowReward`。**禁止 `Begin`，禁止在这里 `ShowMap` / `ShowResult`。** 失败仍 Result，不经奖励页。失败只认 `Phase == Defeat`。
+- [x] `RewardChoices`：公开只读列表；未等待时为空列表，不要 null。`ShowReward` 赋值 `CreateRewardChoices`；`SelectReward` / `SkipReward` / `Restart` 清成空。`EnterCurrentNode` 在 `RewardChoices.Count != 0` 时 return。不要另做 `_awaitingReward` 再和缓存打架。Play 点不到隐藏的地图进入，不能当这道早退的锁。
+- [x] `SelectReward` / `SkipReward`：按 4.4。产品侧 `AddCard` 只出现在 `SelectReward`（读 `RewardChoices[index]`）。选完 / 跳过：未通关 `ShowMap`，通关 `ShowResult`（这时才 `SetOutcome`）。`ShowReward` / `ShowMap` / `SelectReward` / `SkipReward` 都要能刷到顶栏（`RefreshShell`）。
+- [x] `SetPages` 五页；`Restart` 回 Start 时奖励页隐藏。没有 `Update`。产品侧 `battleController.Begin` 只出现在 `EnterCurrentNode`。
+- [x] `TestScene` **本节**加默认隐藏的 `RewardPage` 并接到 `rewardPage` / `rewardPageView`；**跳过按钮本节就挂上**（可以先没文案）。三张卡槽仍第 2 节；`Refresh` 在槽未接线时跳过。`RewardPageView.Start`：`skipButton == null` 则 return。不要等第 2 节才建物体，否则 `ShowReward` 没有对象。
 
 **阶段门槛：** 产品侧 Victory 必须能看见奖励页（可以先是空页）；等待奖励时不能 `Begin` 下一场。
 

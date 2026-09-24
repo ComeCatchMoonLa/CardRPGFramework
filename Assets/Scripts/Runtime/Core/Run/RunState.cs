@@ -172,5 +172,53 @@ namespace CardRPGFramework.Core.Run
 
             _deck.Add(card);
         }
+
+        /// <summary>
+        /// 从 pool 无放回抽 3 张。第三场写回后 IsOver 已为 true，这时仍要能抽，不能抄 CreateBattleInput 的 IsOver。
+        /// </summary>
+        public IReadOnlyList<CardDefinition> CreateRewardChoices(IReadOnlyList<CardDefinition> pool)
+        {
+            if (pool == null)
+            {
+                throw new ArgumentNullException(nameof(pool));
+            }
+
+            if (pool.Count < 3)
+            {
+                throw new ArgumentException("奖励池不足 3 张", nameof(pool));
+            }
+
+            var copy = new List<CardDefinition>(pool.Count);
+            var seen = new HashSet<string>();
+            for (var i = 0; i < pool.Count; i++)
+            {
+                var card = pool[i];
+                if (card == null)
+                {
+                    throw new ArgumentException($"pool[{i}] 为 null", nameof(pool));
+                }
+
+                if (!seen.Add(card.Id))
+                {
+                    throw new ArgumentException($"奖励池卡牌 Id 重复: {card.Id}", nameof(pool));
+                }
+
+                copy.Add(card);
+            }
+
+            if (IsFailed || NodeIndex == 0)
+            {
+                throw new InvalidOperationException("尚未胜利或本局已失败，不能抽取奖励");
+            }
+
+            var rng = new Random(unchecked(RunSeed * 389 ^ (NodeIndex - 1)));
+            for (var i = copy.Count - 1; i > 0; i--)
+            {
+                var j = rng.Next(i + 1);
+                (copy[i], copy[j]) = (copy[j], copy[i]);
+            }
+
+            return copy.GetRange(0, 3);
+        }
     }
 }

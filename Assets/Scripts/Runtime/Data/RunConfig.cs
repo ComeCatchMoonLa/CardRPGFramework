@@ -20,9 +20,11 @@ namespace CardRPGFramework.Data
         [SerializeField] private List<CardData> deck = new();
         [SerializeField] private List<RelicData> relics = new();
         [SerializeField] private List<EnemyData> encounters = new();
+        [SerializeField] private List<CardData> rewardPool = new();
 
         public int RunSeed => runSeed;
         public IReadOnlyList<RelicData> Relics => relics;
+        public IReadOnlyList<CardData> RewardPool => rewardPool;
 
         /// <summary>假定已通过校验；不默默填 80 / 10 张 / 1 遗物。</summary>
         public RunState CreateRunState()
@@ -104,6 +106,11 @@ namespace CardRPGFramework.Data
                 return false;
             }
 
+            if (!TryValidateRewardPool(out error))
+            {
+                return false;
+            }
+
             if (encounters == null || encounters.Count != 3)
             {
                 error = "RunConfig: encounters 必须恰好 3 个";
@@ -147,6 +154,46 @@ namespace CardRPGFramework.Data
                 if (!seenIds.Add(relic.Id))
                 {
                     error = $"RunConfig: 遗物 id '{relic.Id}' 重复（'{relic.name}'），同一件遗物不能持有两份";
+                    return false;
+                }
+            }
+
+            error = null;
+            return true;
+        }
+
+        private bool TryValidateRewardPool(out string error)
+        {
+            if (rewardPool == null || rewardPool.Count < 3)
+            {
+                error = "RunConfig: rewardPool 不足 3 张";
+                return false;
+            }
+
+            var seenIds = new HashSet<string>();
+            for (var i = 0; i < rewardPool.Count; i++)
+            {
+                var card = rewardPool[i];
+                if (card == null)
+                {
+                    error = $"RunConfig: rewardPool[{i}] 不能为空";
+                    return false;
+                }
+
+                if (!card.TryValidate(out error))
+                {
+                    return false;
+                }
+
+                if (card.Id == "Attack" || card.Id == "Defend")
+                {
+                    error = $"RunConfig: rewardPool 不能包含 '{card.Id}'";
+                    return false;
+                }
+
+                if (!seenIds.Add(card.Id))
+                {
+                    error = $"RunConfig: 奖励池卡牌 id '{card.Id}' 重复（'{card.name}'），三张必须能互不相同";
                     return false;
                 }
             }
