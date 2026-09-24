@@ -97,9 +97,23 @@
 
 短 Run 完成定义见总设计 [第 8 节](游戏设计.md)，已勾。
 
-## 1.4 Core.asmdef（可选）
+## 1.4 Core.asmdef（已完成，可选）
 
-把 `Core` 拆成独立程序集（`Core.asmdef`，零 `UnityEngine` 引用），让"纯 C# 战斗规则"从约定变成编译约束；`Data` / `Controllers` / `Views` 留在 Unity 侧。不为它倒逼 1.0～1.3 改引用。三件套已转正，按 TODO 第 1 节开工。
+文档：[`1.4/游戏设计.md`](1.4/游戏设计.md) / [`1.4/技术设计.md`](1.4/技术设计.md) / [`1.4/TODO.md`](1.4/TODO.md)。
+
+- `Core/Core.asmdef`：程序集名 `CardRPGFramework.Core`，`noEngineReferences: true`，`references` 为空。
+- `Runtime.asmdef` 与 `Tests.asmdef` 显式追加这条引用。不搬家、不改命名空间、不改玩法。
+
+| 已有 | 说明 |
+| --- | --- |
+| `Core.asmdef` | 在 `Runtime/Core/` 内；Inspector 上 No Engine References 已勾 |
+| `Runtime` / Tests | 仍保留 TMP、UI、`Runtime` 与 TestRunner；Tests 同时引用 Core |
+| 玩法 | 短 Run 与奖励页相对 1.3 不变 |
+| 测试 | 320 项 EditMode，0.x～1.3 断言未改 |
+
+**证明的边界**：Core 零 `UnityEngine` 从约定变成编译约束。
+
+1.4 之后无下一个小版本三件套。剩下的是文末演示前清单与候选池。
 
 ## 演示前清单（不是版本）
 

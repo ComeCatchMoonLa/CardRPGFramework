@@ -1,8 +1,18 @@
 {
-	"name": "Runtime",
-	"rootNamespace": "CardRPGFramework",
-	"references": [
-		"Unity.TextMeshPro",
-		"UnityEngine.UI"
-	]
+    "name": "Runtime",
+    "rootNamespace": "CardRPGFramework",
+    "references": [
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "CardRPGFramework.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**0.1（Phase 1 + Phase 2a/2b/2c）、0.2（效果列表）、0.3（可见规则）、0.4（消耗堆与能力牌）、0.5（遗物三钩子）、0.6（敌人行动表）、0.7（回合型 Buff）、1.0（`RunState`，无 UI）、1.1（Run 壳与战斗接入）、1.2（地图枢纽）与 1.3（战后三选一）已完成；下一步是 1.4（可选 `Core.asmdef`）。** 版本路线与各版本文档见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)：局内卡牌战斗已补齐，局外状态已出现，可以从开始页经地图打完三场到结束页（场间经奖励页回地图，第三场经奖励页去结束页）；短 Run 完成定义已勾；出包与演示是演示前清单，不是版本。
+**0.1（Phase 1 + Phase 2a/2b/2c）、0.2（效果列表）、0.3（可见规则）、0.4（消耗堆与能力牌）、0.5（遗物三钩子）、0.6（敌人行动表）、0.7（回合型 Buff）、1.0（`RunState`，无 UI）、1.1（Run 壳与战斗接入）、1.2（地图枢纽）、1.3（战后三选一）与 1.4（可选 `Core.asmdef`）已完成。** 版本路线与各版本文档见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)：局内卡牌战斗已补齐，局外状态已出现，可以从开始页经地图打完三场到结束页（场间经奖励页回地图，第三场经奖励页去结束页）；短 Run 完成定义已勾。1.4 之后没有下一个小版本，剩下的是候选池与演示前清单。
 
 Phase 1 已完成：可以在 `TestScene` 的 Play 模式里从战斗开始一路操作到胜利或失败，Core 战斗规则、ScriptableObject 配置、Unity 表现层全部接通。
 
@@ -35,6 +35,8 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 **1.2（地图枢纽）已完成**：地图成为短 Run 枢纽。`StartRun` 只建 `RunState` 并上地图，不 `Begin`；进入当前节点才按 `NodeType` 分发（本版枚举只有 `Combat`）。战斗胜利未通关则 `DiscardSession` 回地图，禁止在 `ApplyOutcomeIfEnded` 里 `Begin` 下一场；通关 / 失败仍 Result。`BattleSession` / `BattleInput` / `BattleSetup` 不认识 `NodeType`。地图三个点一条线、一个进入按钮，圆点只展示。测试 306 项：0.x～1.1 断言未改；`RunStateTests` 加 4 项 NodeType。
 
 **1.3（战后三选一）已完成**：奖励抽卡发生在战斗页之外。胜利无论是否通关都先 `ApplyResult`、`DiscardSession`，再上奖励页；选一张 `AddCard` 或跳过之后，未通关回地图，已通关去结束页。失败不经奖励页。`RunState.CreateRewardChoices` 用 `g(runSeed, rewardIndex) = unchecked(runSeed * 389 ^ (NodeIndex - 1))` 自己 `new Random`，与战斗 `Random` 互不消费；第三场写回后 `IsCleared` 仍能抽。奖励池挂在 `RunConfig`，不进 `RunState` 构造。`NodeType` 仍只有 `Combat`。测试 320 项：0.x～1.2 断言未改。
+
+**1.4（`Core.asmdef`，可选）已完成**：`Assets/Scripts/Runtime/Core/Core.asmdef` 程序集名 `CardRPGFramework.Core`，`noEngineReferences: true`。`Runtime.asmdef` 与 `Tests.asmdef` 显式引用它。不搬家、不改命名空间、不改玩法。测试仍 320 项，0.x～1.3 断言未改。
 
 对照历史计划 [`MVP计划与迭代计划.MD`](Docs/开发计划/Ver%200.x/0.1/MVP计划与迭代计划.MD) 的完成标准：战斗可玩、卡牌数量（当前 18 张）、5 种效果（伤害/格挡/治疗/HP Loss/Buff）、规则系统、简单 AI（0.6 的固定循环行动表，不做随机）均已达成；Buff 目前 4 种；配置驱动（Luban）不再按该文档的 Phase 3 推进，进 1.2+ 候选池，见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。
 
@@ -72,7 +74,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - 可组合 Action（`CompositeAction`/`ConditionalAction` 等）、条件效果、随机目标、X 费、多敌人、目标选择、手牌上限。
 - 暴击、闪避、护甲穿透等规则；无实体/鸟居/钨条等更靠后的伤害挂钩点（见 [`Docs/Phase 2 扩展边界批注.md`](Docs/Phase%202%20扩展边界批注.md)）。
 - 卡牌升级、稀有度、装备、商店/事件节点、存档、战斗回放。
-- 配置驱动（Luban/Excel）、出包与静态字体（演示前清单）、程序集拆分（1.4）、正式美术、动画、音效。
+- 配置驱动（Luban/Excel）、出包与静态字体（演示前清单）、正式美术、动画、音效。程序集拆分已在 1.4 完成。
 
 ## 文档
 
@@ -82,7 +84,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - 1.1（已完成）Run 壳：[游戏设计](Docs/开发计划/Ver%201.x/1.1/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.1/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.1/TODO.md)
 - 1.2（已完成）地图枢纽：[游戏设计](Docs/开发计划/Ver%201.x/1.2/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.2/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.2/TODO.md)
 - 1.3（已完成）战后三选一：[游戏设计](Docs/开发计划/Ver%201.x/1.3/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.3/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.3/TODO.md)
-- 下一版本 1.4（可选，已转正）：[`Docs/开发计划/Ver 1.x/1.4/`](Docs/开发计划/Ver%201.x/1.4/)
+- 1.4（已完成，可选）`Core.asmdef`：[游戏设计](Docs/开发计划/Ver%201.x/1.4/游戏设计.md) / [技术设计](Docs/开发计划/Ver%201.x/1.4/技术设计.md) / [TODO](Docs/开发计划/Ver%201.x/1.4/TODO.md)
 - 0.7（已完成）回合型 Buff：[游戏设计](Docs/开发计划/Ver%200.x/0.7/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.7/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.7/TODO.md)
 - 0.6（已完成）敌人行动表：[游戏设计](Docs/开发计划/Ver%200.x/0.6/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.6/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.6/TODO.md)
 - 0.5（已完成）遗物三钩子：[游戏设计](Docs/开发计划/Ver%200.x/0.5/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.5/TODO.md)
@@ -119,12 +121,12 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 ## 目录说明
 
-- `Assets/Scripts/Runtime/`：C# 代码，`Runtime.asmdef` 单一程序集（引用 `Unity.TextMeshPro`、`UnityEngine.UI`），按依赖方向分四层：
+- `Assets/Scripts/Runtime/`：C# 代码。`Core/Core.asmdef`（`CardRPGFramework.Core`，`noEngineReferences: true`）只包住 `Core/`。`Runtime.asmdef` 引用 `Unity.TextMeshPro`、`UnityEngine.UI` 与 `CardRPGFramework.Core`。按依赖方向分四层：
   - `Core/`：纯 C# 战斗规则（`Battle`/`Combatants`/`Cards`/`Actions`/`Effects`/`Buffs`/`Rules`/`Relics`/`Enemies`/`Run`），不引用 `UnityEngine`。`Actions` 只知道"排队和执行"，`Effects` 只知道"怎么改 `CombatantState`"，两者互不知道调用方是谁（详见 [Phase 2a 技术设计](Docs/开发计划/Ver%200.x/0.1/Phase%202a/技术设计.md)）；`Buffs` 保存 Buff 核心状态，只有需要生命周期行为的 Buff 才额外实现 `IBuffTrigger`，触发逻辑下沉到具体子类自己实现（详见 [Phase 2b 技术设计](Docs/开发计划/Ver%200.x/0.1/Phase%202b/技术设计.md)）；回合型 Buff（虚弱 / 易伤）继承 `DurationBuff` 并由它实现 `IRoundEndTrigger`，轮末减层与刚施加保护都在这一层、`BuffState` 不加字段，`Battle` 的三个固定时机（开战遗物 / 回合开始 Buff / 轮结束）各是一个独立遍历、不合并成事件（详见 [0.7 技术设计](Docs/开发计划/Ver%200.x/0.7/技术设计.md)）；`Rules` 是纯函数（只读 Buff、只写伤害数值），固定两段管线写死在 `DamageCalculator` 内部，不做注册引擎（详见 [Phase 2c 技术设计](Docs/开发计划/Ver%200.x/0.1/Phase%202c/技术设计.md)）；`Cards` 里的 `EffectSpec` 是封闭的五种效果原语，只描述"做什么、对谁、多少"、不带执行逻辑，把它变成 Action 的地方只有 `BattleSession.ToAction`，`Cards` 不引用 `Actions` / `Buffs`（Buff 只是字符串 Id，由 `Buffs/BuffFactory` 解析）（详见 [0.2 技术设计](Docs/开发计划/Ver%200.x/0.2/技术设计.md)）；`Battle` 另暴露两个只读预览，复用 `Rules` 的 `DamageCalculator`，是界面上公式后数字的唯一来源（详见 [0.3 技术设计](Docs/开发计划/Ver%200.x/0.3/技术设计.md)）；打出后的去向由 `Cards` 里的 `CardDefinition.ExhaustsWhenPlayed`（类型默认 + 消耗关键词）回答，`CardPile` 是四个牌区的哑容器、消耗堆只进不出，`Battle` 只问结果、不认类型（详见 [0.4 技术设计](Docs/开发计划/Ver%200.x/0.4/技术设计.md)）；`Buffs/BuffIds` 是 Buff Id 字面量的唯一出处；`Relics` 是遗物基础设施与三件标本——遗物不是 Buff，挂在 `CombatantState` 独立列表里，钩子形状与 `IBuffTrigger` 相同（开战钩子只入队 Action、施加钩子直接改这一次的 `BuffState`），改公式常数的遗物不设钩子、由对应 Rule 读"是否持有"，`Battle` 只认 `RelicState` 与 `IBattleStartRelic`（详见 [0.5 技术设计](Docs/开发计划/Ver%200.x/0.5/技术设计.md)）；`Enemies` 是敌人定义与行动表——`EnemyAction` = 效果列表、`EnemyDefinition` = 血量 + 至少一条行动，只引用 `Cards`、和 `Cards` 一样只描述不执行；`Battle` 按行动表固定循环执行敌人回合，`ToAction` 是卡牌与敌人行动共用的唯一 `EffectSpec → IAction` 转换点，`Session` 里没有任何敌人 Id 或按敌人的分支（详见 [0.6 技术设计](Docs/开发计划/Ver%200.x/0.6/技术设计.md)）；`Run` 是局外状态——`RunState` 输出 `BattleInput`、接收 `ApplyResult`、提供 `AddCard` 与 `CreateRewardChoices`，节点带 `NodeType`（本版只有 `Combat`），不创建 `BattleSession`（详见 [1.0 技术设计](Docs/开发计划/Ver%201.x/1.0/技术设计.md) / [1.3 技术设计](Docs/开发计划/Ver%201.x/1.3/技术设计.md)）；产品侧 `Begin` 只在进入当前战斗节点，胜利后先奖励页（详见 [1.2 技术设计](Docs/开发计划/Ver%201.x/1.2/技术设计.md) / [1.3 技术设计](Docs/开发计划/Ver%201.x/1.3/技术设计.md)）。
   - `Data/`：`CardData`（含 `exhaust` 勾选）/`EffectSpecData`/`RelicData`/`EnemyData`/`EnemyActionData`/`RunConfig`（含 `encounters` 三场敌人、`relics` 列表与 `rewardPool`）等 ScriptableObject 配置定义，`Data → Core` 单向依赖，`ToDefinition` 把可序列化的效果条目转成 `EffectSpec`（卡牌与敌人行动共用 `EffectSpecData`），`CreateRunState` 把一局开战配置落成 `RunState`。必填字段不给能通过校验的默认值，漏填在启动校验就报出来。`BattleConfig` 已删除。
   - `Controllers/`：`RunController` 持有唯一一份 `RunConfig` 与 `RunState`，是局内命令与开局 / 进节点 / 再来一局的入口；`BattleController` 只负责 `Begin` / `DiscardSession` / 转发命令与只读状态、把遗物 Id 翻成显示名（`RelicDisplayName` / `SetRelicDisplayNames`）。
   - `Views/`：`RunShellView`/`StartPageView`/`MapPageView`/`BattleView`/`RewardPageView`/`ResultPageView`/`CardButtonView` 与纯函数 `CardDescriptionFormatter`/`IntentFormatter`/`BuffDisplayNames`/`CardTypeDisplayNames`，纯显示与输入捕获，不直接调用 `Core`/`Data`，不复算任何伤害公式（描述生成器只读 `CardDefinition` 与一个 `int → int` 预览委托；奖励页用无委托版本；意图生成器只读 `EnemyAction` 与 Controller 转发的预览总和）；卡面类型中文在 `CardTypeDisplayNames`，消耗关键词行由 `CardDescriptionFormatter` 追加；遗物行的显示名问 Controller，不设 `RelicDisplayNames`。`EndScreenView` 已删除。
-- `Assets/Scripts/Tests/EditMode/`：`Core`、`Data` 校验与纯函数 View（卡面文案、意图文案）的 EditMode 单元测试（`Tests.asmdef`；`BattleSessionTests` 的七个 partial 在 `BattleSession/` 子目录；`RunStateTests` 在 `Run/` 子目录；根目录到 15 个测试文件，0.7 起新文件进子目录）。Controllers/带 MonoBehaviour 的 Views 是薄封装/展示层，按技术设计文档的测试策略不做单元测试，靠 Play 模式手动验收。
+- `Assets/Scripts/Tests/EditMode/`：`Core`、`Data` 校验与纯函数 View（卡面文案、意图文案）的 EditMode 单元测试（`Tests.asmdef` 同时引用 `Runtime` 与 `CardRPGFramework.Core`；`BattleSessionTests` 的七个 partial 在 `BattleSession/` 子目录；`RunStateTests` 在 `Run/` 子目录；根目录到 15 个测试文件，0.7 起新文件进子目录）。Controllers/带 MonoBehaviour 的 Views 是薄封装/展示层，按技术设计文档的测试策略不做单元测试，靠 Play 模式手动验收。
 - `Assets/Data/Cards/`、`Assets/Data/Relics/`、`Assets/Data/Enemies/`、`Assets/Data/Runs/`：运行时 ScriptableObject 配置资产（攻击/防御/治疗/力量强化（能力）/剧毒/虚弱/易伤/痛击/双击/剑柄打击/坚不可摧（消耗）共 11 种卡牌；金刚杵/蛇颅骨/纸鹤三件遗物；颚虫 / 固定攻击敌人 / 蓝奴隶贩子三份 `EnemyData`；`Runs/Default`：80 血、10 张起始牌、1 件金刚杵、三场 颚虫 / 蓝奴隶贩子 / 颚虫、奖励池 9 张可获得卡）。
 - `Assets/Scenes/`：Unity 场景，`TestScene` 是 Run 壳（Start / Map / Combat / Reward / Result + 常驻顶栏；`RunController` + `BattleController`）。
 - `Docs/`：设计文档。`开发计划/` 按版本存放各版本的游戏设计 / 技术设计 / TODO（`Ver 0.x/0.1/` 是已完成的 Phase 1 / 2 与历史 MVP 计划）；`详细游戏设计文档参考/` 是杀戮尖塔局内规则对照表；根目录是跨版本的机制研究、扩展边界批注、AI 协作分工与启动期设计思路。
