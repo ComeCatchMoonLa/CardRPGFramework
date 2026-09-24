@@ -39,10 +39,10 @@
 
 ## 3. 联调与验收（约 1.5h）
 
-- [ ] Play：对照游戏设计第 4 节与总设计第 8 节。每场胜利都经奖励页；跳过张数不变；第一场选的卡第二场能抽到；第二场开局生命 = 第一场结束生命；第三场选完去 Result（摘要含新卡）；**第三场点跳过仍进通关结束页，摘要张数不含新卡**（停在奖励页则 1.0 测试仍会绿）；中途死亡不经奖励页；再来一局后 `遗物：无`；奖励池漏配进不了局。场间若仍直接 `ShowMap` / 通关仍直接 Result，1.0 测试仍会绿，靠这一条 Play 锁。
-- [ ] 不要重写 1.0 的 `IsCleared` / `AddCard` 用例，也不要补「Victory 未通关自动 `ShowMap`」的 1.2 复述。
-- [ ] grep：`RunController.cs` 无 `Update`；`battleController.Begin` 只在 `EnterCurrentNode`；`EnterCurrentNode` 早退能看到 `RewardChoices`；`ApplyResult` 只在 `ApplyOutcomeIfEnded`；产品侧 `AddCard` 只在 `SelectReward`；`NodeType.cs` 仍只有 `Combat`；`Core/Battle/`、`BattleInput.cs`、`BattleSetup` 无奖励类型；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
-- [ ] 全部 EditMode；0.x～1.2 断言未改。
+- [x] Play：对照游戏设计第 4 节与总设计第 8 节。每场胜利都经奖励页；跳过张数不变；第一场选的卡第二场能抽到；第二场开局生命 = 第一场结束生命；第三场选完去 Result（摘要含新卡）；**第三场点跳过仍进通关结束页，摘要张数不含新卡**（停在奖励页则 1.0 测试仍会绿）；中途死亡不经奖励页；再来一局后 `遗物：无`；奖励池漏配进不了局。场间若仍直接 `ShowMap` / 通关仍直接 Result，1.0 测试仍会绿，靠这一条 Play 锁。
+- [x] 不要重写 1.0 的 `IsCleared` / `AddCard` 用例，也不要补「Victory 未通关自动 `ShowMap`」的 1.2 复述。
+- [x] grep：`RunController.cs` 无 `Update`；`battleController.Begin` 只在 `EnterCurrentNode`；`EnterCurrentNode` 早退能看到 `RewardChoices`；`ApplyResult` 只在 `ApplyOutcomeIfEnded`；产品侧 `AddCard` 只在 `SelectReward`；`NodeType.cs` 仍只有 `Combat`；`Core/Battle/`、`BattleInput.cs`、`BattleSetup` 无奖励类型；`BattleView` 不调 `battleController.PlayCard` / `EndTurn`；`Begin` / `DiscardSession` 不碰 `_relicDisplayNames`。
+- [x] 全部 EditMode；0.x～1.2 断言未改。
 
 ## 4. 文档与交付（约 0.5h）
 
