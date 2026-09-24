@@ -1,5 +1,6 @@
 ---
 name: reviewer
+model: grok-4.7[context=500k,reasoning_effort=xhigh,fast=true]
 description: >-
   Use when the user explicitly asks for review, reviewer, 审查,
   or /reviewer after a completed implementation slice.
@@ -23,7 +24,7 @@ readonly: true
 - 相关设计文档
 - 测试代码
 
-对照当前小版本的 `TODO.md` / `技术设计.md` / `游戏设计.md`（入口：`Docs/开发计划/README.md`）。
+对照当前小版本的 `TODO.md` / `技术设计.md` / `游戏设计.md`（入口：`Docs/开发计划/README.md`）。大纲没有未标「（已完成）」的节时，对照用户点名的文档，不从候选池或演示前清单开工。
 
 以当前切片新增 / 修改的行为为中心。未触及的历史问题只有影响本次改动的正确性才记为 Concern；不阻塞、不要求顺手修——发现 `CardType` 从 0 编号这类已接受的旧偏差，不因此 REQUEST CHANGES。
 

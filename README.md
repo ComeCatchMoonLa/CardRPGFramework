@@ -38,7 +38,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 **1.4（`Core.asmdef`，可选）已完成**：`Assets/Scripts/Runtime/Core/Core.asmdef` 程序集名 `CardRPGFramework.Core`，`noEngineReferences: true`。`Runtime.asmdef` 与 `Tests.asmdef` 显式引用它。不搬家、不改命名空间、不改玩法。测试仍 320 项，0.x～1.3 断言未改。
 
-对照历史计划 [`MVP计划与迭代计划.MD`](Docs/开发计划/Ver%200.x/0.1/MVP计划与迭代计划.MD) 的完成标准：战斗可玩、卡牌数量（当前 18 张）、5 种效果（伤害/格挡/治疗/HP Loss/Buff）、规则系统、简单 AI（0.6 的固定循环行动表，不做随机）均已达成；Buff 目前 4 种；配置驱动（Luban）不再按该文档的 Phase 3 推进，进 1.2+ 候选池，见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。
+对照历史计划 [`MVP计划与迭代计划.MD`](Docs/开发计划/Ver%200.x/0.1/MVP计划与迭代计划.MD) 的完成标准：战斗可玩、卡牌数量（当前 18 张）、5 种效果（伤害/格挡/治疗/HP Loss/Buff）、规则系统、简单 AI（0.6 的固定循环行动表，不做随机）均已达成；Buff 目前 4 种；配置驱动（Luban）不再按该文档的 Phase 3 推进，见 [`Docs/开发计划/Ver 1.x/README.md`](Docs/开发计划/Ver%201.x/README.md) 文末候选池。
 
 **已完成**
 
@@ -63,7 +63,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - `BattleView` / `CardButtonView` / `RunShellView` / `StartPageView` / `MapPageView` / `RewardPageView` / `ResultPageView` / `CardDescriptionFormatter` / `IntentFormatter` / `BuffDisplayNames`：最小 UI。局内命令只打 `RunController`；战斗页只读状态仍读 `BattleController`。显示双方状态（敌人状态行带名字：`颚虫 HP 42/42  格挡 0`）与 Buff 行（`名称 层数`，多条用两个空格连接，0 层不显示）、遗物行（`遗物：金刚杵  蛇颅骨  纸鹤`，无遗物写 `遗物：无`，Id 读 `Player.Relics`、名字问 Controller，Buff 行里不出现遗物）、能量、牌堆数量行（`抽牌 X  弃牌 Y  消耗 Z`）、回合、敌人意图、手牌与最近操作结果。开始页点一次到地图，进入当前节点才开战；胜利先到奖励页，未通关再回地图，通关去 Result；失败不经奖励页，直接 Result（`再来一局`）。地图三个点一条线、一个进入按钮，圆点只展示（已完成灰 / 当前高亮 / 未到暗），不印敌人名。顶栏 `RunShellView` 常驻：Start（`Run == null`）不读 `RunConfig`（`生命 --/--`、`遗物：无`），地图页生命读 Run，战斗中生命跟局内。意图文案由纯函数 `IntentFormatter.Format(EnemyAction, int)` 从当前行动的效果列表推导：Damage 段合成一项 `攻击 N`（N 是 Controller 转发的 Core 预览总和），`Block` → `防御`，`ApplyBuff(Self)` / `Heal` → `增益`，`ApplyBuff(Opponent)` → `减益`，按首次出现顺序去重、` · ` 连接，空行动 → `待机`；与卡面描述同一条路，Core 里没有意图枚举。卡面为 `名字 / 类型 · 费用 X / 描述`，类型中文（攻击 / 技能 / 能力）在 `CardTypeDisplayNames`；描述由 `CardDescriptionFormatter` 从效果列表逐条生成，勾消耗的牌末行追加 `消耗`（能力牌不印，类型标签已说明去向）：无委托版本只用基础数值（1.3 奖励页用），带 `Func<int,int>` 委托的重载只把 Damage 行换成 Controller 转发的预览值、其余行不变；两者都只收 `CardDefinition`、不依赖 Controller。View 不复算任何公式常数。Buff 中文名只在 `BuffDisplayNames` 维护一份。删除 `EndScreenView`。
 - EditMode 测试覆盖伤害/格挡/治疗/生命值损失边界、Buff 容器与中毒触发链路、`BuffFactory` 四个 Id 与未知 Id、伤害规则单独验证与组合取整时机、抽牌/弃牌/重洗与固定种子洗牌、`TakeFromHand` 后立刻重洗不含该牌、`ActionQueue` 的执行顺序与重入入队、Effect 转发、`EffectSpec` 构造校验、`CardDefinition` 效果列表拷贝与空列表拒绝、`EffectSpecData` 校验（未知 buffId / value ≤ 0 / Damage + Self）、卡面文案、`BattleSession` 的合法流程与关键拒绝路径（含中毒致死立即胜利、跳过敌人攻击；敌人固定攻击迁移到 `DamageAction` 管线后无 Buff 时数值与 Phase 1 一致），抽牌堆耗尽后经过完整战斗流程仍能正确重洗弃牌堆，三张锚点卡（痛击的 8 点不吃自己刚施加的易伤、双击对易伤敌人 14 而非 15、剑柄打击手牌数不变且重洗不含刚打出的那张），预览 = 结算（先预览再打出 / 结束回合，HP 差值等于预览值：易伤 9、2 层力量 + 易伤 12、敌人虚弱 4；痛击预览不含自己即将施加的易伤；连续预览不改状态）与卡面预览重载（双击两段各换、痛击的易伤行不变、Block 行不换、null 委托抛异常），以及消耗堆（`CardDefinition` 三种去向与默认 false；`CardPile` 的 `AddToExhaust` / null 抛异常 / 重洗只回收弃牌堆 / 两堆皆空不取消耗堆 / `DiscardHand` 不看关键词；`BattleSession` 打出能力牌后连续三回合重洗都抽不到它、四区之和恒等于牌组张数、坚不可摧格挡 30 进消耗堆而留手进弃牌堆、0.1 的 `Strength()` 仍是技能进弃牌堆；卡面 `消耗` 行：勾消耗的技能印、能力牌不印、预览重载同样追加），以及遗物（`CombatantState` 遗物列表 4 项，用测试内 `FakeRelic` 不依赖三件遗物；`RelicFactory` 三个 Id 各返回正确类型 / `IsKnown` 三真三假 / 未知抛异常 10 项；`BattleSessionTests.Relics.cs` 16 项——开战钩子先用替身锁接线：只触发一次、队列被结算、重复 `StartBattle` 不再触发、无钩子的遗物被忽略；金刚杵开战力量 1 且 `PreviewPlayerAttack(6) == 7`、打出后 HP 差 7；蛇颅骨打出剧毒 4 层、只配蛇颅骨时力量强化仍 2 层；纸鹤下 `PreviewEnemyAttack() == 3`、结束回合掉 3、玩家自带虚弱时 `PreviewPlayerAttack(6) == 4`；三件同配 `Buffs` 里只有力量且没有任何遗物 Id；`ActionQueueTests` 施加方持蛇颅骨中毒 3 → 4、力量不变、施加方无遗物不变、只目标持有不生效 4 项；`DamageRuleTests` 目标持纸鹤 6 → 3.6 否则 4.5、施加方持有不生效、层数无关、无虚弱不变 4 项），以及敌人行动表（`EnemyDefinitionTests` 14 项：`EnemyAction` null / 含 Draw / 含 default / 空允许 / 拷贝，`EnemyDefinition` 的 id / displayName / maxHp / actions 校验与拷贝保留元素引用；`BattleSessionTests.Enemies.cs` 12 项——颚虫 42 血、循环回绕 `[0]→[1]→[2]→[0]→[1]`、咬 11 / 猛击 7 + 格挡 5 / 咆哮后格挡 6 不是 11 各自预览 = HP 差、猛击的格挡顶住玩家 6 点攻击只掉 1、咆哮后咬 14 与第二圈猛击 10、2 层虚弱咬 8、双段 3 + 3 对易伤玩家 4 + 4 = 8 不是 9、空行动预览 0 且 HP 不变、99 层中毒毒死后 Victory 且指针仍在 `Actions[0]`、玩家持"任何 Buff +1"替身时颚虫自己的力量仍是 3；`EnemyActionDataTests` 7 项：Damage + Block / ApplyBuff Self 通过，空 / Draw / ApplyBuff Opponent 拒绝，内层错误带下标透传，`ToAction` 保序；`IntentFormatterTests` 10 项：单攻击、攻击 + 防御、增益 + 防御、攻击 + 减益、双段合一、治疗归增益、双格挡去重、空 → 待机、首次出现顺序、null 抛异常），以及回合型 Buff（`BuffTests` 4 项：虚弱轮末减 1、刚施加只跳过第一次、易伤同、只有虚弱 / 易伤是 `IRoundEndTrigger`；`BuffFactoryTests` 2 项：`justApplied` 对虚弱生效 / 默认不带、对力量被忽略；`CombatantStateTests` 2 项：`RemoveExpiredBuffs` 删 0 层留其余、叠加保留原实例且保护不刷新；`BattleSessionTests.RoundEnd.cs` 9 项——痛击 2 层覆盖本回合与下回合再移除、玩家上的虚弱压低这一下后轮末消失、耙后虚弱活到下一回合（玩家攻击预览 4）再消失、`[耙, 耙, 待机, 待机]` 层数 1 / 1 / 0 与预览 4 / 4 / 6、敌人给自己上易伤轮末不减且下一回合预览 9、中毒轮末不减（3 → 2）、中毒自减到 0 后轮末出字典、玩家自带虚弱无保护轮末消失、失败时不执行轮结束；`EnemyActionDataTests` 的 ApplyBuff Opponent 用例由拒改通过）。
 
-**范围外（后续版本或候选池，未实现）**
+**候选池与演示前清单（未实现）**
 
 - 脆弱、再生、金属化等其它带时间语义的 Buff，`OnTurnEnd`（角色行动结束）时机，负层力量（缴械），人工制品（取消一次施加，需要极性标记），"叠加刷新保护"的变体——都没有消费者。战后三选一已在 1.3 完成（奖励池三张、可跳过；无遗物奖、无升级、无移除）。
 - 敌人的随机行动 / "不能连用同一招"（需要第二个随机源，1.0 之后随 Run 种子考虑）、敌人回合的分段动画 / 异步、Core 里的意图枚举或行动名字字段、沉睡 / 眩晕等意图变体（配置层暂不允许空行动，眩晕是"行动存在、执行前作废"，属于 Session 流程层）、第三只敌人。
@@ -98,7 +98,6 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - Phase 2c：RuleSystem —— [游戏设计](Docs/开发计划/Ver%200.x/0.1/Phase%202c/游戏设计.md) / [技术设计](Docs/开发计划/Ver%200.x/0.1/Phase%202c/技术设计.md) / [TODO](Docs/开发计划/Ver%200.x/0.1/Phase%202c/TODO.md)
 - 架构思路（启动期评审，部分已过时，见文首状态）：[`Docs/设计思路.MD`](Docs/设计思路.MD)
 - 杀戮尖塔机制研究：[`Docs/杀戮尖塔机制研究.md`](Docs/杀戮尖塔机制研究.md)；局内规则对照表：[`Docs/详细游戏设计文档参考/README.md`](Docs/详细游戏设计文档参考/README.md)；扩展边界批注：[`Docs/Phase 2 扩展边界批注.md`](Docs/Phase%202%20扩展边界批注.md)
-- AI 协作分工：[`Docs/AI协作分工.md`](Docs/AI协作分工.md)
 
 ## 开发工作流
 
@@ -129,7 +128,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 - `Assets/Scripts/Tests/EditMode/`：`Core`、`Data` 校验与纯函数 View（卡面文案、意图文案）的 EditMode 单元测试（`Tests.asmdef` 同时引用 `Runtime` 与 `CardRPGFramework.Core`；`BattleSessionTests` 的七个 partial 在 `BattleSession/` 子目录；`RunStateTests` 在 `Run/` 子目录；根目录到 15 个测试文件，0.7 起新文件进子目录）。Controllers/带 MonoBehaviour 的 Views 是薄封装/展示层，按技术设计文档的测试策略不做单元测试，靠 Play 模式手动验收。
 - `Assets/Data/Cards/`、`Assets/Data/Relics/`、`Assets/Data/Enemies/`、`Assets/Data/Runs/`：运行时 ScriptableObject 配置资产（攻击/防御/治疗/力量强化（能力）/剧毒/虚弱/易伤/痛击/双击/剑柄打击/坚不可摧（消耗）共 11 种卡牌；金刚杵/蛇颅骨/纸鹤三件遗物；颚虫 / 固定攻击敌人 / 蓝奴隶贩子三份 `EnemyData`；`Runs/Default`：80 血、10 张起始牌、1 件金刚杵、三场 颚虫 / 蓝奴隶贩子 / 颚虫、奖励池 9 张可获得卡）。
 - `Assets/Scenes/`：Unity 场景，`TestScene` 是 Run 壳（Start / Map / Combat / Reward / Result + 常驻顶栏；`RunController` + `BattleController`）。
-- `Docs/`：设计文档。`开发计划/` 按版本存放各版本的游戏设计 / 技术设计 / TODO（`Ver 0.x/0.1/` 是已完成的 Phase 1 / 2 与历史 MVP 计划）；`详细游戏设计文档参考/` 是杀戮尖塔局内规则对照表；根目录是跨版本的机制研究、扩展边界批注、AI 协作分工与启动期设计思路。
+- `Docs/`：设计文档。`开发计划/` 按版本存放各版本的游戏设计 / 技术设计 / TODO（`Ver 0.x/0.1/` 是已完成的 Phase 1 / 2 与历史 MVP 计划）；`详细游戏设计文档参考/` 是杀戮尖塔局内规则对照表；根目录是跨版本的机制研究、扩展边界批注与启动期设计思路。
 - `Packages/`：Unity Package Manager 依赖清单。
 - `ProjectSettings/`：Unity 工程设置。
 
