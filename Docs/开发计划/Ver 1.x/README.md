@@ -99,7 +99,7 @@
 
 ## 1.4 Core.asmdef（可选）
 
-把 `Core` 拆成独立程序集（`Core.asmdef`，零 `UnityEngine` 引用），让"纯 C# 战斗规则"从约定变成编译约束；`Data` / `Controllers` / `Views` 留在 Unity 侧。不为它倒逼 1.0～1.3 改引用。三件套已是草稿，进入前对照 1.3 实现复核后再转正。
+把 `Core` 拆成独立程序集（`Core.asmdef`，零 `UnityEngine` 引用），让"纯 C# 战斗规则"从约定变成编译约束；`Data` / `Controllers` / `Views` 留在 Unity 侧。不为它倒逼 1.0～1.3 改引用。三件套已转正，按 TODO 第 1 节开工。
 
 ## 演示前清单（不是版本）
 

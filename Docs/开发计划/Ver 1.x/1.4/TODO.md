@@ -1,6 +1,6 @@
-# 1.4 TODO：Core.asmdef（草稿）
+# 1.4 TODO：Core.asmdef
 
-> **草稿。** 1.3 的 TODO 全部勾完并提交推送之前，不要做本节。进入本版前先勾技术设计第 9 节。
+> **已转正。** 1.3 已提交推送。第 0 节与技术设计第 9 节已勾。实现从第 1 节开始。
 >
 > **预计 0.5～1 个有效开发日。** 风险：asmdef 放在 `Runtime/` 根（把 UI 卷进零引擎程序集）；Tests 漏引 Core（测试工程找不到 `RunState`）；为通过编译去清 `Library`。
 
@@ -8,9 +8,9 @@
 
 ## 0. 开始前检查与复核
 
-- [ ] 1.3 已提交推送；总设计第 8 节已勾；短 Run Play 路径含奖励页。
-- [ ] 对照技术设计第 9 节：Core 全树无 `UnityEngine`；`CreateRewardChoices` 用 `System.Random`；`RewardPageView` 不在 `Core/`。
-- [ ] `noEngineReferences: true` 与程序集名 `CardRPGFramework.Core` **[已定]**。不要改成短名 `Core`，也不要用「不写引擎引用」代替该字段。
+- [x] 1.3 已提交推送；总设计第 8 节已勾；短 Run Play 路径含奖励页。
+- [x] 对照技术设计第 9 节：Core 全树无 `UnityEngine`；`CreateRewardChoices` 用 `System.Random`；`RewardPageView` 不在 `Core/`。
+- [x] `noEngineReferences: true` 与程序集名 `CardRPGFramework.Core` **[已定]**。不要改成短名 `Core`，也不要用「不写引擎引用」代替该字段。
 
 **阶段门槛：** 第 9 节清单已按 1.3 实现勾完。**可以进第 1 节。**
 
@@ -36,7 +36,7 @@
 - [ ] 更新 [`../../../../README.md`](../../../../README.md)：当前阶段改为 1.4 已完成（可选）；目录说明加上 `Core.asmdef`。
 - [ ] 更新 [`../README.md`](../README.md)：1.4 节标「（已完成）」并补摘要。
 - [ ] 更新 [`../../README.md`](../../README.md)：路线总览 1.4 标已完成；文档地图；第 2 节按细化规则——1.4 之后无下一个小版本三件套，只剩候选池与演示前清单。
-- [ ] 本文与游戏设计 / 技术设计文首去掉「草稿」，改标已转正。
+- [x] 本文与游戏设计 / 技术设计文首去掉「草稿」，改标已转正。
 - [ ] 提交。
 
 ## 范围控制
