@@ -2,7 +2,7 @@
 
 使用 Unity 与 C# 开发的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、战斗规则与客户端工程化能力，不追求商业级内容量。1.4 之后没有下一个小版本。版本路线见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。
 
-**下载。** [Windows 包 `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)（`CardRPGFramework.7z`，Windows 10/11 x64）。解压后运行 `CardRPGFramework.exe`：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。默认窗口 1600×900，可缩放，Alt+Enter 全屏。
+**下载。** [Windows 包 `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)（`CardRPGFramework.7z`，Windows 10/11 x64）。解压后运行 `CardRPGFramework.exe`：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。默认窗口 1600×900，可缩放，Alt+Enter 全屏。演示视频 `demo.mp4` 在同一 Release。本地成片在 `Demo/demo.mp4`，该目录不进 git。
 
 **运行。** 打开 `Assets/Scenes/TestScene.unity` 点 Play：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。
 
@@ -57,11 +57,11 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 **1.4（`Core.asmdef`，可选）已完成**：`Assets/Scripts/Runtime/Core/Core.asmdef` 程序集名 `CardRPGFramework.Core`，`noEngineReferences: true`。`Runtime.asmdef` 与 `Tests.asmdef` 显式引用它。不搬家、不改命名空间、不改玩法。测试仍 320 项，0.x～1.3 断言未改。
 
-对照历史计划 [`MVP计划与迭代计划.MD`](Docs/开发计划/Ver%200.x/0.1/MVP计划与迭代计划.MD) 的完成标准：战斗可玩、卡牌数量（早期牌组 18 张；短 Run 起始牌组是 10 张）、5 种效果（伤害/格挡/治疗/HP Loss/Buff）、规则系统、简单 AI（0.6 的固定循环行动表，不做随机）均已达成；Buff 目前 4 种；配置驱动（Luban）不再按该文档的 Phase 3 推进，见 [`Docs/开发计划/Ver 1.x/README.md`](Docs/开发计划/Ver%201.x/README.md) 文末候选池。
+对照历史计划 [`MVP计划与迭代计划.MD`](Docs/开发计划/Ver%200.x/0.1/MVP计划与迭代计划.MD) 的完成标准：战斗可玩、卡牌数量（早期牌组 18 张；短 Run 起始牌组是 10 张）、5 种效果（伤害/格挡/治疗/上 Buff/抽牌）、规则系统、简单 AI（0.6 的固定循环行动表，不做随机）均已达成；Buff 目前 4 种；配置驱动（Luban）不再按该文档的 Phase 3 推进，见 [`Docs/开发计划/Ver 1.x/README.md`](Docs/开发计划/Ver%201.x/README.md) 文末候选池。
 
 **已完成**
 
-- `RunState` / `BattleInput` / `NodeType`（`Core/Run`）：一局局外状态。`CreateBattleInput` 返回五字段快照，不 `new BattleSession`；`ApplyResult` 只写胜负与剩余生命；`AddCard` 通关后仍允许。金币恒 0。节点带 `NodeType`（本版只有 `Combat`），`CurrentNodeType` 在 `IsOver` 时抛。
+- `RunState` / `BattleInput` / `NodeType`（`Core/Run`）：一局局外状态。`CreateBattleInput` 返回五字段快照，不 `new BattleSession`；`ApplyResult` 胜利写 `CurrentHp` 并推进节点，失败只 `IsFailed = true`、不写 `CurrentHp`；`AddCard` 通关后仍允许。金币恒 0。节点带 `NodeType`（本版只有 `Combat`），`CurrentNodeType` 在 `IsOver` 时抛。
 - `RunController` / `RunConfig`：Play 唯一开战真相。`RunConfig` 产出 `RunState`（空牌组拒、恰好 3 敌人、生命 / 能量 / 手牌不写类型默认值；奖励池至少 3 张、拒绝打击 / 防御与重复 Id）。`RunController` 持有唯一一份 `RunConfig` 与当前 `RunState`；`StartRun` 上地图、`EnterCurrentNode` 按类型分发、`PlayCard` / `EndTurn` / `SelectReward` / `SkipReward` / `Restart`；无 `Update`。产品侧 `Begin` 只在 `EnterCurrentNode`。结束写回只在 `ApplyOutcomeIfEnded`：胜利先 `ApplyResult` 再 `DiscardSession` 上奖励页，选完或跳过后未通关回地图、通关才 Result；失败不经奖励页。
 - `BattlePhase`：战斗阶段枚举（`NotStarted` / `PlayerTurn` / `EnemyTurn` / `Victory` / `Defeat`）。
 - `CombatantState`：生命值、格挡、治疗与边界；构造允许 `(maxHp, currentHp)`（当前生命 `> 0` 且 `≤ max`），单参仍满血。
@@ -84,7 +84,7 @@ Phase 2（ActionSystem/EffectSystem/BuffSystem/RuleSystem）拆分成 [Phase 2a]
 
 **候选池（不排序）与演示前清单（不是版本）**
 
-商店、Luban 在候选池。讲解稿和演示视频在演示前清单。Windows 包在 Release [`v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)。
+商店、Luban 在候选池。口述在 Docs-Backup 的求职参考，不在本仓库另写讲解稿。演示视频在演示前清单。Windows 包在 Release [`v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)。
 
 - 脆弱、再生、金属化等其它带时间语义的 Buff，`OnTurnEnd`（角色行动结束）时机，负层力量（缴械），人工制品（取消一次施加，需要极性标记），"叠加刷新保护"的变体——都没有消费者。战后三选一已在 1.3 完成（奖励池三张、可跳过；无遗物奖、无升级、无移除）。
 - 敌人的随机行动 / "不能连用同一招"（需要第二个随机源，1.0 之后随 Run 种子考虑）、敌人回合的分段动画 / 异步、Core 里的意图枚举或行动名字字段、沉睡 / 眩晕等意图变体（配置层暂不允许空行动，眩晕是"行动存在、执行前作废"，属于 Session 流程层）、第三只敌人。

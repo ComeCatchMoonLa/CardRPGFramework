@@ -120,9 +120,9 @@
 面试演示前再做，不加玩法、不占版本号。一次做一条。
 
 - [x] 根 README 收口：架构、边界、测试数、运行方式。
-- [ ] 更新 Docs-Backup 的求职参考（已定的六条为什么）。不在本仓库另写讲解稿。
+- [x] 更新 Docs-Backup 的求职参考（答辩笔记 3.1–3.9）。不在本仓库另写讲解稿。
 - [x] 可运行包，并更新 GitHub 上的仓库说明。中文用动态 Maple Mono（8192 图集，Multi Atlas）。
-- [ ] 演示视频。简历中的项目描述（简历不在仓库里）。
+- [x] 演示视频 `demo.mp4`（[Release `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)；本地 `Demo/demo.mp4` 不进 git）。简历中的项目描述（简历不在仓库里）。
 
 不做：HybridCLR / 热更（没有线上包与配表更新流程，只剩关键词）。
 
