@@ -1,43 +1,25 @@
 ---
-description: CardRPGFramework 项目背景与架构约束（本项目专属）
+description: CardRPGFramework 项目背景与架构约束
 alwaysApply: true
 ---
 
 # 项目背景
 
-Unity + C# 编写的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、复杂战斗规则与客户端工程化能力，不追求商业级内容量。核心玩法主干是牌堆/手牌、能量、格挡、敌人意图和回合制卡牌战斗。项目按版本推进，入口是 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。做该入口指向的**当前最小未完成版本**的 `游戏设计.md` / `技术设计.md` / `TODO.md`（大纲里节标题尚未标「（已完成）」的那一节）。哪些版本已完成、大版本总设计在哪，都以开发计划文档为准，**不在本规则里维护进度或版本号**——发版只改开发计划，不必回头改这条。大纲里没有未标「（已完成）」的节时，不从候选池或演示前清单开工，除非用户指定新开一版。
+Unity + C# 编写的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、复杂战斗规则与客户端工程化能力，不追求商业级内容量。核心玩法主干是牌堆/手牌、能量、格挡、敌人意图和回合制卡牌战斗。项目按版本推进，入口是 [Docs/开发计划/README.md](../../Docs/开发计划/README.md)；做哪一版、从哪开工由风险控制规则（[cardrpg-risk-control](cardrpg-risk-control.mdc)）定义，进度与版本号不写进本规则。
 
-> 下面这张图是**启动期设想的终态**架构（`Docs/设计思路.MD`），其中 AttributeSystem / EventSystem / ReplaySystem / UIFramework 已在 `Docs/Phase 2 扩展边界批注.md` 第 5 节否决或降为候选，不要实现。**不要假设某个模块已经实现**——先用工具检查 `Assets/Scripts/` 下实际有什么，再决定怎么做，避免凭空引用不存在的类/命名空间。找不到已有类型时，不要为了通过编译创建临时代替实现。当前需求、技术边界和进度以当前版本的三件套为准；技术设计里标 **[待确认]** 的接口形状由用户决定，不要自行选择。
+[Docs/设计思路.MD](../../Docs/设计思路.MD) 是启动期设想的终态架构，不是现状，不要按它写代码。**不要假设某个模块已经实现**——先用工具检查 `Assets/Scripts/` 下实际有什么再决定，避免凭空引用不存在的类/命名空间；找不到已有类型时，不要为了通过编译创建临时代替实现。第 5 节「明确不做」表里的项以 [Docs/Phase 2 扩展边界批注.md](../../Docs/Phase%202%20扩展边界批注.md) 该表为准。终态框图里的回放和大型 UI 框架不在这张表，见 [默认不做](../../Docs/开发计划/Ver%201.x/README.md#默认不做)。当前需求、技术边界和进度以当前版本的 `游戏设计.md` / `技术设计.md` / `TODO.md` 为准；技术设计里标 **[待确认]** 的接口形状由用户决定，不要自行选择。
 
-```text
-CardRPGFramework
-├── BattleCore
-├── TurnSystem
-├── ActionSystem
-├── CardSystem
-├── EffectSystem   # 主动发生的事情（如"火球造成伤害"）
-├── RuleSystem     # 修改规则本身（如"火焰伤害+20%"）← 核心优势模块
-├── BuffSystem
-├── AttributeSystem
-├── EventSystem
-├── ConfigSystem (Luban)
-├── ReplaySystem
-└── UIFramework
-```
-
-未进入的版本对应的模块不要提前搭空壳（见通用原则"不要过度设计"）。
-
-地基必须保证：战斗状态由纯 C# Core 统一管理，UI 不能直接修改战斗数据，配置通过稳定 ID 转换为运行时定义。不要为了“通用 RPG 框架”偏离《杀戮尖塔》式卡牌战斗主线，也不要提前实现后续版本的系统。机制事实以 `Docs/详细游戏设计文档参考/` 与 `Docs/杀戮尖塔机制研究.md` 为准，挂钩位置以 `Docs/Phase 2 扩展边界批注.md` 为准。
+地基必须保证：战斗状态由纯 C# Core 统一管理，UI 不能直接修改战斗数据，配置通过稳定 ID 转换为运行时定义。不要为了“通用 RPG 框架”偏离《杀戮尖塔》式卡牌战斗主线。机制事实以 [Docs/详细游戏设计文档参考/](../../Docs/详细游戏设计文档参考/README.md) 与 [Docs/杀戮尖塔机制研究.md](../../Docs/杀戮尖塔机制研究.md) 为准，挂钩位置以 [Docs/Phase 2 扩展边界批注.md](../../Docs/Phase%202%20扩展边界批注.md) 为准。
 
 # 架构约束（写代码时最容易搞混的几个边界）
 
-- `EffectSystem` 只负责执行具体效果（造成伤害、施加 Buff 等）；`RuleSystem` 只负责修改规则/公式/属性计算方式，不直接执行战斗动作。新代码涉及"做事"还是"改规则"时先判断放哪层。
-- `EffectSpec`（`Core/Cards`）只描述"做什么、对谁、多少"，不执行；把它变成 `IAction` 的地方只有 `BattleSession.ToAction`。效果原语 `EffectKind` 是封闭枚举：加一张卡 = 配一份 `CardData`，不加任何分支；只有新增一种原语才改 `ToAction` 的 `switch`。
+- `Core.Effects` 只负责执行具体效果（造成伤害、施加 Buff 等，只改 `CombatantState`）；`Core.Rules` 只负责修改规则/公式（`IDamageRule` / `DamageCalculator`），不直接执行战斗动作。新代码涉及“做事”还是“改规则”时先判断放哪层。
+- `EffectSpec`（`Core/Cards`）只描述“做什么、对谁、多少”，不执行；把它变成 `IAction` 的地方只有 `BattleSession.ToAction`。效果原语 `EffectKind` 是封闭枚举：加一张卡 = 配一份 `CardData`，不加任何分支；只有新增一种原语才改 `ToAction` 的 `switch`。
 - 依赖方向：`Core.Cards` 不引用 `Core.Actions` / `Core.Buffs`（`EffectSpec` 里的 Buff 只是字符串 Id，由 `BuffFactory` 解析）；`Core.Effects` 只改 `CombatantState`、不引用 `Core.Cards`——改牌堆的动作（如抽牌）由 Action 直接持有 `CardPile`，不设 Effect。
-- 打出时序是"先离手（`CardPile.TakeFromHand`）→ 结算 → 再落堆（`AddToDiscard`）"，打出中的牌不在任何牌区；不要再加"移出并立刻进弃牌"的组合方法。
-- 战斗数值优先来自 `ConfigSystem` 解析结果，不要硬编码在逻辑类中。
+- 打出时序是“先离手（`CardPile.TakeFromHand`）→ 结算 → 再按 `ExhaustsWhenPlayed` 落堆（`AddToExhaust` 或 `AddToDiscard`）”，打出中的牌不在任何牌区；不要再加“移出并立刻进弃牌”的组合方法。
+- 卡牌、敌人的内容数值来自 `CardRPGFramework.Data`，经 `ToDefinition()` 进 Core。遗物资产只有 Id 和显示名，经 `RelicData.ToState()` / `RelicFactory` 落地；遗物改到的数字留在对应 Core 类。公式常数留在对应的 `Core.Rules` 类里。Core 不引用这些资产。
 
 # 目录约定
 
-- C# 命名空间与 `Assets/Scripts/` 下的文件夹结构一一对应。
-- 只创建当前版本任务实际需要的目录；新模块随版本推进再创建。现有模块以 `Assets/Scripts/` 实际目录为准，不要按终态框图预建空壳。
+- 运行时代码的命名空间以 `CardRPGFramework` 开头，对应 `Assets/Scripts/Runtime/` 下一级起的文件夹（`Runtime/Core/Effects` → `CardRPGFramework.Core.Effects`）；路径里的 `Runtime` 不进命名空间。测试统一 `CardRPGFramework.Tests`，不跟 `Tests/EditMode` 子目录走。
+- 现有模块以 `Assets/Scripts/` 实际目录为准；只创建当前版本任务实际需要的目录，新模块随版本推进再创建。
