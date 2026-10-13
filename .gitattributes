@@ -1,3 +1,7 @@
+# 文本文件入库和检出都用 LF，与 .editorconfig 一致。
+# text=auto 跳过 Git 判定为二进制的文件，避免 png、ttf 被改写。
+* text=auto eol=lf
+
 # Unity/插件自带的 Shader、字体等资源文件不代表本项目的实际代码构成，
 # 标记为 vendored，避免 GitHub 语言统计把它们算作项目主要语言。
 *.shader linguist-vendored
