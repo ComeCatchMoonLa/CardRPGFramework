@@ -24,6 +24,6 @@ YAGNI 管「别提前建」。本规则管「别把缺测试、范围膨胀、�
 ## 硬停
 
 1. **范围**：从 [Docs/开发计划/README.md](../../Docs/开发计划/README.md) 指向的当前最小未完成版本开工，做大纲里节标题尚未标「（已完成）」的那一节的 `游戏设计.md` / `技术设计.md` / `TODO.md`。当前小版本 `TODO.md` 没有的玩法/系统/内容不实现；其「范围控制」里的想法默认不写代码。用户要把后续版本或其中某条提前时，先标明这会打乱 [Docs/开发计划/README.md](../../Docs/开发计划/README.md) 的顺序，用户仍明确要做再动。阻止本版本验收的缺陷可以修；顺手重构不行。大纲里没有未标「（已完成）」的节时，不从候选池或演示前清单开工，除非用户指定新开一版。
-2. **测试**：改 `Assets/Scripts/Runtime/Core/` 下的结算行为，同一切片必须有对应 `Assets/Scripts/Tests/EditMode/` 测试（新增或更新），没测试视为未完成。
+2. **测试**：改 `Assets/Scripts/Runtime/Core/` 下的结算行为，同一切片必须有对应 `Assets/Scripts/Tests/EditMode/` 测试（新增或更新），没测试视为未完成。需要由 Agent 跑 EditMode 验收时，执行 `powershell -NoProfile -ExecutionPolicy Bypass -File Tools/RunEditModeTests.ps1`。这一次调用的等待盖住脚本的 10 分钟。该脚本返回 `PASS`、`FAIL`、`PROJECT_OPEN`、`START_FAILED`、`TIMEOUT`。不要先按进程名判断 Editor 是否打开。不要轮询，不要加 sleep。`PROJECT_OPEN` 和 `START_FAILED` 就停，不重试，不结束用户正在使用的 Unity Editor。Editor 开着、正在修改代码时不调用该脚本。这次没有调用该脚本，不要把 EditMode 用例写成已经通过。Console 没有错误只表示编译通过，不代表用例通过。
 3. **切片**：单次改动不超过当前 TODO 一个可单独验收的切片（可以是一整节；不要一次做完整个小版本）。
 4. **依赖与流程**：不要引入当前技术设计未点名的第三方库；不要主动新建风险登记表或风险管理流程文档——应对写进版本三件套与测试。
