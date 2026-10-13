@@ -32,7 +32,7 @@
 | 已有 | 说明 |
 | --- | --- |
 | 残血开战 | `BattleSetup` 三参仍满血，四参当前生命 `> 0` 且 `≤ max`；`CombatantState(max, current)` 同一条边界；Session 用快照当前生命开战，敌人仍满血，构造签名不变 |
-| `Core.Run` | `RunState` / `BattleInput`；`CreateBattleInput` 浅拷贝牌组、每场 `RelicFactory.Create`、种子 `unchecked(runSeed * 397 ^ nodeIndex)`，不洗牌、不预支 `Random.Next` |
+| `Core.Run` | `RunState` / `BattleInput`；`CreateBattleInput` 浅拷贝牌组、每场 `RelicFactory.Create`、种子 `unchecked((runSeed * 397) ^ nodeIndex)`（`^` 为按位异或），不洗牌、不预支 `Random.Next` |
 | 写回 | `ApplyResult` 必须先发输入、每节点一次；胜利写血并推进，失败不写不推进；`AddCard` 只拒 null / 失败，通关后仍允许 |
 | 测试 | 302 项 EditMode（0.x 的 263 项不改断言；残血构造 11 项；`Tests/EditMode/Run/RunStateTests.cs` 28 项）。`Core/Run/` 无 `new BattleSession` |
 
@@ -87,7 +87,7 @@
 
 | 已有 | 说明 |
 | --- | --- |
-| `CreateRewardChoices` | `Core.Run`；`unchecked(runSeed * 389 ^ (NodeIndex - 1))`；Fisher-Yates 取前 3；`IsCleared` 后仍能抽；不碰战斗 `Random` |
+| `CreateRewardChoices` | `Core.Run`；`unchecked((runSeed * 389) ^ (NodeIndex - 1))`（`^` 为按位异或）；Fisher-Yates 取前 3；`IsCleared` 后仍能抽；不碰战斗 `Random` |
 | `RunConfig.rewardPool` | 至少 3 张；拒 `Attack` / `Defend` 与重复 Id；`Default` 配 9 张可获得卡 |
 | `RunController` | Victory 一律 `ShowReward`；`RewardChoices` 兼等待标志；`AddCard` 只在 `SelectReward`；`Begin` 仍只在 `EnterCurrentNode` |
 | 奖励 UI | `RewardPageView` 三行卡面（无预览 `Format`）；类型中文 `CardTypeDisplayNames`；顶栏奖励页读 Run |
