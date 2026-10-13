@@ -17,6 +17,7 @@
 - **0.1 = Phase 1 + Phase 2a/2b/2c**，已完成。文档在 [`Ver 0.x/0.1/`](Ver%200.x/0.1/)，其中 [`MVP计划与迭代计划.MD`](Ver%200.x/0.1/MVP计划与迭代计划.MD) 是当时的总计划，现在只当历史。
 - **一个小版本 = 一条能独立验收、能多讲清一个边界的功能**，按功能切、不按工期切：体量可以从一两天到四五天不等。有硬耦合的东西（没有 A 则 B 是空接口或测不出正确语义）捆在同一版，其余各自成版。沿用 `游戏设计.md` / `技术设计.md` / `TODO.md` 三件套。
 - 小版本完成的标志：TODO 全部勾完、验收标准满足、EditMode 全绿、提交并推送。
+- EditMode 盖住 Core、Data 校验和纯函数 View（卡面文案、意图文案）。壳、地图页、奖励页，以及「第二场开局生命等于第一场结束生命」「奖励页选中的卡下一场能抽到」，在 `RunController` 上，靠打开 `Assets/Scenes/TestScene.unity` 点 Play。`RunConfig.TryValidate` 不写 EditMode。引擎版本与 Test Runner 步骤在仓库根 README。
 
 ## 2. 细化深度规则
 
@@ -57,7 +58,7 @@
 候选池（不排序，不是版本）  Luban、多敌人、商店
 ```
 
-各版本的目标、范围与完成定义见 [`Ver 0.x/README.md`](Ver%200.x/README.md) 与 [`Ver 1.x/README.md`](Ver%201.x/README.md)。
+各版本的目标、范围与完成定义见 [`Ver 0.x/README.md`](Ver%200.x/README.md) 与 [`Ver 1.x/README.md`](Ver%201.x/README.md)。版本记录就是上面的路线总览：再开小版本时在这里加一行。
 
 ## 4. 三条总原则
 

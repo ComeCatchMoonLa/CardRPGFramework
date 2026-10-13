@@ -2,7 +2,7 @@
 
 使用 Unity 与 C# 开发的**简化版《杀戮尖塔》求职 Demo**，重点展示数据驱动、战斗规则与客户端工程化能力，不追求商业级内容量。1.4 之后没有下一个小版本。版本路线见 [`Docs/开发计划/README.md`](Docs/开发计划/README.md)。
 
-**下载。** [Windows 包 `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)（`CardRPGFramework.7z`，Windows 10/11 x64）。解压后运行 `CardRPGFramework.exe`：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。默认窗口 1600×900，可缩放，Alt+Enter 全屏。演示视频 `demo.mp4` 在同一 Release。本地成片在 `Demo/demo.mp4`，该目录不进 git。发布包 tag 是 `v1.0-demo`，文内版本记录到 1.4，两套编号不是一回事。
+**下载。** [Windows 包 `v1.0-demo`](https://github.com/ComeCatchMoonLa/CardRPGFramework/releases/tag/v1.0-demo)（`CardRPGFramework.7z`，Windows 10/11 x64）。解压后运行 `CardRPGFramework.exe`：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。默认窗口 1600×900，可缩放，Alt+Enter 全屏。演示视频 `demo.mp4` 在同一 Release。本地成片在 `Demo/demo.mp4`，该目录不进 git。发布包 tag 是 `v1.0-demo`。文档版本到 1.4，版本记录在 [`Docs/开发计划/README.md`](Docs/开发计划/README.md) 的路线总览。两套编号不是一回事。
 
 **运行。** 打开 `Assets/Scenes/TestScene.unity` 点 Play：开始页经地图打完三场，场间经奖励页回地图，第三场经奖励页去结束页。
 
