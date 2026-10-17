@@ -1,6 +1,7 @@
 # Drop the previous result before launch so a failed start cannot be read as the last PASS.
 # On timeout, stop only this process tree. Stopping Unity.exe by name would close the user's editor.
-# Do not redirect Unity's stdout. Start-Process then leaves ExitCode empty, and a real pass becomes START_FAILED. -logFile already keeps the editor log.
+# Do not redirect Unity's stdout. -logFile already keeps the editor log.
+# PASS follows the result file. Unity can exit non-zero during shutdown after the test framework prints "Exiting with code 0 (Ok)".
 
 $ErrorActionPreference = 'Stop'
 
@@ -213,7 +214,7 @@ if ($hasFreshResults) {
         Exit-WithSummary -Code 1 -Lines $lines
     }
 
-    if ($exitCode -eq 0 -and $failedCount -eq 0 -and $passedCount -gt 0) {
+    if ($failedCount -eq 0 -and $passedCount -gt 0) {
         Exit-WithSummary -Code 0 -Lines @(
             'Unity EditMode Tests: PASS'
             ''
@@ -226,11 +227,7 @@ if ($hasFreshResults) {
         )
     }
 
-    if ($passedCount -eq 0 -and $failedCount -eq 0) {
-        Format-StartFailed -Reason 'no tests ran' -ExitCode $exitCode
-    }
-
-    Format-StartFailed -Reason "exit code $exitCode with no failed tests" -ExitCode $exitCode
+    Format-StartFailed -Reason 'no tests ran' -ExitCode $exitCode
 }
 
 if (Test-Path -LiteralPath $LogPath) {
